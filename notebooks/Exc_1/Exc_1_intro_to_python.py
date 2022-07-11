@@ -15,7 +15,10 @@
 
 # +
 import numpy as np
-import matplotlib.pyplots as plt
+import matplotlib.pyplot as plt
 
 plt.style.use(plt.style.available[20])
-plt.style.use("https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/plot_style.txt")
+plt.style.use("https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/plots_style.txt")
+# -
+
+
