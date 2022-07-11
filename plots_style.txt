@@ -2,7 +2,7 @@ figure.figsize : 8, 6
 lines.linewidth : 2
 axes.grid : True
 grid.linewidth : 0.5
-font.san-serif : ['DejaVu Sans']
+font.sans-serif : ['DejaVu Sans']
 axes.spines.right : False
 axes.spines.top : False
 axes.prop_cycle : cycler('color', ['#ff7f00','#984ea3','#4daf4a'])
