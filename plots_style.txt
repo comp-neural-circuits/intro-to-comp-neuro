@@ -1,7 +1,12 @@
 figure.figsize : 8, 6
+figure.frameon : False
 lines.linewidth : 2
+scatter.edgecolors: None
 axes.grid : True
-grid.linewidth : 0.5
+axes.titleweight : bold 
+axes.labelweight : bold
+axes.labelpad : 5.0
+grid.linewidth : 0.25
 axes.spines.right : False
 axes.spines.top : False
-axes.prop_cycle : cycler('color',['e41a1c','377eb8','4daf4a','984ea3','ff7f00','999999'])
+axes.prop_cycle: cycler('color', ['0570b0', '33a02c', 'e31a1c', 'ff7f00', '6a3d9a', 'a6cee3', 'b2df8a', 'fb9a99', 'fdbf6f', 'cab2d6'])
