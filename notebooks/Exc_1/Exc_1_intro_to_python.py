@@ -13,5 +13,9 @@
 #     name: intro-to-comp-neuro
 # ---
 
+# +
 import numpy as np
 import matplotlib.pyplots as plt
+
+plt.style.use(plt.style.available[20])
+plt.style.use("https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/plot_style.txt")
