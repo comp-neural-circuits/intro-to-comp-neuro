@@ -16,7 +16,6 @@
 # # hodgkin–huxley model
 
 # +
-# !pip install numpy scipy matplotlib ipywidgets scikit-learn panel --quiet
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -34,7 +33,6 @@ mpl.rcParams['axes.spines.top'] = False
 mpl.rcParams['axes.prop_cycle'] = cycler('color', ['#ff7f00','#984ea3','#4daf4a'])
 
 
-# change here
 
 # %matplotlib inline
 # -
