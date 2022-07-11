@@ -5,4 +5,4 @@ grid.linewidth : 0.5
 font.sans-serif : ['DejaVu Sans']
 axes.spines.right : False
 axes.spines.top : False
-axes.prop_cycle : cycler('color',['#ff7f00','#984ea3','#4daf4a'])
+axes.prop_cycle : cycler('color',['ff7f00','984ea3','4daf4a'])
