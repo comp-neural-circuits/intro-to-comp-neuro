@@ -1,7 +1,8 @@
-mpl.rcParams['lines.linewidth'] = 2
-mpl.rcParams['axes.grid'] = True
-mpl.rcParams[ 'grid.linewidth'] = 0.5
-mpl.rcParams['font.sans-serif'] = [ 'Arial']
-mpl.rcParams['axes.spines.right'] = False
-mpl.rcParams['axes.spines.top'] = False
-mpl.rcParams['axes.prop_cycle'] = cycler('color', ['#ff7f00','#984ea3','#4daf4a'])
+figure.figsize = 8, 6
+lines.linewidth = 2
+axes.grid = True
+grid.linewidth = 0.5
+font.sanserif'] = [ 'Arial']
+axes.spinesight'] = False
+axes.spinesop'] = False
+axes.prop_cycle = cycler('color', ['#ff7f00','#984ea3','#4daf4a'])
