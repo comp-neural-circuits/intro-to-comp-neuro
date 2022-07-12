@@ -1,5 +1,6 @@
-# intro-to-comp-neuro
-Intro lecture to computational neuroscience
+# Introduction to Computational Neuroscience
+
+The Excercises here accompany the lecture held in WS 22/23 at TUM
 
 |   | Run |
 | - | --- |
