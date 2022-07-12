@@ -83,9 +83,7 @@ print (words)
 #
 # Now we want to put all of this together. Follow the instructions given in the comments in the cell below. When you are done, execute the cell:
 
-# #### Excercise 
-#
-# <p style='color:#FF0000';> TODO </p>
+# #### Excercise
 
 # +
 """
@@ -93,20 +91,20 @@ Excercise 1 : In this cell we want to add two numbers and print the result.
 """
 
 # Define the first variable and assign the value 7
-first_var = 7
-# Now define the second value and assign the value 5
-second_var = 5
+...
+# Now define the second variable and assign the value 5
+...
 
 # Now you can define a third variable and assign the sum of the two values to it
-final_var = first_var + second_var
+...
 
-# And finally we print the number
-print (final_var)
+# And finally we print the result
+print (...)
 
 
 # -
 
-# [Click here for the solution](https://github.com/comp-neural-circuits/intro-to-comp-neuro/notebooks/Exc_1/solutions/solution_1.py)
+# [Click here for the solution](https://github.com/comp-neural-circuits/intro-to-comp-neuro/blob/dev/notebooks/Exc_1/solutions/solution_1.py)
 
 # ### For Loops 
 #
@@ -160,6 +158,42 @@ for step in range(3):
 #     print (variable_name)
 # ```
 #     
+# We can also use the for loop to change a variable that we defined before:
+
+# +
+defined_variable = 0
+for ii in range(4):
+    defined_variable = defined_variable + ii
+
+print ('Example 1', defined_variable)
+
+
+new_var = 10
+for ii in range(3):
+    new_var = new_var + ii * 10
+
+print ('Example 2', new_var)
+
+new_var = 10
+for ii in range(3):
+    new_var += ii * 10 # This is equivalent to Example 2
+
+print ('Example 3', new_var)
+# -
+
+# in addition, we can change lists that we defined before.
+#
+# To add a new value to a list, we can use 'append'
+#
+
+# +
+new_list = [] # we start with an empty list
+for ii in range(3):
+    new_list.append(ii) # we append the value
+
+print (new_list)
+print (len(new_list)) # we can print the length og the list as well
+# -
 
 # ### if condition
 #
@@ -172,8 +206,9 @@ for step in range(3):
 #     {code to execute}
 # ```
 #
-# Going back to the example above - we now want to run the for loop longer, but we only want to print the timesteps if they meet certain conditions
+# Going back to the example above - we now want to run the for loop longer, but we only want to print the timesteps if they meet certain conditions. Here you will notice that we now have to levels of intendation. One for the for loop and one for the if-condition.
 #
+# Feel free to play around with the cell below, but first try to understand each of the four conditions
 #
 
 # +
@@ -187,32 +222,39 @@ for step in range(40):
     if step %10 == 0:
         print(step)
         
-print ('Test condition 1')
+print ('Test condition 3')
 for step in range(40):
     if step > 35:
         print(step)
         
-print ('Test condition 1')
+print ('Test condition 4')
 for step in range(40):
     if step <= 1 or step >= 38:
         print(step)
 # -
 
-# ##### Excercise  
-#
-#
-# <p style='color:#FF0000';> TODO </p>
-#
-# They should run loops and print specific numbers
+# ##### Excercise
 
+# +
 '''
- Excercicse: Here we want to 
-'''
+ Excercicse 2: We now want to combine all the learned concepts into a small task
+ 
+ 1) Implement a for loop that goes from 0 to 50
+ 2) within this for loop we want to print the number for all values that are divisible by 10
+ 3) When the loop is finished, print how often we printed a number
+ 
+ '''
 
+# put your solution here
+...
+    
+# -
+
+# [Click here for the solution](https://github.com/comp-neural-circuits/intro-to-comp-neuro/blob/dev/notebooks/Exc_1/solutions/solution_2.py)
 
 # ## Functions
 #
-# We already know a function: 
+# Now we introduce one last concept before we arrive at LIF implentation - Functions. We already encountered a function before: 
 # ```python 
 # print()
 # ```
@@ -240,18 +282,43 @@ returned_value = example_function(a = 7)
 print (returned_value)
 # -
 
-# ##### Excercise  
+# Functions are great because they allow you to structure your code. Especially, if you write a function once, you can re-use it evrerywhere else. 
 #
+# Since there are many functions that people re-use all the time, python has so called <i>libraries</i> that provide pre-written functions so that they don't have to be re-written every time. One important library for us will be <i>numpy</i>. 
 #
-# <p style='color:#FF0000';> TODO </p>
+# To use a library we need to import it.
+# ``` python
+# import numpy
+# ```
 #
-# They should run loops and print specific numbers
+# However, for numpy it is usually done like this:
+# ```python
+# import numpy as np
+# ``` 
+# so that when we want to call a function from the numpy library, we can write
+# ```python
+# np.function_we_want_to_use()
+# ```   
+#
+# Numpy provides a variety of mathematical functions and also variables, but it is much more powerful than that as we will see later. For now, we look at a few examples:
+
+# +
+'''
+    Example numpy functions and variables
+'''
+import numpy as np
+
+print (np.sin(14))
+print (np.pi)
+print (np.cos(12*np.pi))
+print (np.e)
+# -
 
 # ## Section 1.2 The LIF model
 #
 # Great!
 #
-# Now we continue with more advanced python concepts while implementing the leaky-integrate and fire model:
+# Now we use the learned python concepts to implement the leaky-integrate and fire neuron model:
 #
 # As a reminder, here is the differential equation that describes the membrane potential of our neuron:
 #
