@@ -106,7 +106,7 @@ print (final_var)
 
 # -
 
-# [Click here for the solution](
+# [Click here for the solution](https://github.com/comp-neural-circuits/intro-to-comp-neuro/notebooks/Exc_1/solutions/solution_1.py)
 
 # ### For Loops 
 #
