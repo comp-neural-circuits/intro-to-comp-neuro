@@ -13,6 +13,17 @@
 #     name: intro-to-comp-neuro
 # ---
 
+# # From Data to a model
+
+# +
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Settings for the figures
+plt.style.use(plt.style.available[20])
+plt.style.use("https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/plots_style.txt")
+# -
+
 # # The Leaky Integrate and fire model
 #
 # Now we use the learned python concepts to implement the leaky-integrate and fire neuron model:
@@ -99,11 +110,7 @@ def v_dt (v_t, i_t, dt):
 print (v_dt(v_t = 10, i_t = 12e-11, dt = 1e-3))
 
 # + active=""
-# import matplotlib.pyplot as plt
 #
-# # Settings for the figures
-# plt.style.use(plt.style.available[20])
-# plt.style.use("https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/plots_style.txt")
 # -
 fig, ax = plt.subplots()
 ax.plot([0,1],[0.2,0.8])
