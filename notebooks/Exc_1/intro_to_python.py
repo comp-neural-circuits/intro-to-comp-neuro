@@ -15,327 +15,190 @@
 
 # # Section 1 - The leaky-integrate and fire (LIF) model and python basics
 
-# ## Section 1.1: Python basics
+# ## Section 1.1. --- -
 #
 # In order to write programs, we need a few basics: 
 #
 # We will program our scripts in python, a very versatile and widely used programming language. 
 # To execute the written programs we need a <i>python interpreter</i>. Google colab allows us to run an instance in the cloud, without the need to install anything locally on the computer. 
+#
+#
+#
 
-# ### Print
-# We will start with the infamous 'hello world' example: 
+# While learning the basics of python, we want to look at an example model taught in the lecture. The leaky integrate and fire (LIF) model. 
+# <div>
+# <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/imgs/neuron_to_circuit.png" width="750"/>
+# </div>
 #
-# You can call the interpreter to execute the code within each cell of this notebook by pressing 'shift+Enter' on your keyboard. 
+# From the lecture we know that we can describe the change of the membrane potential with the following equation:
 #
-# Try this with the next cell to print 'Hello World':
+# \begin{equation}
+# \tau_m\,\frac{dV}{dt} = - V + E_{L} + R_m\,I_e
+# \end{equation}
+#
+# We ignore the injected external current for now ($I_e = 0$) which means the equation simplifies to 
+# \begin{equation}
+# \tau_m\,\frac{dV}{dt} = - V + E_{L} \qquad (1)
+# \end{equation}
+#
+# in this equation we have three parameters, let's define them. 
 
-print ('Hello World')
+# #### Task - Execute the cell below
+# When executing a cell, the python interpreter will run the code we provide.
+#
+# When you select the cell and either press 'Run' at the top of the page or press 'shift+Enter' on the keyboard.
 
-# What happend? 
-# We called a python function ```print``` 
-# This function takes an argument which we presented within the brackets, in this case ```'Hello World'```.
-# The argument is then printed out.
+tau_m = 20 # in ms
+v = -50 # in mV
+el = -60 # in mV
+print (tau_m, v, el)
 
-# ### Variables and comments
-# You might notice the single quotes (') around Hello World, they define a data type in python that is called <i>String</i>
+# #### What happend
+# 1) We assigned values (on the right side of the equal sign) to three distinct variables (on the left of the equal sign).
 #
-# Instead of printing it directly, we now want to store the string in a variable 'words' and then print this variable. 
-# Try it by executing the following cell:
+# 2) In addition, we can comment the code by using the # symbol. Everything in the same line behind this symbol will be ignored when the code is executed.
+#
+# 3) At the end, we print the values that we just defined
 
-words = 'Hello World'
-print (words)
+# Following equation (1), we can now calculate the change in the membrane voltage per time-step. 
 
-# Great. There are two more data types we need to know:  <i>int</i> and <i>float</i>
-#
-# <i>int</i> is used for an integer, 
-# <i>float</i> is used for a float point variable,
-# <i>bool</i> is used for a boolean, to indicate True, or False - and <i>lists</i> are used for lists of variables that can consist of the other types:
-# ``` python
-# example_integer = 5
-# example_float = 1.234
-# example_boolean = True
-# example_list_1 = [1,2,3,5]
-# example_list_2 = [1.2, True, False, 4, 'hello']
-# ```
-#
-# You can see that in python, we implicitly define the variable type simply by assigning a value to the variable.
-#
-# once defined we can re-use the variables later on, as in the example above with the print function. When defining variables, it is useful to be consistent throughout your code and to follow guidelines.
-# A general guideline is [PEP8](https://peps.python.org/pep-0008/). 
-#
-# For example it is common for variable names to use lowercase letters and (if necessary) underscores between words.
-#
-# Another concept of programming is the comment:
-#
-# ``` python
-# # <- everything in the same line after this symbol is not evaluated by the interpreter
-# ```
-#
-# We can also add comments that span multiple lines (we start and end those with three quotation marks):
-# ``` python
-# """ 
-#     This is a nice comment that is so long
-#     it needs multiple lines
-# """
-# ```
-#
-# Comments can be used to describe parts of the code or give additional information.
-#
-# Now we want to put all of this together. Follow the instructions given in the comments in the cell below. When you are done, execute the cell:
+dv_dt = (-v + el)/tau_m
+print (dv_dt)
 
-# #### Excercise
+# This means the membrane potential changes by -0.5mV per ms if the membrane potential is at -50 mV. 
+#
+# After applying this change (adding -0.5mV/ms * 1ms to -50mV), we can ask again what the change is, then apply this again and so on
+
+dt = 1 # in ms
+v = -50 # in mV
+dv_dt = (-v + el)/tau_m
+print ('dv/dt', dv_dt)
+v = v + dv_dt * dt
+print ('v', v)
+dv_dt = (-v + el)/tau_m
+print ('dv/dt', dv_dt)
+v = v + dv_dt * dt
+print ('v', v)
+
+# #### What happend
+#
+# 1) We defined a new variable
+#
+# 2) We made sure that our variable defined above (v) is still at -50
+#
+# 3) calculating the instantaneous change in v
+#
+# 4) printing the calculated value, while also printing what the value is
+#
+# 5) setting v equal to its old value plus the change it experiences multiplied with our chosen timestep
+#
+# 6) printing v (and printing that we print v)
+#
+# 7) we repeat the steps 3) to 6)
+#
+# Now thinking about even more repeats of these steps leads us to a very fundamental concept of programming: 
+
+# ## Loops
+# More specifically, the for-loop.
+# Loops allow us to execute the same code multiple times. We can re-write the above code with a for-loop.
+
+# #### Task - Run the cell below, then change the number of repetitions
+#
+# Initially we execute the code block from above (2 times). You can change how often it will be repeated by changing the number in the 'range' function. Try it out.
 
 # +
-"""
-Excercise 1 : In this cell we want to add two numbers and print the result.
-"""
+dt = 1 # in ms
+v = -50 # in mV
 
-# Define the first variable and assign the value 7
-...
-# Now define the second variable and assign the value 5
-...
-
-# Now you can define a third variable and assign the sum of the two values to it
-...
-
-# And finally we print the result
-print (...)
-
-
+for ii in range(2):
+    dv_dt = (-v + el)/tau_m
+    print ('dv/dt', dv_dt)
+    v = v + dv_dt * dt
+    print ('v', v)
 # -
 
-# [Click here for the solution](https://github.com/comp-neural-circuits/intro-to-comp-neuro/blob/dev/notebooks/Exc_1/solutions/solution_1.py)
-
-# ### For Loops 
+# #### What happend
 #
-# A very versitale concept in programming is the for loop. It allows us to execute the same code multiple times, often while using different values for our parameters. 
-#
-# Let's assume we want to print three time steps (0, 1 and 2).
-#
-# In the following cell we see four distinc solutions to this problem, all with the same outcome.
-#
-
-# +
-# one option is to print every timestep
-print ('Option A')
-print (0)
-print (1)
-print (2)
-# However, you can imagine this becomes very tideous for many time steps
-
-# another option is the for loop:
-print ('Option B')
-for step in [0,1,2]:
-    print (step)
-    
-    
-# We can also use pythons 'range' function with the same result
-print ('Option C')
-start = 0
-end = 3
-stepsize = 1
-for step in range(start, end, stepsize):
-    print(step)
-
-
-# The function also has default parameters
-# if not provided, start is assumed to be 0 and stepsize to be 1
-# therefore, we can also write
-print ('Option D')
-for step in range(3):
-    print(step)
-
-# -
-
-# It is important to note the intendation that we used for the for loop. 
-#
-# Python uses intendation to structure the code. The definition of the for loop ends with a colon and everything that belongs in the loop needs to be written below with (at least, as we see later) the same intendation.
-#
-# Often, the intendation is four spaces.
-#
+# You just executed a for-loop. The most simple syntax of a for-loop is the following:
 # ```python
-# for variable_name in range(range_length):
-#     print (variable_name)
+#     for iteration_variable in values_to_iterate_through:
+#         # do something
 # ```
-#     
-# We can also use the for loop to change a variable that we defined before:
+#
+# It is important to note that we see an indentation after we defined our for-loop (and ended the line with a colon)
+#
+# Everything that is indented will be executed within the loop. 
+# You can try it out above by removing the indent for the last line. v will then be printed only when the loop is done.
+#
+# Ususally, people use four or two spaces as the indentation level (or pressing TAB).
+#
+
+# We now use the for loop to run our code from above many times and look at the final value of v
+
+# #### Task - Change the starting values
+#
+# When executing the cell below, you can now change the starting value of v. 
+#
+# However, you should see that (given we have enough repetitions), your final v should always be very close to the same value. Can you explain why this is correct?
 
 # +
-defined_variable = 0
-for ii in range(4):
-    defined_variable = defined_variable + ii
+v = -55 # in mV
 
-print ('Example 1', defined_variable)
+for ii in range(1000):
+    dv_dt = (-v + el)/tau_m
+    v = v + dv_dt * dt
 
-
-new_var = 10
-for ii in range(3):
-    new_var = new_var + ii * 10
-
-print ('Example 2', new_var)
-
-new_var = 10
-for ii in range(3):
-    new_var += ii * 10 # This is equivalent to Example 2
-
-print ('Example 3', new_var)
+print ('final v', v)
 # -
 
-# in addition, we can change lists that we defined before.
+# Until now we defined how v should evolve over time and we can see what the final v is. Ultimately, we are also interested in the values of v between the beginning and the end. Therefore, we want to save the values of v. This leads us to another variable type.
 #
-# To add a new value to a list, we can use 'append'
+# ## Lists
 #
-
-# +
-new_list = [] # we start with an empty list
-for ii in range(3):
-    new_list.append(ii) # we append the value
-
-print (new_list)
-print (len(new_list)) # we can print the length og the list as well
-# -
-
-# ### if condition
-#
-# Another important concept for programming is the if condition. It allows us to check if a certain condition is met and to execute certain code only if this is the case.
-#
-# The definition of an if-condition is again concluded with a colon and the code to execute if the condition is true is indented (again, we use four spaces)
-#
+# Lists can store multiple varibales of the same, or even of different types. A list is defined like this
 # ```python
-# if condition:
-#     {code to execute}
+#     example_list = [1,2,3]
+#     empty_list = []
 # ```
-#
-# Going back to the example above - we now want to run the for loop longer, but we only want to print the timesteps if they meet certain conditions. Here you will notice that we now have to levels of intendation. One for the for loop and one for the if-condition.
-#
-# Feel free to play around with the cell below, but first try to understand each of the four conditions
-#
-
-# +
-print ('Test condition 1')
-for step in range(40):
-    if step == 20:
-        print(step)
-        
-print ('Test condition 2')
-for step in range(40):
-    if step %10 == 0:
-        print(step)
-        
-print ('Test condition 3')
-for step in range(40):
-    if step > 35:
-        print(step)
-        
-print ('Test condition 4')
-for step in range(40):
-    if step <= 1 or step >= 38:
-        print(step)
-# -
-
-# ##### Excercise
-
-# +
-'''
- Excercicse 2: We now want to combine all the learned concepts into a small task
- 
- 1) Implement a for loop that goes from 0 to 50
- 2) within this for loop we want to print the number for all values that are divisible by 10
- 3) When the loop is finished, print how often we printed a number
- 
- '''
-
-# put your solution here
-...
-    
-# -
-
-# [Click here for the solution](https://github.com/comp-neural-circuits/intro-to-comp-neuro/blob/dev/notebooks/Exc_1/solutions/solution_2.py)
-
-# ## Functions
-#
-# Now we introduce one last concept before we arrive at LIF implentation - Functions. We already encountered a function before: 
-# ```python 
-# print()
-# ```
-#
-# Now we want to write our own. In general, a function is able to receive variables, perform an operation and then return variables.
-#
-# For example:
+# We can append elements to this list with 
 # ```python
-# def example_function (a):
-#     print (a)
-#     b = a + 5
-#     return b
+#     empty_list.append(1)
 # ```
+
+# #### Task - save all intermediate values of v
 #
-# The function we define here takes a variable ```a```, prints it, adds 5 and returns the calcluated value. 
-# Let's try to use this function
+# can you re-write the code from above, so that we do not only print the final v but a list of all v's after the loop has finsihed?
 
 # +
-def example_function (a):
-    print (a)
-    b = a + 5
-    return b
+v = -55 # in mV
+v_list = []
 
-returned_value = example_function(a = 7)
-print (returned_value)
+## TODO: move everything below into a solution file
+for ii in range(10):
+    dv_dt = (-v + el)/tau_m
+    v = v + dv_dt * dt
+    v_list.append(v) 
 
-# +
-'''
- We can also have multiple arguments for a function
-'''
-def add_function (a,b):
-    return a + b
-
-c = add_function(7,5)
-print (c)
+print (v_list)
 # -
 
-# Functions are great because they allow you to structure your code. Especially, if you write a function once, you can re-use it evrerywhere else. 
+# We now have run a simple simulation and saved the values. To get a better understanding of what is happening, we want to visualize the data. 
+
+# ## Plots
 #
-# Since there are many functions that people re-use all the time, python has so called <i>libraries</i> that provide pre-written functions so that they don't have to be re-written every time. One important library for us will be <i>numpy</i>. 
-#
-# To use a library we need to import it.
-# ``` python
-# import numpy
+# To visualize with python, we make use of a library. Libraries provide pre-written functions, so that we don't have to rewrite them. To import a library we have to add the following line (usually always at the beginning of the code)
+# ```python
+#     import matplotlib.pyplot as plt
 # ```
-#
-# However, for numpy it is usually done like this:
-# ```python
-# import numpy as np
-# ``` 
-# so that when we want to call a function from the numpy library, we can write
-# ```python
-# np.function_we_want_to_use()
-# ```   
-#
-# Numpy provides a variety of mathematical functions and also variables, but it is much more powerful than that as we will see later. For now, we look at a few examples:
+# with this line we can import the library matplotlib.pyplot and we can call it from then on with the the name plt 
 
 # +
-'''
-    Example numpy functions and variables
-'''
-import numpy as np
+import matplotlib.pyplot as plt
 
-print (np.sin(14))
-print (np.pi)
-print (np.cos(12*np.pi))
-print (np.e)
-# -
-
-# ## Include the ideas on integration of a differential equation
-#
-# TODO
-#
-# Maybe with the idea of a moving object? 
-#
-# Also differnent methods, Runga-Kutta vs exponential euler, vs Euler
-
-# ## Include plotting examples
-#
-# TODO
-#
-# Make nice functions that they can use later on again
-
-
+plt.figure()
+x = [0,1]
+y = [1,2]
+plt.plot(x,y)
+plt.xlabel('X-axis')
+plt.ylabel('Y-axis')
+plt.show()

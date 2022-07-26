@@ -80,7 +80,7 @@ def show_example_plot_binary(example_ids = [0,1]):
     plt.tight_layout()
 
 
-show_example_plot_binary([0,1,2])
+show_example_plot_binary([0,1,2,3,4,5,6,7])
 
 test_network = HopfieldNetwork(
     training_patterns = patterns[[0,1]],
