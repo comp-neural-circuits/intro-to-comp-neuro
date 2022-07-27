@@ -17,7 +17,7 @@
 
 # ## Section 1.1. --- -
 #
-# In order to write programs, we need a few basics: 
+# In order to write programming scripts, we need a few basics: 
 #
 # We will program our scripts in python, a very versatile and widely used programming language. 
 # To execute the written programs we need a <i>python interpreter</i>. Google colab allows us to run an instance in the cloud, without the need to install anything locally on the computer. 
@@ -27,7 +27,7 @@
 
 # While learning the basics of python, we want to look at an example model taught in the lecture. The leaky integrate and fire (LIF) model. 
 # <div>
-# <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/imgs/neuron_to_circuit.png" width="750"/>
+# <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_1/static/neuron_to_circuit.png" width="750"/>
 # </div>
 #
 # From the lecture we know that we can describe the change of the membrane potential with the following equation:
@@ -271,7 +271,7 @@ v_list = []
 # plt.show()
 # ```
 # <div>
-# <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/imgs/simple_line_plot.png" width="350"/>
+# <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_1/static/simple_line_plot.png" width="350"/>
 # </div>
 #
 
@@ -312,7 +312,7 @@ plt.show()
 # (with a starting value of v = -55, a timestep dt=0,1 and iterating over range(1000) )
 #
 # <div>
-# <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/imgs/membrane_voltage_decay.png" width="350"/>
+# <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_1/static/membrane_voltage_decay.png" width="350"/>
 # </div>
 #
 
@@ -343,5 +343,31 @@ plt.show()
 # plt.ylabel('Voltage in mV')
 # plt.show()
 # ```
+
+def test_function(v_start):
+    v_list = []
+    t_list = []
+    
+    dt = 0.1
+    v = v_start
+    for ii in range(1000):
+        dv_dt = (-v + el)/tau_m
+        v = v + dv_dt * dt
+        v_list.append(v) 
+        t_list.append(ii*dt) # we multiply our time step with our iteration variable to get the time
+        
+    return v_list, t_list
+
+
+v_list_1, t_list_1 = test_function(v_start=-10)
+v_list_2, t_list_2 = test_function(v_start=-40)
+plt.figure()
+plt.title('Time evolution of membrane voltage')
+plt.plot(t_list_1,v_list_1,linewidth=2.5, label='v_start = -10')
+plt.plot(t_list_2,v_list_2,linewidth=2.5, label='v_start = -40')
+plt.xlabel('Time in ms')
+plt.ylabel('Voltage in mV')
+plt.legend()
+plt.show()
 
 
