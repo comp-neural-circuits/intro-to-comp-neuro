@@ -391,7 +391,7 @@ plt.show()
 # There are many important apsects about functions behind this simple introduction, but we will cover these when they become relevant. Note, however, that we again have the indent behind our first line (that closes with a colon) to indicate which lines belong to the function. For now, we will start by re-writing the code we already have for the time evolution of the membrane potential into a function
 #
 # ```python
-# def time_evolution(v_start):
+# def voltage_evolution(v_start):
 #     tau_m = 20 # in ms
 #     el = -60 # in mV
 #     dt = 0.1 # in ms
@@ -410,13 +410,13 @@ plt.show()
 # ```
 #
 # All we did now is taking the code from above and putting it into the structure of a function. 
-# We name the fucntion 'time evolution' and we define an argument 'v_start'. This argument is used within the function to set our parameter of v. 
+# We name the fucntion 'voltage_evolution' and we define an argument 'v_start'. This argument is used within the function to set our parameter of v. 
 # In the end, we then pass v_list and t_list.
 #
-# Now we will use this function, to see how different starting conditions of the membrane potential lead to different time evolutions.
+# Now we will use this function, to see how different starting conditions of the membrane potential lead to different voltage traces.
 
 # +
-def time_evolution(v_start):
+def voltage_evolution(v_start):
     tau_m = 20 # in ms
     el = -60 # in mV
     dt = 0.1 # in ms
@@ -438,10 +438,10 @@ def time_evolution(v_start):
 plt.figure()
 plt.title('Time evolution of membrane voltage')
 
-v_list_1, t_list_1 = time_evolution(v_start=-10)
+v_list_1, t_list_1 = voltage_evolution(v_start=-10)
 plt.plot(t_list_1,v_list_1,linewidth=2.5, label='v_start = -10')
 
-v_list_2, t_list_2 = time_evolution(v_start=-40)
+v_list_2, t_list_2 = voltage_evolution(v_start=-40)
 plt.plot(t_list_2,v_list_2,linewidth=2.5, label='v_start = -40')
 
 plt.xlabel('Time in ms')
@@ -454,23 +454,24 @@ plt.show()
 
 # ####  What happend
 #
-# We now took the code we already wrote earlier and changed it slightly. First we defined the function "time_evolution" 
+# We now took the code we already wrote earlier and changed it slightly. First we defined the function "voltage_evolution" 
 # It is important to note that when executing a cell where we define a function, this function is not executed but only defined. To execute it we have to call it first. 
 #
 # This is what we do just before we plot t_list_1 & v_list_1 and again before we plot t_list_2 & v_list_2
 # Our function is then executed with the value for v_start that we specify and once it finishes it returns the created lists. We can then use these lists to plot the results.
 #
 
-# #### Task X - change the code so that you can vary other paramters
+# #### Task X - change the code so that you can vary other parameters
 #
-# change the function (and the parts where the function is called), so that you can change other parameters of the function (for exmaple el) to see how they effect the time evolution. 
+# change the function (and the parts where the function is called), so that you can change other parameters of the function (for exmaple el) to see how they effect the changes of the membrane voltage. 
 #
 # (when looking at other parameters, you should also make sure to adjust the labels of the plot)
+#
 
 # +
 #Change the code in this cell. You can always copy the code from above in case something breaks that you cannot recover
 
-def time_evolution(v_start):
+def voltage_evolution(v_start):
     tau_m = 20 # in ms
     el = -60 # in mV
     dt = 0.1 # in ms
@@ -492,10 +493,10 @@ def time_evolution(v_start):
 plt.figure()
 plt.title('Time evolution of membrane voltage')
 
-v_list_1, t_list_1 = time_evolution(v_start=-10)
+v_list_1, t_list_1 = voltage_evolution(v_start=-10)
 plt.plot(t_list_1,v_list_1,linewidth=2.5, label='v_start = -10')
 
-v_list_2, t_list_2 = time_evolution(v_start=-40)
+v_list_2, t_list_2 = voltage_evolution(v_start=-40)
 plt.plot(t_list_2,v_list_2,linewidth=2.5, label='v_start = -40')
 
 plt.xlabel('Time in ms')
@@ -507,10 +508,10 @@ plt.show()
 # #### Solution X - What happend
 #
 # ```python
-# def time_evolution(el):
+# def voltage_evolution(el, v_start=-50):
 #     tau_m = 20 # in ms
 #     dt = 0.1 # in ms
-#     v = -50 # in mV
+#     v = v_start
 #     
 #     v_list = []
 #     t_list = []    
@@ -528,10 +529,10 @@ plt.show()
 # plt.figure()
 # plt.title('Time evolution of membrane voltage')
 #
-# v_list_1, t_list_1 = time_evolution(el=-70)
+# v_list_1, t_list_1 = voltage_evolution(el=-70)
 # plt.plot(t_list_1,v_list_1,linewidth=2.5, label='el = -70')
 #
-# v_list_2, t_list_2 = time_evolution(el=-60)
+# v_list_2, t_list_2 = voltage_evolution(el=-60)
 # plt.plot(t_list_2,v_list_2,linewidth=2.5, label='el = -60')
 #
 # plt.xlabel('Time in ms')
@@ -544,10 +545,26 @@ plt.show()
 # <div>
 # <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_1/static/different_el_values.png" width="350"/>
 # </div>
+#
+#
+# Here we now added el as a parameter to the function (another solution would be to replace v_start). We also now set a default value for v_start, so that we do not have to give a value for that if we call the function.
 
+# #### Task X - Look at the paramters
+#
+# We now use another library called ipywidgets that allows us to build interactive plots. We have to import the interactive function and can then call our defined function and define the paramters we want to vary, we do so by specifying the range for each parameter in the following fashion:
+#
+# ```python
+# chosen_parameter = (start_value, end_value, step_size)
+# ````
+#
+# To make it more convenient, we now combine the simulation and the plotting part into one function.
+#
+# You can try it out by executing the cell below and explore how the different parameters influence how the membrane voltage evolves.
+
+# +
 from ipywidgets import interact
-@interact(el=(-180,60,2), tau_m=(1,30,1), v=(-180,60,2))
-def show_plot(el, tau_m, v):
+
+def voltage_evolution(el, tau_m, v):
     dt = 1 # in ms
 
     v_list = []
@@ -559,7 +576,13 @@ def show_plot(el, tau_m, v):
         v_list.append(v) 
         t_list.append(ii*dt) # we multiply our time step with our iteration variable to get the time
 
+    
+    return v_list, t_list
 
+
+def run_simulation_and_show_plot(el, tau_m, v):
+    
+    v_list, t_list = voltage_evolution(el, tau_m, v)
 
     plt.figure()
     plt.title('Time evolution of membrane voltage')
@@ -571,7 +594,92 @@ def show_plot(el, tau_m, v):
     
     plt.ylim([-185,65])
     plt.show()
+    
+interact(run_simulation_and_show_plot, el=(-180,60,2), tau_m=(1,30,1), v=(-180,60,2))
+
+# -
+
+# ### Input currents
+#
+# Now we have seen how the membrane voltage evolves over time when we initialize it at a certain value and do not interfere with it otherwise. Now we want to come back to equation (1)
+#
+# \begin{equation}
+# \tau_m\,\frac{dV}{dt} = - V + E_{L} + R_m\,I_e \qquad (1)
+# \end{equation}
+#
+# Therefore we now want to add the possibility to inject a current into the cell, to see how this influences the dynamics. 
+#
+# We have to modify how the voltage changes in each time step
+# ```python
+# dv_dt = (-v + el)/tau_m + r_m * I_e
+# ```
+#
+# and we need to define the new varibles as well. 
+# A rough estimate for a cell resistance is 
+# ```python
+# r_m = 100e6 # Ohm
+# ```
+# If we then apply currents they should be on the magnitude of
+#
+# ```python
+# I_e = 10e-11 # ampere
+# ```
+#
+
+# ### Task X - rewrite the function to allow an external input current
+#
+# Take the function from above (you can use the interactive version if you like) and modify it so that you can change the input current I_e.
+# You can set the other parameters to fixed values again (either as defaults in the argument of the function or define them in the function)
+
+# +
+''' 
+    Put your code here
+'''
 
 
+# -
+
+# #### Solution 
+#
+# ```python
+# ```
+#
+
+# +
+def voltage_evolution(I_e, el, tau_m, v):
+    dt = 1 # in ms
+    r_m = 100e6 # Ohm
+    v_list = []
+    t_list = []    
+
+    for ii in range(100):
+        dv_dt = (-v + el)/tau_m + r_m * I_e
+        v = v + dv_dt * dt
+        v_list.append(v) 
+        t_list.append(ii*dt) # we multiply our time step with our iteration variable to get the time
+
+    
+    return v_list, t_list
+
+
+def run_simulation_and_show_plot(I_e):
+    
+    v_list, t_list = voltage_evolution(I_e, el, tau_m, v)
+
+    plt.figure()
+    plt.title('Time evolution of membrane voltage')
+
+    plt.plot(t_list,v_list,linewidth=2.5)
+
+    plt.xlabel('Time in ms')
+    plt.ylabel('Voltage in mV')
+    
+    plt.ylim([-80,20])
+    plt.show()
+    
+interact(run_simulation_and_show_plot, I_e=(0,60e-11,10e-11))
+
+
+# -
 
 
