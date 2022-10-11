@@ -56,14 +56,17 @@ el = -60 # in mV
 print (tau_m, v, el)
 
 # #### Solution X -  What happend
-# 1/2/3 We assigned values (on the right side of the equal sign) to three distinct variables (on the left of the equal sign).
+# 1-3 We assigned values (on the right side of the equal sign) to three distinct variables (on the left of the equal sign).
 #
 # In addition, we can comment the code by using the '#' symbol. Everything in the same line behind this symbol will be ignored when the code is executed.
 #
-# 4 At the end, we print the values that we just defined
+# 5 At the end, we print the values that we just defined
 
 # Following equation (2), we can now calculate the change in the membrane voltage per time-step. 
 
+tau_m = 20 # in ms
+v = -50 # in mV
+el = -60 # in mV
 dv_dt = (-v + el)/tau_m
 print (dv_dt)
 
@@ -73,8 +76,10 @@ print (dv_dt)
 #
 # After applying the change in voltage as we did above for one time step (adding -0.5mV/ms * 1ms to -50mV), we can ask again what the change is - given the new voltage value, then apply this again and so on
 
-dt = 0.1 # in ms
+tau_m = 20 # in ms
 v = -50 # in mV
+el = -60 # in mV
+dt = 0.1 # in ms
 dv_dt = (-v + el)/tau_m
 print ('dv/dt', dv_dt)
 v = v + dv_dt * dt
@@ -86,19 +91,17 @@ print ('v', v)
 
 # #### Solution X - What happend
 #
-# 1 We defined a new variable
+# 1-4 We defined our variables (now we also define our time step dt)
 #
-# 2 We made sure that our variable defined above (v) is still at -50
+# 5 calculating the instantaneous change in v
 #
-# 3 calculating the instantaneous change in v
+# 6 printing the calculated value, while also printing what the value is
 #
-# 4 printing the calculated value, while also printing what the value is
+# 7 setting v equal to its old value plus the change it experiences multiplied with our chosen timestep
 #
-# 5 setting v equal to its old value plus the change it experiences multiplied with our chosen timestep
+# 8 printing v (and printing that we print v)
 #
-# 6 printing v (and printing that we print v)
-#
-# 7 we repeat the steps 3) to 6)
+# 9 we repeat the steps 3) to 6)
 #
 # Now thinking about even more repeats of these steps leads us to a very fundamental concept of programming: 
 
@@ -111,8 +114,10 @@ print ('v', v)
 # Initially we execute the code block from above (2 times). You can change how often it will be repeated by changing the number in the 'range' function. Try it out.
 
 # +
-dt = 0.1 # in ms
+tau_m = 20 # in ms
 v = -50 # in mV
+el = -60 # in mV
+dt = 0.1 # in ms
 
 for ii in range(2):
     dv_dt = (-v + el)/tau_m
@@ -166,8 +171,11 @@ for ii in range(4):
 # However, you should see that (given we have enough repetitions), your final v should always be very close to the same value. Can you explain why this is correct?
 
 # +
+tau_m = 20 # in ms
+el = -60 # in mV
 dt = 0.1 # in ms
-v = -55 # in mV
+
+v = -50 # in mV
 
 for ii in range(1000):
     dv_dt = (-v + el)/tau_m
@@ -203,8 +211,10 @@ print ('final v', v)
 # can you re-write the code from above, so that we do not only print the final v but a list of all v's after the loop has finsihed?
 
 # +
+tau_m = 20 # in ms
+v = -50 # in mV
+el = -60 # in mV
 dt = 0.1 # in ms
-v = -55 # in mV
 v_list = []
 
 # continue here with your code
@@ -213,8 +223,10 @@ v_list = []
 # #### Solution X 
 #
 # ```python
+# tau_m = 20 # in ms
+# v = -50 # in mV
+# el = -60 # in mV
 # dt = 0.1 # in ms
-# v = -55 # in mV
 # v_list = []
 # for ii in range(10):
 #     dv_dt = (-v + el)/tau_m
@@ -233,8 +245,10 @@ v_list = []
 # #### Solution X 
 #
 # ```python
+# tau_m = 20 # in ms
+# v = -50 # in mV
+# el = -60 # in mV
 # dt = 0.1 # in ms
-# v = -55 # in mV
 # v_list = []
 # t_list = []
 # for ii in range(10):
@@ -255,6 +269,7 @@ v_list = []
 #     import matplotlib.pyplot as plt
 # ```
 # with this line we can import the library matplotlib.pyplot and we can call it from then on with the the name plt 
+# Once imported, we can use this command in each cell of the notebook.
 
 # #### Task X - Play around
 #
@@ -279,6 +294,7 @@ v_list = []
 
 # +
 import matplotlib.pyplot as plt
+plt.style.use("https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/plots_style.txt")
 
 plt.figure()
 plt.title('Example Plot')
@@ -292,7 +308,10 @@ plt.show()
 
 # #### Solution X - What happend
 #
-# 1) We import the library that we need for plotting. Once imported, we will be able to use it in every cell in this notebook. So for the next notebooks we will import it at the beginning.
+# 1 We import the library that we need for plotting. Once imported, we will be able to use it in every cell in this notebook. So for the next notebooks we will import it at the beginning.
+#
+# 2 We use a file for the style of the plots
+#
 #
 # 3 We create a figure.
 #
@@ -327,8 +346,10 @@ plt.show()
 # #### Solution X
 #
 # ```python
+# tau_m = 20 # in ms
+# v = -50 # in mV
+# el = -60 # in mV
 # dt = 0.1 # in ms
-# v = -55 # in mV
 # v_list = []
 # t_list = []
 #
@@ -346,12 +367,64 @@ plt.show()
 # plt.show()
 # ```
 
-def test_function(v_start):
-    v_list = []
-    t_list = []
-    
-    dt = 0.1
+# #### In context
+#
+# Make sure that you understand what the plot shows us.
+#
+# We can see the development of the membrane potential over time for our neuron model. When we set it to a certain value (for example -55 mV) it will constantly change until it reaches the resting potential 'el'.
+#
+# We now want to further explore the behavior with interactive tools, but for that we first need to introduce another programming concept: **Functions**
+#
+
+# ## Functions
+#
+# A function allows us to structure our code more efficiently. A function can take arguments, execute code when it's called and return values once its finished. The general structure looks like this
+#
+# ```python
+# def function_name (parameter):
+#     
+#     # execute code (we can use the variable 'parameter' here)
+#     
+#     return values
+# ```
+#
+# There are many important apsects about functions behind this simple introduction, but we will cover these when they become relevant. Note, however, that we again have the indent behind our first line (that closes with a colon) to indicate which lines belong to the function. For now, we will start by re-writing the code we already have for the time evolution of the membrane potential into a function
+#
+# ```python
+# def time_evolution(v_start):
+#     tau_m = 20 # in ms
+#     el = -60 # in mV
+#     dt = 0.1 # in ms
+#     v = v_start
+#     
+#     v_list = []
+#     t_list = []    
+#
+#     for ii in range(1000):
+#         dv_dt = (-v + el)/tau_m
+#         v = v + dv_dt * dt
+#         v_list.append(v) 
+#         t_list.append(ii*dt) # we multiply our time step with our iteration variable to get the time
+#         
+#     return v_list, t_list
+# ```
+#
+# All we did now is taking the code from above and putting it into the structure of a function. 
+# We name the fucntion 'time evolution' and we define an argument 'v_start'. This argument is used within the function to set our parameter of v. 
+# In the end, we then pass v_list and t_list.
+#
+# Now we will use this function, to see how different starting conditions of the membrane potential lead to different time evolutions.
+
+# +
+def time_evolution(v_start):
+    tau_m = 20 # in ms
+    el = -60 # in mV
+    dt = 0.1 # in ms
     v = v_start
+    
+    v_list = []
+    t_list = []    
+
     for ii in range(1000):
         dv_dt = (-v + el)/tau_m
         v = v + dv_dt * dt
@@ -361,15 +434,144 @@ def test_function(v_start):
     return v_list, t_list
 
 
-v_list_1, t_list_1 = test_function(v_start=-10)
-v_list_2, t_list_2 = test_function(v_start=-40)
+
 plt.figure()
 plt.title('Time evolution of membrane voltage')
+
+v_list_1, t_list_1 = time_evolution(v_start=-10)
 plt.plot(t_list_1,v_list_1,linewidth=2.5, label='v_start = -10')
+
+v_list_2, t_list_2 = time_evolution(v_start=-40)
 plt.plot(t_list_2,v_list_2,linewidth=2.5, label='v_start = -40')
+
 plt.xlabel('Time in ms')
 plt.ylabel('Voltage in mV')
 plt.legend()
 plt.show()
+
+
+# -
+
+# ####  What happend
+#
+# We now took the code we already wrote earlier and changed it slightly. First we defined the function "time_evolution" 
+# It is important to note that when executing a cell where we define a function, this function is not executed but only defined. To execute it we have to call it first. 
+#
+# This is what we do just before we plot t_list_1 & v_list_1 and again before we plot t_list_2 & v_list_2
+# Our function is then executed with the value for v_start that we specify and once it finishes it returns the created lists. We can then use these lists to plot the results.
+#
+
+# #### Task X - change the code so that you can vary other paramters
+#
+# change the function (and the parts where the function is called), so that you can change other parameters of the function (for exmaple el) to see how they effect the time evolution. 
+#
+# (when looking at other parameters, you should also make sure to adjust the labels of the plot)
+
+# +
+#Change the code in this cell. You can always copy the code from above in case something breaks that you cannot recover
+
+def time_evolution(v_start):
+    tau_m = 20 # in ms
+    el = -60 # in mV
+    dt = 0.1 # in ms
+    v = v_start
+    
+    v_list = []
+    t_list = []    
+
+    for ii in range(1000):
+        dv_dt = (-v + el)/tau_m
+        v = v + dv_dt * dt
+        v_list.append(v) 
+        t_list.append(ii*dt) # we multiply our time step with our iteration variable to get the time
+        
+    return v_list, t_list
+
+
+
+plt.figure()
+plt.title('Time evolution of membrane voltage')
+
+v_list_1, t_list_1 = time_evolution(v_start=-10)
+plt.plot(t_list_1,v_list_1,linewidth=2.5, label='v_start = -10')
+
+v_list_2, t_list_2 = time_evolution(v_start=-40)
+plt.plot(t_list_2,v_list_2,linewidth=2.5, label='v_start = -40')
+
+plt.xlabel('Time in ms')
+plt.ylabel('Voltage in mV')
+plt.legend()
+plt.show()
+# -
+
+# #### Solution X - What happend
+#
+# ```python
+# def time_evolution(el):
+#     tau_m = 20 # in ms
+#     dt = 0.1 # in ms
+#     v = -50 # in mV
+#     
+#     v_list = []
+#     t_list = []    
+#
+#     for ii in range(1000):
+#         dv_dt = (-v + el)/tau_m
+#         v = v + dv_dt * dt
+#         v_list.append(v) 
+#         t_list.append(ii*dt) # we multiply our time step with our iteration variable to get the time
+#         
+#     return v_list, t_list
+#
+#
+#
+# plt.figure()
+# plt.title('Time evolution of membrane voltage')
+#
+# v_list_1, t_list_1 = time_evolution(el=-70)
+# plt.plot(t_list_1,v_list_1,linewidth=2.5, label='el = -70')
+#
+# v_list_2, t_list_2 = time_evolution(el=-60)
+# plt.plot(t_list_2,v_list_2,linewidth=2.5, label='el = -60')
+#
+# plt.xlabel('Time in ms')
+# plt.ylabel('Voltage in mV')
+# plt.legend()
+# plt.show()
+# ```
+#
+#
+# <div>
+# <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_1/static/different_el_values.png" width="350"/>
+# </div>
+
+from ipywidgets import interact
+@interact(el=(-180,60,2), tau_m=(1,30,1), v=(-180,60,2))
+def show_plot(el, tau_m, v):
+    dt = 1 # in ms
+
+    v_list = []
+    t_list = []    
+
+    for ii in range(100):
+        dv_dt = (-v + el)/tau_m
+        v = v + dv_dt * dt
+        v_list.append(v) 
+        t_list.append(ii*dt) # we multiply our time step with our iteration variable to get the time
+
+
+
+    plt.figure()
+    plt.title('Time evolution of membrane voltage')
+
+    plt.plot(t_list,v_list,linewidth=2.5)
+
+    plt.xlabel('Time in ms')
+    plt.ylabel('Voltage in mV')
+    
+    plt.ylim([-185,65])
+    plt.show()
+
+
 
 
