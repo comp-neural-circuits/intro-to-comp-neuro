@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.14.0
+#       jupytext_version: 1.14.1
 #   kernelspec:
 #     display_name: intro-to-comp-neuro
 #     language: python
@@ -15,12 +15,12 @@
 
 # # Section 1 - The leaky-integrate and fire (LIF) model and python basics
 
-# ## Section 1.1. --- -
+# ## Section 1.1. 
 #
 # In order to write programming scripts, we need a few basics: 
 #
 # We will program our scripts in python, a very versatile and widely used programming language. 
-# To execute the written programs we need a <i>python interpreter</i>. Google colab allows us to run an instance in the cloud, without the need to install anything locally on the computer. 
+# To execute the written programs we need a <i>python interpreter</i>. Google colab allows us to run an instance in the browser, without the need to install anything locally on the computer. 
 #
 #
 #
@@ -56,11 +56,11 @@ el = -60 # in mV
 print (tau_m, v, el)
 
 # #### Solution X -  What happend
-# #1/2/3 We assigned values (on the right side of the equal sign) to three distinct variables (on the left of the equal sign).
+# 1/2/3 We assigned values (on the right side of the equal sign) to three distinct variables (on the left of the equal sign).
 #
 # In addition, we can comment the code by using the '#' symbol. Everything in the same line behind this symbol will be ignored when the code is executed.
 #
-# #4 At the end, we print the values that we just defined
+# 4 At the end, we print the values that we just defined
 
 # Following equation (2), we can now calculate the change in the membrane voltage per time-step. 
 
@@ -86,25 +86,25 @@ print ('v', v)
 
 # #### Solution X - What happend
 #
-# #1 We defined a new variable
+# 1 We defined a new variable
 #
-# #2 We made sure that our variable defined above (v) is still at -50
+# 2 We made sure that our variable defined above (v) is still at -50
 #
-# #3 calculating the instantaneous change in v
+# 3 calculating the instantaneous change in v
 #
-# #4 printing the calculated value, while also printing what the value is
+# 4 printing the calculated value, while also printing what the value is
 #
-# #5 setting v equal to its old value plus the change it experiences multiplied with our chosen timestep
+# 5 setting v equal to its old value plus the change it experiences multiplied with our chosen timestep
 #
-# #6 printing v (and printing that we print v)
+# 6 printing v (and printing that we print v)
 #
-# #7 we repeat the steps 3) to 6)
+# 7 we repeat the steps 3) to 6)
 #
 # Now thinking about even more repeats of these steps leads us to a very fundamental concept of programming: 
 
 # ## Loops
 # More specifically, the for-loop.
-# Loops allow us to execute the same code multiple times. We can re-write the above code with a for-loop.
+# Loops allow us to execute the same code multiple times, or even to let programs run indefinetly. We can re-write the above code with a for-loop.
 
 # #### Task X - Change the number of repetitions
 #
@@ -123,7 +123,7 @@ for ii in range(2):
 
 # #### More information on the for-loop
 #
-# You just executed a for-loop. The most simple syntax of a for-loop is the following:
+# You just executed a for-loop. The syntax of a for-loop is the following:
 # ```python
 #     for iteration_variable in values_to_iterate_through:
 #         # do something
@@ -134,13 +134,15 @@ for ii in range(2):
 # It is important to note that we see an indentation after we defined our for-loop (and ended the line with a colon)
 #
 # Everything that is indented will be executed within the loop. 
-# You can try it out above by removing the indent for the last line. v will then be printed only when the loop is done.
+# You can try it out with the example above by removing the indent for the last line. v will then be printed only when the loop is done.
 #
 # Ususally, people use four or two spaces as the indentation level (or pressing TAB).
 #
 # You can also access the iteration variable in the for-loop. you can try out the example below.   
 
 # #### Task X - Answer the following questions
+#
+# 0) execute the cell
 #
 # 1) what is the starting/ending value for the iteration variabel ii, does it make sense to you?
 #
@@ -153,7 +155,7 @@ for ii in range(4):
 #
 # 1) we start with the integer 0 and we always end one step before the value x (i.e. x-1) that we provide for the range function (so we always iterate for x steps)
 #
-# 2) to get floating point values we can multiply our integer values with the floating point number we prefer (for example 0.1) 
+# 2) to get floating point steps we can multiply our integer values with the floating point number we prefer (for example 0.1) 
 
 # We now use the for loop to run our code from above many times and look at the final value of v
 
@@ -178,11 +180,11 @@ print ('final v', v)
 #
 # we still simulate the time evolution of the membrane voltage v following equation (2). The equation describes how much the voltage changes, given it's current value and the fixed parameters we define at the beginning. We can see that the right side of the equation becomes 0, when v equals el. This means that there will be no change anymore - we reached a stable configuration, a fixed point. 
 #
-# in a rather simple system like this, we can then realize that v will always evolve towards the value el, independent of the starting value (the starting condition).
+# in a rather simple system like this, we can then realize that v will always evolve towards the value of 'el', independent of the starting value (the starting condition).
 #
 # Bonus: you can actually calculate the integral of equation (2), what function do you get out? We will come back to this later ...
 
-# Until now we defined how v should evolve over time and we can see what the final v is, or print intermediate values of v. Ultimately, we want to save the values of v between the beginning and the end, in order to access them later on. This leads us to another variable type.
+# Until now we defined how v should evolve over time and we can see what the final value of v is, or print intermediate values of v. Ultimately, we want to save the values of v between the beginning and the end, in order to access them later on. This leads us to another variable type.
 #
 # ## Lists
 #
@@ -226,7 +228,7 @@ v_list = []
 #
 # #### Task X - save the time values as well
 #
-# Can you re-write the code above, to not only save the voltage, but also the time values? 
+# Can you re-write the code above, to not only save and print the voltage values, but also do the same for the time steps? 
 
 # #### Solution X 
 #
@@ -248,7 +250,7 @@ v_list = []
 #
 # ## Plots
 #
-# To visualize with python, we make use of a library. Libraries provide pre-written functions, so that we don't have to rewrite them. To import a library we have to add the following line (usually always at the beginning of the code)
+# To visualize with python, we make use of a library. Libraries provide pre-written functions, so we don't have to write them from scratch. To import a library we have to add the following line (usually always at the beginning of the code)
 # ```python
 #     import matplotlib.pyplot as plt
 # ```
@@ -292,17 +294,17 @@ plt.show()
 #
 # 1) We import the library that we need for plotting. Once imported, we will be able to use it in every cell in this notebook. So for the next notebooks we will import it at the beginning.
 #
-# #3 We create a figure.
+# 3 We create a figure.
 #
-# #4 We add a title to the figure
+# 4 We add a title to the figure
 #
-# #5/6 we define our x- and y- values
+# 5/6 we define our x- and y- values
 #
-# #7) we create a line-plot (plt.plot) the first argument of the function have to be the x-values, the second the y-values. then we have some specified parameters, like the color or the linewidth. If you are interested - there are many paramters more we can modify - we'll learn about them later on
+# 7 we create a line-plot (plt.plot) the first argument of the function have to be the x-values, the second the y-values. then we have some specified parameters, like the color or the linewidth. If you are interested - there are many paramters more we can modify - we'll learn about them later on
 #
-# #8/9 we label the x- and y-axis
+# 8/9 we label the x- and y-axis
 #
-# #10 we show the plot - this line is not necessary in notebooks like this one, but you need it for python scripts for example. 
+# 10 we show the plot - this line is not necessary in notebooks like this one, but you need it for python scripts for example. 
 #
 
 # #### Task X - Plot the time evolution of the membrane voltage
