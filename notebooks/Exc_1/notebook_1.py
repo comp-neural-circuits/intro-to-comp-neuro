@@ -772,57 +772,110 @@ interact(run_simulation_and_show_plot, el=(-180,60,2), tau_m=(1,30,1), v=(-180,6
 # run_simulation_and_show_plot(I_e = 2)
 # ```
 
-# Now you should see something similar to this plot
+# #### What happend
+# Now you should see something similar to this plot.
 #
 # <div>
-# <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_1/static/different_el_values.png" width="450"/>
+# <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_1/static/spiking_lif.png" width="450"/>
 # </div>
+#
+# We can see here that the membrane voltage starts to increase and everytime it reaches the threshold it is reset to our predefined value. 
+# we created a neuron model!
+# You can play around with the paramters again if you like. For example, increasing the input current should give you more spikes in the time window, whereas there should be a current value below which we won't see any spike.
+#
+# Now we want to move on to some more advanced concepts of programming. 
+
+# # Classes
+#
+# Python allows Object Oriented Programming (OOB), which we will now explore. 
+# There are two main components of OOB: **classes** and **objects**. **Classes** can hold data (called attributes) and functions (called methods). In our case, we want to write a class of a LIF neuron model, that contains data (the parameters we set, the membrane voltage traces we create, ...) and functions (to plot the data, to run the simulation, ...) 
+#
+# Once we defined the class we can create instances of that class. For example a LIF with a threshold at -50 mV and another instance of that class with a threshold at -55mV. These instances are called **objects**. While they all share a common backbone, they are independent of each other. 
+#
+# We create a simple class below:
+#
+#  -- A brief note on naming conventions. The most common guideline is [PEP8](https://peps.python.org/pep-0008/) and following these conventions allows better code readability when the code is shared with other people. However, the most important part is to be consistent within your code, then you can pick up on the conventions one by one. 
+#  As an example, class names usually use the CapsWords convention.
+#  
+#
 
 # +
-def voltage_evolution(I_e, el, tau_m, v):
-    dt = 1 # in ms
-    r_m = 100e6 # Ohm
-    v_reset = -70 # mV
-    v_th = -50 # mV
-
-
-    v_list = []
-    t_list = []
-    I_e *= 1e-8 
-    # here we multiply by 10^-8, you can also just provide the value to the function, 
-    # but it does not work with interact then, since the numbers are too small
-    for ii in range(100):
-        if v <= v_th:
-            dv_dt = (-v + el)/tau_m + r_m * I_e
-            v = v + dv_dt * dt
+class LIFNeuron(object):
+    """The first version of our LIF neuron class that can initiate a single neuron, 
+    run the simulation for a certain number of steps while keeping track of the membrane voltage
+    and plot the results of the run
+    """
+    def __init__(self, 
+                 tau_m = 20, v_start = -50, el = -75, r_m = 100e6, v_reset = -70, v_th = -50,
+                 I_e = 10e-8,
+                 dt = 0.1):
+        '''This function is executed when we create an object from that class'''
+        super(LIFNeuron, self).__init__()
+        self.tau_m = tau_m
+        self.el = el
+        self.dt = dt
+        self.r_m = r_m
+        self.v_reset = v_reset
+        self.v_th = v_th
+        
+        self.v = v_start
+        
+        self.I_e = I_e
+        
+        self.v_list = [v_start]
+        self.t_list = [0]
+    
+    def timestep(self):
+        if self.v <= self.v_th:
+            dv_dt = (-self.v + self.el)/self.tau_m + self.r_m * self.I_e
+            self.v += dv_dt * self.dt
         else:
-            v = v_reset
-        v_list.append(v) 
-        t_list.append(ii*dt) # we multiply our time step with our iteration variable to get the time
+            self.v = self.v_reset
+            
+    
+    def run_simulation(self, time_steps = 100):
+        
+        for ii in range(time_steps):
+            self.timestep()
+            
+            self.v_list.append(self.v)
+            current_time = self.t_list[-1] + self.dt
+            self.t_list.append(current_time) 
+            
+    def plot_traces(self):
+        
+        plt.figure()
+        plt.title('Time evolution of membrane voltage')
 
+        plt.plot(self.t_list,self.v_list,linewidth=2.5)
 
-    return v_list, t_list
+        plt.xlabel('Time in ms')
+        plt.ylabel('Voltage in mV')
 
-
-def run_simulation_and_show_plot(I_e):
-
-    v_list, t_list = voltage_evolution(I_e, el, tau_m, v)
-
-    plt.figure()
-    plt.title('Time evolution of membrane voltage')
-
-    plt.plot(t_list,v_list,linewidth=2.5)
-
-    plt.xlabel('Time in ms')
-    plt.ylabel('Voltage in mV')
-
-    plt.ylim([-80,20])
-    plt.show()
-
-''' you can either use interact ''' 
-# interact(run_simulation_and_show_plot, I_e=(-2,6,1))
-''' or simply call the function'''
-run_simulation_and_show_plot(I_e = 1)
+        plt.ylim([-80,20])
+        plt.show()
+        
+    
+        
+        
 # -
+
+# Once you executed the cell above, we can now run our simulation and show the results like before, with only three lines of code.
+
+test = LIFNeuron()
+test.run_simulation(100)
+test.plot_traces()
+
+# Even more, we can now use this class in a very flexible way, since we can also access and change the parameters in an instance, once it is created. For example:
+
+test = LIFNeuron(I_e = 0)
+test.run_simulation(1000)
+test.I_e = 4e-9
+test.run_simulation(1000)
+test.I_e = 0
+test.run_simulation(1000)
+test.I_e = 2e-8
+test.run_simulation(1000)
+test.plot_traces()
 
 
