@@ -543,7 +543,7 @@ plt.show()
 #
 #
 # <div>
-# <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_1/static/different_el_values.png" width="350"/>
+# <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_1/static/different_el_values.png" width="450"/>
 # </div>
 #
 #
@@ -622,7 +622,7 @@ interact(run_simulation_and_show_plot, el=(-180,60,2), tau_m=(1,30,1), v=(-180,6
 # If we then apply currents they should be on the magnitude of
 #
 # ```python
-# I_e = 10e-11 # ampere
+# I_e = 10e-8 # milli ampere
 # ```
 #
 
@@ -642,28 +642,170 @@ interact(run_simulation_and_show_plot, el=(-180,60,2), tau_m=(1,30,1), v=(-180,6
 # #### Solution 
 #
 # ```python
+# def voltage_evolution(I_e, el, tau_m, v):
+#     dt = 1 # in ms
+#     r_m = 100e6 # Ohm
+#     v_list = []
+#     t_list = []
+#     I_e *= 1e-8 
+#     # here we multiply by 10^-8, you can also just provide the value to the function, 
+#     # but it does not work with interact then, since the numbers are too small
+#     for ii in range(100):
+#         dv_dt = (-v + el)/tau_m + r_m * I_e
+#         v = v + dv_dt * dt
+#         v_list.append(v) 
+#         t_list.append(ii*dt) # we multiply our time step with our iteration variable to get the time
+#
+#     
+#     return v_list, t_list
+#
+#
+# def run_simulation_and_show_plot(I_e):
+#     
+#     v_list, t_list = voltage_evolution(I_e, el, tau_m, v)
+#
+#     plt.figure()
+#     plt.title('Time evolution of membrane voltage')
+#
+#     plt.plot(t_list,v_list,linewidth=2.5)
+#
+#     plt.xlabel('Time in ms')
+#     plt.ylabel('Voltage in mV')
+#     
+#     plt.ylim([-80,80])
+#     plt.show()
+#
+# ''' you can either use interact ''' 
+# # interact(run_simulation_and_show_plot, I_e=(-2,6,1))
+# ''' or simply call the function'''
+# run_simulation_and_show_plot(I_e = 2)
 # ```
 #
+
+# # Spikes 
+#
+# So far, we modeled the membrane voltage of a cell and we are able to provide some input in form of a current. However, our cell cannot spike yet. Now we want to add a spiking condition. 
+#
+# Neurons spike when they reach a certain threshold (how the spiking happens exactly is what we will look at later in the semester, it does not matter for our simple neuron model)
+#
+# Now we add a condition to our equation (1)
+#
+# \begin{align}
+# \tau_m\,\frac{dV}{dt} &= - V + E_{L} + R_m\,I_e &\text{if }\quad V(t) \leq V_{th} \\ 
+# \\
+# V(t) &= V_{reset} &\text{otherwise}
+# \end{align}
+#
+# In words: The membrane voltage now follows the equation we are already used to as long as it is below the threshold value v_th. If it is above, we call this a spike and reset the membrane voltage to a value below the threshold. This mimics the overshoot that we can observe in real neurons (again, more on that later).
+#
+# We now need to define the two new variables. Based off on data we can set them roughly to:
+#
+# ```python
+# v_th = -50 # mV
+# v_reset = -70 # mV
+# ```
+#
+# in our code, we can now add this behaviour with the extremlz versatile **if condition**
+#
+# ```python
+# if something_is_true:
+#     # do this
+# else:
+#     # do this otherwise
+# ```
+#
+# the if condition can be used to execute code only if a certain condition is met, like in our case if v is less or equal to the threshold.
+#
+# Again, notice the indent that we use to show which part to execute under which condition. 
+
+# #### Task - add the spiking behaviour to the code
+#
+# You can now try to modify the code from above.
+# Add the new variables to the voltage_evolution function and add the if condition in the for-loop, where we update the voltage value.
+
+# #### Solution 
+#
+# ```python
+# def voltage_evolution(I_e, el, tau_m, v):
+#     dt = 1 # in ms
+#     r_m = 100e6 # Ohm
+#     v_reset = -70 # mV
+#     v_th = -50 # mV
+#     
+#     
+#     v_list = []
+#     t_list = []
+#     I_e *= 1e-8 
+#     # here we multiply by 10^-8, you can also just provide the value to the function, 
+#     # but it does not work with interact then, since the numbers are too small
+#     for ii in range(100):
+#         if v <= v_th:
+#             dv_dt = (-v + el)/tau_m + r_m * I_e
+#             v = v + dv_dt * dt
+#         else:
+#             v = v_reset
+#         v_list.append(v) 
+#         t_list.append(ii*dt) # we multiply our time step with our iteration variable to get the time
+#
+#     
+#     return v_list, t_list
+#
+#
+# def run_simulation_and_show_plot(I_e):
+#     
+#     v_list, t_list = voltage_evolution(I_e, el, tau_m, v)
+#
+#     plt.figure()
+#     plt.title('Time evolution of membrane voltage')
+#
+#     plt.plot(t_list,v_list,linewidth=2.5)
+#
+#     plt.xlabel('Time in ms')
+#     plt.ylabel('Voltage in mV')
+#     
+#     plt.ylim([-80,20])
+#     plt.show()
+#
+# ''' you can either use interact ''' 
+# # interact(run_simulation_and_show_plot, I_e=(-2,6,1))
+# ''' or simply call the function'''
+# run_simulation_and_show_plot(I_e = 2)
+# ```
+
+# Now you should see something similar to this plot
+#
+# <div>
+# <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_1/static/different_el_values.png" width="450"/>
+# </div>
 
 # +
 def voltage_evolution(I_e, el, tau_m, v):
     dt = 1 # in ms
     r_m = 100e6 # Ohm
-    v_list = []
-    t_list = []    
+    v_reset = -70 # mV
+    v_th = -50 # mV
 
+
+    v_list = []
+    t_list = []
+    I_e *= 1e-8 
+    # here we multiply by 10^-8, you can also just provide the value to the function, 
+    # but it does not work with interact then, since the numbers are too small
     for ii in range(100):
-        dv_dt = (-v + el)/tau_m + r_m * I_e
-        v = v + dv_dt * dt
+        if v <= v_th:
+            dv_dt = (-v + el)/tau_m + r_m * I_e
+            v = v + dv_dt * dt
+        else:
+            v = v_reset
         v_list.append(v) 
         t_list.append(ii*dt) # we multiply our time step with our iteration variable to get the time
 
-    
+
     return v_list, t_list
 
 
 def run_simulation_and_show_plot(I_e):
-    
+
     v_list, t_list = voltage_evolution(I_e, el, tau_m, v)
 
     plt.figure()
@@ -673,13 +815,14 @@ def run_simulation_and_show_plot(I_e):
 
     plt.xlabel('Time in ms')
     plt.ylabel('Voltage in mV')
-    
+
     plt.ylim([-80,20])
     plt.show()
-    
-interact(run_simulation_and_show_plot, I_e=(0,60e-11,10e-11))
 
-
+''' you can either use interact ''' 
+# interact(run_simulation_and_show_plot, I_e=(-2,6,1))
+''' or simply call the function'''
+run_simulation_and_show_plot(I_e = 1)
 # -
 
 
