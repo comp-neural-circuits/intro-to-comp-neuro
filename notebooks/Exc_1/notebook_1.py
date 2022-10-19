@@ -20,14 +20,6 @@ a = 5
 print (a)
 
 # [example solution](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_1/solutions/08f7239802b77de40d378b58fb9dbbfa.txt)
-#
-# ### Formatted text
-#
-# ```python
-# # example python code
-# a = 7
-# print(a)
-# ```
 
 # # Section 1 - The leaky-integrate and fire (LIF) model and python basics
 
