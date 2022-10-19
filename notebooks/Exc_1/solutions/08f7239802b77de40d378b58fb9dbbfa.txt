@@ -1,0 +1,8 @@
+### Example solution
+
+```python
+# example python code
+a = 7
+print(a)
+```
+
