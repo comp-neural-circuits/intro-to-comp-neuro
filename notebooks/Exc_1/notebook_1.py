@@ -43,7 +43,7 @@
 #
 # in this equation we have three parameters, let's define them. 
 
-# #### Task X - Execute the cell below
+# #### Task 1 - Execute the cell below
 # When executing a cell, the python interpreter will run the code we provide.
 #
 # When you select the cell and either press 'Run' at the top of the page or press 'shift+Enter' on the keyboard. 
@@ -55,14 +55,24 @@ v = -50 # in mV
 el = -60 # in mV
 print (tau_m, v, el)
 
-# #### Solution X -  What happend
+# ```{toggle}
+# #### Solution 1 -  What happend
+#
 # 1-3 We assigned values (on the right side of the equal sign) to three distinct variables (on the left of the equal sign).
 #
 # In addition, we can comment the code by using the '#' symbol. Everything in the same line behind this symbol will be ignored when the code is executed.
 #
-# 5 At the end, we print the values that we just defined
+# 4 At the end, we print the values that we just defined
+# ```
 
-# Following equation (2), we can now calculate the change in the membrane voltage per time-step. 
+# ```{admonition} Click the button to reveal!
+# :class: dropdown
+# Some hidden toggle content!
+#
+# ![](../images/cool.jpg)
+# ```
+
+# Following equation (2), we can now calculate the change in the membrane that occurs for our defined voltage value. 
 
 tau_m = 20 # in ms
 v = -50 # in mV
@@ -70,7 +80,7 @@ el = -60 # in mV
 dv_dt = (-v + el)/tau_m
 print (dv_dt)
 
-# This means the membrane potential changes by -0.5mV per ms if the membrane potential is at -50 mV. 
+# This means that if the membrane potential is at 50 mV, the membrane potential changes by -0.5mV per ms. (because our $\tau$ is given in ms) 
 
 # #### Task X - Calculate the voltage change for multiple time steps
 #
@@ -631,13 +641,10 @@ interact(run_simulation_and_show_plot, el=(-180,60,2), tau_m=(1,30,1), v=(-180,6
 # Take the function from above (you can use the interactive version if you like) and modify it so that you can change the input current I_e.
 # You can set the other parameters to fixed values again (either as defaults in the argument of the function or define them in the function)
 
-# +
 ''' 
     Put your code here
 '''
 
-
-# -
 
 # #### Solution 
 #
@@ -877,5 +884,33 @@ test.run_simulation(1000)
 test.I_e = 2e-8
 test.run_simulation(1000)
 test.plot_traces()
+
+# +
+import numpy as np
+# Define parameters
+f = lambda t, s: np.exp(t) # ODE
+h = 0.01 # Step size
+t = np.arange(0, 1 + h, h) # Numerical grid
+s0 = -1 # Initial Condition
+
+# Explicit Euler Method
+s = np.zeros(len(t))
+s[0] = s0
+
+for i in range(0, len(t) - 1):
+    s[i + 1] = s[i] + h*f(t[i], s[i])
+
+plt.figure(figsize = (12, 8))
+plt.plot(t, np.exp(t)-2, '--', label='S(t)')
+plt.plot(t, s, 'k-', label='Approximated Function', markerfacecolor=(0,0,0,0), markeredgecolor='r')
+
+plt.title('Approximate and Exact Solution \
+for Simple ODE')
+plt.xlabel('t')
+plt.ylabel('S(t)')
+plt.grid()
+plt.legend(loc='lower right')
+plt.show()
+# -
 
 
