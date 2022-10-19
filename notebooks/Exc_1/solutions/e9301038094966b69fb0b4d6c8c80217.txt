@@ -1,0 +1,7 @@
+#### Solution 6 
+
+Here we simulate the time evolution of the membrane voltage v following equation (2). The equation describes how much the voltage changes, given it's current value and the fixed parameters we define at the beginning. We can see that the right side of the equation becomes 0, when v equals el. This means that there will be no change anymore - we reached a stable configuration, a fixed point. 
+
+in a rather simple system like this, we can then realize that v will always evolve towards the value of 'el', independent of the starting value (the starting condition).
+
+Bonus: you can actually calculate the integral of equation (2), what function do you get out? We will come back to this later ...

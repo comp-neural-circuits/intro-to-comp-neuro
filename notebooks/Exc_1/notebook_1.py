@@ -55,13 +55,7 @@ v = -50 # in mV
 el = -60 # in mV
 print (tau_m, v, el)
 
-# [Solution 1 -  What happend](https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_1/solu/neuron_to_circuit.pngb9dafbadeda6b0afaf4eb56a6e030b88)
-#
-# 1-3 We assigned values (on the right side of the equal sign) to three distinct variables (on the left of the equal sign).
-#
-# In addition, we can comment the code by using the '#' symbol. Everything in the same line behind this symbol will be ignored when the code is executed.
-#
-# 4 At the end, we print the values that we just defined
+# [Solution 1 -  What happend](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_1/solutions/b9dafbadeda6b0afaf4eb56a6e030b88.txt)
 
 # #### Task 2 - Exectue the cell below
 #
@@ -73,9 +67,7 @@ el = -60 # in mV
 dv_dt = (-v + el)/tau_m
 print (dv_dt)
 
-# #### Solution 2 - What happend
-#
-# The result we see printed means that if the membrane potential is at 50 mV, the membrane potential changes by -0.5mV per ms. (because our $\tau$ is given in ms) 
+# [Solution 2 - What happend](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_1/solutions/0b6d6a1ac53626e007cfe2ae7ca52865.txt)
 
 # #### Task 3 - Calculate the voltage change for multiple time steps
 #
@@ -94,21 +86,7 @@ print ('dv/dt', dv_dt)
 v = v + dv_dt * dt
 print ('v', v)
 
-# #### Solution 3 - What happend
-#
-# 1-4 We defined our variables (now we also define our time step dt)
-#
-# 5 calculating the instantaneous change in v
-#
-# 6 printing the calculated value, while also printing what the value is
-#
-# 7 setting v equal to its old value plus the change it experiences multiplied with our chosen timestep
-#
-# 8 printing v (and printing that we print v)
-#
-# 9 we repeat the steps 3) to 6)
-#
-# Now thinking about even more repeats of these steps leads us to a very fundamental concept of programming: 
+# [Solution 3 - What happend](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_1/solutions/c9bbcb4f8f0d6e08edf5282d0deea52d.txt)
 
 # ## Loops
 # More specifically, the for-loop.
@@ -131,18 +109,7 @@ for ii in range(2):
     print ('v', v)
 # -
 
-# #### Solution 4 - What happend
-#
-# We use the range function to define the range we want to loop over. In the inital example 
-# ```python
-# range(2)
-# ``` 
-# we will loop over the numbers 0 and 1. So the range function basically takes an argument and produces a list of integers that we can use to iterate. You can also change the starting value of the produced integers. For example
-#
-# ```python
-# range(1,3) 
-# ```
-# would result in the numbers 1 and 2
+# [Solution 4 - What happend](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_1/solutions/dc08a6dbb265e55110b411909991e3ab.txt)
 
 # #### More information on the for-loop
 #
@@ -174,11 +141,7 @@ for ii in range(2):
 for ii in range(4):
     print (ii)
 
-# #### solution 5
-#
-# 1) we start with the integer 0 and we always end one step before the value x (i.e. x-1) that we provide for the range function (so we always iterate for x steps) as explained above already, you can also change the starting value by providing two comma seperated values to the range function
-#
-# 2) to get floating point steps we can multiply our integer values with the floating point number we prefer (for example 0.1) 
+# [solution 5](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_1/solutions/d9983871b5db5f9605dc1191890502b8.txt)
 
 # #### We now use the for loop to run our code from above many times and look at the final value of v
 
@@ -202,13 +165,7 @@ for ii in range(1000):
 print ('final v', v)
 # -
 
-# #### Solution 6 
-#
-# Here we simulate the time evolution of the membrane voltage v following equation (2). The equation describes how much the voltage changes, given it's current value and the fixed parameters we define at the beginning. We can see that the right side of the equation becomes 0, when v equals el. This means that there will be no change anymore - we reached a stable configuration, a fixed point. 
-#
-# in a rather simple system like this, we can then realize that v will always evolve towards the value of 'el', independent of the starting value (the starting condition).
-#
-# Bonus: you can actually calculate the integral of equation (2), what function do you get out? We will come back to this later ...
+# [Solution 6](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_1/solutions/e9301038094966b69fb0b4d6c8c80217.txt)
 
 # ## Lists
 #
@@ -238,21 +195,7 @@ v_list = []
 # continue here with your code
 # -
 
-# #### Solution 7 
-#
-# ```python
-# tau_m = 20 # in ms
-# v = -50 # in mV
-# el = -60 # in mV
-# dt = 0.1 # in ms
-# v_list = []
-# for ii in range(10):
-#     dv_dt = (-v + el)/tau_m
-#     v = v + dv_dt * dt
-#     v_list.append(v) 
-#
-# print (v_list)
-# ```
+# [Solution 7](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_1/solutions/f83a04de6a1c5742e9f506b41c43f321.txt)
 
 # #### Great ! 
 # We now have run a simulation of the time evolution of the membrane voltage and saved the values of v. However, we would also like to have the corresponding values of the time that passed for every voltage value. 
@@ -265,23 +208,7 @@ v_list = []
     Put your code here
 '''
 
-# #### Solution 8
-#
-# ```python
-# tau_m = 20 # in ms
-# v = -50 # in mV
-# el = -60 # in mV
-# dt = 0.1 # in ms
-# v_list = []
-# t_list = []
-# for ii in range(10):
-#     dv_dt = (-v + el)/tau_m
-#     v = v + dv_dt * dt
-#     v_list.append(v) 
-#     t_list.append(ii*dt)
-#
-# print (v_list, t_list)
-# ```
+# [Solution 8](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_1/solutions/55fb97641ed9a75a13eed8e5a19f663a.txt)
 
 # ## Plots
 #
@@ -329,25 +256,7 @@ plt.ylabel('Y-axis')
 plt.show()
 # -
 
-# #### Solution 9 - What happend
-#
-# 1 We import the library that we need for plotting. Once imported, we will be able to use it in every cell in this notebook. So for the next notebooks we will import it at the beginning.
-#
-# 2 We use a file for the style of the plots
-#
-#
-# 3 We create a figure.
-#
-# 4 We add a title to the figure
-#
-# 5/6 we define our x- and y- values
-#
-# 7 we create a line-plot (plt.plot) the first argument of the function have to be the x-values, the second the y-values. then we have some specified parameters, like the color or the linewidth. If you are interested - there are many paramters more we can modify - we'll learn about them later on
-#
-# 8/9 we label the x- and y-axis
-#
-# 10 we show the plot - this line is not necessary in notebooks like this one, but you need it for python scripts for example. 
-#
+# [Solution 9 - What happend](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_1/solutions/482fdd347c57468ece99c67755a3fcd8.txt)
 
 # #### Task 10 - Plot the time evolution of the membrane voltage
 #
@@ -365,29 +274,7 @@ plt.show()
 '''
 
 
-# #### Solution 10
-#
-# ```python
-# tau_m = 20 # in ms
-# v = -50 # in mV
-# el = -60 # in mV
-# dt = 0.1 # in ms
-# v_list = []
-# t_list = []
-#
-# for ii in range(1000):
-#     dv_dt = (-v + el)/tau_m
-#     v = v + dv_dt * dt
-#     v_list.append(v) 
-#     t_list.append(ii*dt) # we multiply our time step with our iteration variable to get the time
-#
-# plt.figure()
-# plt.title('Time evolution of membrane voltage')
-# plt.plot(t_list,v_list,linewidth=2.5)
-# plt.xlabel('Time in ms')
-# plt.ylabel('Voltage in mV')
-# plt.show()
-# ```
+# [Solution 10](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_1/solutions/c8b80ebd8d5a135736ec6c44669639a8.txt)
 
 # #### In context
 #
@@ -527,49 +414,7 @@ plt.legend()
 plt.show()
 # -
 
-# #### Solution 11 - What happend
-#
-# ```python
-# def voltage_evolution(el, v_start=-50):
-#     tau_m = 20 # in ms
-#     dt = 0.1 # in ms
-#     v = v_start
-#     
-#     v_list = []
-#     t_list = []    
-#
-#     for ii in range(1000):
-#         dv_dt = (-v + el)/tau_m
-#         v = v + dv_dt * dt
-#         v_list.append(v) 
-#         t_list.append(ii*dt) # we multiply our time step with our iteration variable to get the time
-#         
-#     return v_list, t_list
-#
-#
-#
-# plt.figure()
-# plt.title('Time evolution of membrane voltage')
-#
-# v_list_1, t_list_1 = voltage_evolution(el=-70)
-# plt.plot(t_list_1,v_list_1,linewidth=2.5, label='el = -70')
-#
-# v_list_2, t_list_2 = voltage_evolution(el=-60)
-# plt.plot(t_list_2,v_list_2,linewidth=2.5, label='el = -60')
-#
-# plt.xlabel('Time in ms')
-# plt.ylabel('Voltage in mV')
-# plt.legend()
-# plt.show()
-# ```
-#
-#
-# <div>
-# <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_1/static/different_el_values.png" width="450"/>
-# </div>
-#
-#
-# Here we now added el as a parameter to the function (another solution would be to replace v_start). We also now set a default value for v_start, so that we do not have to give a value for that if we call the function.
+# [Solution 11 - What happend](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_1/solutions/9682fd56e1dcf3f493091bee5e6503e8.txt)
 
 # #### Task 12 - Explore paramters
 #
@@ -657,48 +502,7 @@ interact(run_simulation_and_show_plot, el=(-180,60,2), tau_m=(1,30,1), v=(-180,6
     Put your code here
 '''
 
-# #### Solution  13
-#
-# ```python
-# def voltage_evolution(I_e, el, tau_m, v):
-#     dt = 1 # in ms
-#     r_m = 100e6 # Ohm
-#     v_list = []
-#     t_list = []
-#     I_e *= 1e-8 
-#     # here we multiply by 10^-8, you can also just provide the value to the function, 
-#     # but it does not work with interact then, since the numbers are too small
-#     for ii in range(100):
-#         dv_dt = (-v + el)/tau_m + r_m * I_e
-#         v = v + dv_dt * dt
-#         v_list.append(v) 
-#         t_list.append(ii*dt) # we multiply our time step with our iteration variable to get the time
-#
-#     
-#     return v_list, t_list
-#
-#
-# def run_simulation_and_show_plot(I_e):
-#     
-#     v_list, t_list = voltage_evolution(I_e, el, tau_m, v)
-#
-#     plt.figure()
-#     plt.title('Time evolution of membrane voltage')
-#
-#     plt.plot(t_list,v_list,linewidth=2.5)
-#
-#     plt.xlabel('Time in ms')
-#     plt.ylabel('Voltage in mV')
-#     
-#     plt.ylim([-80,80])
-#     plt.show()
-#
-# ''' you can either use interact ''' 
-# # interact(run_simulation_and_show_plot, I_e=(-2,6,1))
-# ''' or simply call the function'''
-# run_simulation_and_show_plot(I_e = 2)
-# ```
-#
+# [Solution  13](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_1/solutions/93653f83ea6ec8362d601a619efa56b3.txt)
 
 # # Spikes 
 #
@@ -746,54 +550,7 @@ interact(run_simulation_and_show_plot, el=(-180,60,2), tau_m=(1,30,1), v=(-180,6
 '''
 
 
-# #### Solution 14
-#
-# ```python
-# def voltage_evolution(I_e, el, tau_m, v):
-#     dt = 1 # in ms
-#     r_m = 100e6 # Ohm
-#     v_reset = -70 # mV
-#     v_th = -50 # mV
-#     
-#     
-#     v_list = []
-#     t_list = []
-#     I_e *= 1e-8 
-#     # here we multiply by 10^-8, you can also just provide the value to the function, 
-#     # but it does not work with interact then, since the numbers are too small
-#     for ii in range(100):
-#         if v <= v_th:
-#             dv_dt = (-v + el)/tau_m + r_m * I_e
-#             v = v + dv_dt * dt
-#         else:
-#             v = v_reset
-#         v_list.append(v) 
-#         t_list.append(ii*dt) # we multiply our time step with our iteration variable to get the time
-#
-#     
-#     return v_list, t_list
-#
-#
-# def run_simulation_and_show_plot(I_e):
-#     
-#     v_list, t_list = voltage_evolution(I_e, el, tau_m, v)
-#
-#     plt.figure()
-#     plt.title('Time evolution of membrane voltage')
-#
-#     plt.plot(t_list,v_list,linewidth=2.5)
-#
-#     plt.xlabel('Time in ms')
-#     plt.ylabel('Voltage in mV')
-#     
-#     plt.ylim([-80,20])
-#     plt.show()
-#
-# ''' you can either use interact ''' 
-# # interact(run_simulation_and_show_plot, I_e=(-2,6,1))
-# ''' or simply call the function'''
-# run_simulation_and_show_plot(I_e = 2)
-# ```
+# [Solution 14](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_1/solutions/78a5a35c0791e00cfff0b965447c82b9.txt)
 
 # #### Solution 14 - What happend
 # Now you should see something similar to this plot.
@@ -902,13 +659,7 @@ test.I_e = 2e-8
 test.run_simulation(1000)
 test.plot_traces()
 
-# #### Solution 15 - what happend
-#
-# You can see four different phases in this plot. 
-# The first shows the exponential decay with no external current. 
-# The second shows an increase of the membrane potential due to the external current, but it is not sufficient for the neuron to spike. 
-# The third is again a reduction of the membrane voltage due to the leak current. 
-# In the last phase we can see the neuron spiking, the applied current is sufficient to cross the threshold.
+# [Solution 15 - what happend](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_1/solutions/08adc119b92a93040de437337a924b92.txt)
 
 # #### Task 16 - Bonus
 #

@@ -1,0 +1,7 @@
+#### Solution 15 - what happend
+
+You can see four different phases in this plot. 
+The first shows the exponential decay with no external current. 
+The second shows an increase of the membrane potential due to the external current, but it is not sufficient for the neuron to spike. 
+The third is again a reduction of the membrane voltage due to the leak current. 
+In the last phase we can see the neuron spiking, the applied current is sufficient to cross the threshold.

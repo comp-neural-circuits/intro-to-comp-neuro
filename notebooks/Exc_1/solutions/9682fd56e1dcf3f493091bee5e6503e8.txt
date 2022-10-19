@@ -1,0 +1,43 @@
+#### Solution 11 - What happend
+
+```python
+def voltage_evolution(el, v_start=-50):
+    tau_m = 20 # in ms
+    dt = 0.1 # in ms
+    v = v_start
+    
+    v_list = []
+    t_list = []    
+
+    for ii in range(1000):
+        dv_dt = (-v + el)/tau_m
+        v = v + dv_dt * dt
+        v_list.append(v) 
+        t_list.append(ii*dt) # we multiply our time step with our iteration variable to get the time
+        
+    return v_list, t_list
+
+
+
+plt.figure()
+plt.title('Time evolution of membrane voltage')
+
+v_list_1, t_list_1 = voltage_evolution(el=-70)
+plt.plot(t_list_1,v_list_1,linewidth=2.5, label='el = -70')
+
+v_list_2, t_list_2 = voltage_evolution(el=-60)
+plt.plot(t_list_2,v_list_2,linewidth=2.5, label='el = -60')
+
+plt.xlabel('Time in ms')
+plt.ylabel('Voltage in mV')
+plt.legend()
+plt.show()
+```
+
+
+<div>
+<img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_1/static/different_el_values.png" width="450"/>
+</div>
+
+
+Here we now added el as a parameter to the function (another solution would be to replace v_start). We also now set a default value for v_start, so that we do not have to give a value for that if we call the function.

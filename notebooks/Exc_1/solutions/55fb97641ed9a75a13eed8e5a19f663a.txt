@@ -1,0 +1,17 @@
+#### Solution 8
+
+```python
+tau_m = 20 # in ms
+v = -50 # in mV
+el = -60 # in mV
+dt = 0.1 # in ms
+v_list = []
+t_list = []
+for ii in range(10):
+    dv_dt = (-v + el)/tau_m
+    v = v + dv_dt * dt
+    v_list.append(v) 
+    t_list.append(ii*dt)
+
+print (v_list, t_list)
+```

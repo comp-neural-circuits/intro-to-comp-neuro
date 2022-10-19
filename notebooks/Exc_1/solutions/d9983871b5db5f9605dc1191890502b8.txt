@@ -1,0 +1,5 @@
+#### Solution 5
+
+1) we start with the integer 0 and we always end one step before the value x (i.e. x-1) that we provide for the range function (so we always iterate for x steps) as explained above already, you can also change the starting value by providing two comma seperated values to the range function
+
+2) to get floating point steps we can multiply our integer values with the floating point number we prefer (for example 0.1) 
