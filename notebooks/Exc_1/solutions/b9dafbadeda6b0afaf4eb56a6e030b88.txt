@@ -1,0 +1,7 @@
+#### Solution 1 -  What happend
+
+1-3 We assigned values (on the right side of the equal sign) to three distinct variables (on the left of the equal sign).
+
+In addition, we can comment the code by using the '#' symbol. Everything in the same line behind this symbol will be ignored when the code is executed.
+
+4 At the end, we print the values that we just defined

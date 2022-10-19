@@ -55,23 +55,16 @@ v = -50 # in mV
 el = -60 # in mV
 print (tau_m, v, el)
 
-# ```{toggle}
-# #### Solution 1 -  What happend
+# [Solution 1 -  What happend](https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_1/solu/neuron_to_circuit.pngb9dafbadeda6b0afaf4eb56a6e030b88)
 #
 # 1-3 We assigned values (on the right side of the equal sign) to three distinct variables (on the left of the equal sign).
 #
 # In addition, we can comment the code by using the '#' symbol. Everything in the same line behind this symbol will be ignored when the code is executed.
 #
 # 4 At the end, we print the values that we just defined
-# ```
 
-# ```{admonition} Click the button to reveal!
-# :class: dropdown
-# Some hidden toggle content!
+# #### Task 2 - Exectue the cell below
 #
-# ![](../images/cool.jpg)
-# ```
-
 # Following equation (2), we can now calculate the change in the membrane that occurs for our defined voltage value. 
 
 tau_m = 20 # in ms
@@ -80,9 +73,11 @@ el = -60 # in mV
 dv_dt = (-v + el)/tau_m
 print (dv_dt)
 
-# This means that if the membrane potential is at 50 mV, the membrane potential changes by -0.5mV per ms. (because our $\tau$ is given in ms) 
+# #### Solution 2 - What happend
+#
+# The result we see printed means that if the membrane potential is at 50 mV, the membrane potential changes by -0.5mV per ms. (because our $\tau$ is given in ms) 
 
-# #### Task X - Calculate the voltage change for multiple time steps
+# #### Task 3 - Calculate the voltage change for multiple time steps
 #
 # After applying the change in voltage as we did above for one time step (adding -0.5mV/ms * 1ms to -50mV), we can ask again what the change is - given the new voltage value, then apply this again and so on
 
@@ -99,7 +94,7 @@ print ('dv/dt', dv_dt)
 v = v + dv_dt * dt
 print ('v', v)
 
-# #### Solution X - What happend
+# #### Solution 3 - What happend
 #
 # 1-4 We defined our variables (now we also define our time step dt)
 #
@@ -119,7 +114,7 @@ print ('v', v)
 # More specifically, the for-loop.
 # Loops allow us to execute the same code multiple times, or even to let programs run indefinetly. We can re-write the above code with a for-loop.
 
-# #### Task X - Change the number of repetitions
+# #### Task 4 - Change the number of repetitions
 #
 # Initially we execute the code block from above (2 times). You can change how often it will be repeated by changing the number in the 'range' function. Try it out.
 
@@ -135,6 +130,19 @@ for ii in range(2):
     v = v + dv_dt * dt
     print ('v', v)
 # -
+
+# #### Solution 4 - What happend
+#
+# We use the range function to define the range we want to loop over. In the inital example 
+# ```python
+# range(2)
+# ``` 
+# we will loop over the numbers 0 and 1. So the range function basically takes an argument and produces a list of integers that we can use to iterate. You can also change the starting value of the produced integers. For example
+#
+# ```python
+# range(1,3) 
+# ```
+# would result in the numbers 1 and 2
 
 # #### More information on the for-loop
 #
@@ -155,7 +163,7 @@ for ii in range(2):
 #
 # You can also access the iteration variable in the for-loop. you can try out the example below.   
 
-# #### Task X - Answer the following questions
+# #### Task 5 - Answer the following questions
 #
 # 0) execute the cell
 #
@@ -166,15 +174,15 @@ for ii in range(2):
 for ii in range(4):
     print (ii)
 
-# #### solution X
+# #### solution 5
 #
-# 1) we start with the integer 0 and we always end one step before the value x (i.e. x-1) that we provide for the range function (so we always iterate for x steps)
+# 1) we start with the integer 0 and we always end one step before the value x (i.e. x-1) that we provide for the range function (so we always iterate for x steps) as explained above already, you can also change the starting value by providing two comma seperated values to the range function
 #
 # 2) to get floating point steps we can multiply our integer values with the floating point number we prefer (for example 0.1) 
 
-# We now use the for loop to run our code from above many times and look at the final value of v
+# #### We now use the for loop to run our code from above many times and look at the final value of v
 
-# #### Task  X - Change the starting value of v
+# #### Task  6 - Change the starting value of v
 #
 # When executing the cell below, you can now change the starting value of v. 
 #
@@ -194,17 +202,17 @@ for ii in range(1000):
 print ('final v', v)
 # -
 
-# #### Solution X 
+# #### Solution 6 
 #
-# we still simulate the time evolution of the membrane voltage v following equation (2). The equation describes how much the voltage changes, given it's current value and the fixed parameters we define at the beginning. We can see that the right side of the equation becomes 0, when v equals el. This means that there will be no change anymore - we reached a stable configuration, a fixed point. 
+# Here we simulate the time evolution of the membrane voltage v following equation (2). The equation describes how much the voltage changes, given it's current value and the fixed parameters we define at the beginning. We can see that the right side of the equation becomes 0, when v equals el. This means that there will be no change anymore - we reached a stable configuration, a fixed point. 
 #
 # in a rather simple system like this, we can then realize that v will always evolve towards the value of 'el', independent of the starting value (the starting condition).
 #
 # Bonus: you can actually calculate the integral of equation (2), what function do you get out? We will come back to this later ...
 
-# Until now we defined how v should evolve over time and we can see what the final value of v is, or print intermediate values of v. Ultimately, we want to save the values of v between the beginning and the end, in order to access them later on. This leads us to another variable type.
-#
 # ## Lists
+#
+# Until now we defined how v should evolve over time and we can see what the final value of v is, or print intermediate values of v. Ultimately, we want to save the values of v between the beginning and the end, in order to access them later on. This leads us to another variable type.
 #
 # Lists can store multiple varibales of the same, or even of different types. A list is defined like this
 # ```python
@@ -216,7 +224,7 @@ print ('final v', v)
 #     empty_list.append(1)
 # ```
 
-# #### Task x - save all intermediate values of v
+# #### Task 7 - save all intermediate values of v
 #
 # can you re-write the code from above, so that we do not only print the final v but a list of all v's after the loop has finsihed?
 
@@ -230,7 +238,7 @@ v_list = []
 # continue here with your code
 # -
 
-# #### Solution X 
+# #### Solution 7 
 #
 # ```python
 # tau_m = 20 # in ms
@@ -246,13 +254,18 @@ v_list = []
 # print (v_list)
 # ```
 
-# Great! We now have run a simulation of the time evolution of the membrane voltage and saved the values of v. However, we would also like to have the corresponding values of the time that passed for every voltage value. 
+# #### Great ! 
+# We now have run a simulation of the time evolution of the membrane voltage and saved the values of v. However, we would also like to have the corresponding values of the time that passed for every voltage value. 
 #
-# #### Task X - save the time values as well
+# #### Task 8 - save the time values as well
 #
 # Can you re-write the code above, to not only save and print the voltage values, but also do the same for the time steps? 
 
-# #### Solution X 
+''' 
+    Put your code here
+'''
+
+# #### Solution 8
 #
 # ```python
 # tau_m = 20 # in ms
@@ -270,9 +283,9 @@ v_list = []
 # print (v_list, t_list)
 # ```
 
-# To get a better understanding of how the voltage evolves, we want to visualize the data.
-#
 # ## Plots
+#
+# To get a better understanding of how the voltage evolves, we want to visualize the data.
 #
 # To visualize with python, we make use of a library. Libraries provide pre-written functions, so we don't have to write them from scratch. To import a library we have to add the following line (usually always at the beginning of the code)
 # ```python
@@ -281,7 +294,7 @@ v_list = []
 # with this line we can import the library matplotlib.pyplot and we can call it from then on with the the name plt 
 # Once imported, we can use this command in each cell of the notebook.
 
-# #### Task X - Play around
+# #### Task 9 - Play around
 #
 # In the cell below you can play around with plotting. 
 # here is the original code of the cell in case you want to reset:
@@ -316,7 +329,7 @@ plt.ylabel('Y-axis')
 plt.show()
 # -
 
-# #### Solution X - What happend
+# #### Solution 9 - What happend
 #
 # 1 We import the library that we need for plotting. Once imported, we will be able to use it in every cell in this notebook. So for the next notebooks we will import it at the beginning.
 #
@@ -336,24 +349,23 @@ plt.show()
 # 10 we show the plot - this line is not necessary in notebooks like this one, but you need it for python scripts for example. 
 #
 
-# #### Task X - Plot the time evolution of the membrane voltage
+# #### Task 10 - Plot the time evolution of the membrane voltage
 #
 # Try to combine the code where we calculate and save the v and t values and the plotting code to create a figure that should look roughly like this:
 #
-# (with a starting value of v = -55, a timestep dt=0,1 and iterating over range(1000) )
+# (with a starting value of v = -55, a timestep dt=0.1 and iterating over range(1000) )
 #
 # <div>
 # <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_1/static/membrane_voltage_decay.png" width="350"/>
 # </div>
 #
 
-# +
-### Add your code here
+''' 
+    Put your code here
+'''
 
 
-# -
-
-# #### Solution X
+# #### Solution 10
 #
 # ```python
 # tau_m = 20 # in ms
@@ -471,7 +483,7 @@ plt.show()
 # Our function is then executed with the value for v_start that we specify and once it finishes it returns the created lists. We can then use these lists to plot the results.
 #
 
-# #### Task X - change the code so that you can vary other parameters
+# #### Task 11 - change the code so that you can vary other parameters
 #
 # change the function (and the parts where the function is called), so that you can change other parameters of the function (for exmaple el) to see how they effect the changes of the membrane voltage. 
 #
@@ -515,7 +527,7 @@ plt.legend()
 plt.show()
 # -
 
-# #### Solution X - What happend
+# #### Solution 11 - What happend
 #
 # ```python
 # def voltage_evolution(el, v_start=-50):
@@ -559,7 +571,7 @@ plt.show()
 #
 # Here we now added el as a parameter to the function (another solution would be to replace v_start). We also now set a default value for v_start, so that we do not have to give a value for that if we call the function.
 
-# #### Task X - Look at the paramters
+# #### Task 12 - Explore paramters
 #
 # We now use another library called ipywidgets that allows us to build interactive plots. We have to import the interactive function and can then call our defined function and define the paramters we want to vary, we do so by specifying the range for each parameter in the following fashion:
 #
@@ -636,7 +648,7 @@ interact(run_simulation_and_show_plot, el=(-180,60,2), tau_m=(1,30,1), v=(-180,6
 # ```
 #
 
-# ### Task X - rewrite the function to allow an external input current
+# ### Task 13 - rewrite the function to allow an external input current
 #
 # Take the function from above (you can use the interactive version if you like) and modify it so that you can change the input current I_e.
 # You can set the other parameters to fixed values again (either as defaults in the argument of the function or define them in the function)
@@ -645,8 +657,7 @@ interact(run_simulation_and_show_plot, el=(-180,60,2), tau_m=(1,30,1), v=(-180,6
     Put your code here
 '''
 
-
-# #### Solution 
+# #### Solution  13
 #
 # ```python
 # def voltage_evolution(I_e, el, tau_m, v):
@@ -703,7 +714,7 @@ interact(run_simulation_and_show_plot, el=(-180,60,2), tau_m=(1,30,1), v=(-180,6
 # V(t) &= V_{reset} &\text{otherwise}
 # \end{align}
 #
-# In words: The membrane voltage now follows the equation we are already used to as long as it is below the threshold value v_th. If it is above, we call this a spike and reset the membrane voltage to a value below the threshold. This mimics the overshoot that we can observe in real neurons (again, more on that later).
+# In words: The membrane voltage now follows the equation we are already used to as long as it is below the threshold value v_th. If it is above, we call this a spike and reset the membrane voltage to a value below the threshold. This mimics the undershoot that we can observe in real neurons (again, more on that later).
 #
 # We now need to define the two new variables. Based off on data we can set them roughly to:
 #
@@ -725,12 +736,17 @@ interact(run_simulation_and_show_plot, el=(-180,60,2), tau_m=(1,30,1), v=(-180,6
 #
 # Again, notice the indent that we use to show which part to execute under which condition. 
 
-# #### Task - add the spiking behaviour to the code
+# #### Task 14 - add the spiking behaviour to the code
 #
 # You can now try to modify the code from above.
 # Add the new variables to the voltage_evolution function and add the if condition in the for-loop, where we update the voltage value.
 
-# #### Solution 
+''' 
+    Put your code here
+'''
+
+
+# #### Solution 14
 #
 # ```python
 # def voltage_evolution(I_e, el, tau_m, v):
@@ -779,7 +795,7 @@ interact(run_simulation_and_show_plot, el=(-180,60,2), tau_m=(1,30,1), v=(-180,6
 # run_simulation_and_show_plot(I_e = 2)
 # ```
 
-# #### What happend
+# #### Solution 14 - What happend
 # Now you should see something similar to this plot.
 #
 # <div>
@@ -873,7 +889,8 @@ test = LIFNeuron()
 test.run_simulation(100)
 test.plot_traces()
 
-# Even more, we can now use this class in a very flexible way, since we can also access and change the parameters in an instance, once it is created. For example:
+# #### Task 15 - Explain the plot below
+# Even more, we can now use this class in a very flexible way, since we can also access and change the parameters in an instance, once it is created. Can you describe what happens in the next cell? 
 
 test = LIFNeuron(I_e = 0)
 test.run_simulation(1000)
@@ -885,32 +902,25 @@ test.I_e = 2e-8
 test.run_simulation(1000)
 test.plot_traces()
 
-# +
-import numpy as np
-# Define parameters
-f = lambda t, s: np.exp(t) # ODE
-h = 0.01 # Step size
-t = np.arange(0, 1 + h, h) # Numerical grid
-s0 = -1 # Initial Condition
+# #### Solution 15 - what happend
+#
+# You can see four different phases in this plot. 
+# The first shows the exponential decay with no external current. 
+# The second shows an increase of the membrane potential due to the external current, but it is not sufficient for the neuron to spike. 
+# The third is again a reduction of the membrane voltage due to the leak current. 
+# In the last phase we can see the neuron spiking, the applied current is sufficient to cross the threshold.
 
-# Explicit Euler Method
-s = np.zeros(len(t))
-s[0] = s0
+# #### Task 16 - Bonus
+#
+# In case you have some time left, here are some ideas on how to modify the code of our LIF class to make it 'more realistic'
+#
+# 1) There are no real spikes at the moment. We immediately set the voltage value back to the reset potential. Can you change the code so that we see a more realistic spike? When the voltage crosses the threshold, it should usually reach membrane potentials around -20 mV
+#
+# 2) Usually neurons have a so called 'refractory period'. This means that they cannot spike for some time after they spiked once. Our neuron model does not have that, can you add a refractory period by holding the membrane potential at rest for 10 ms after each spike?
 
-for i in range(0, len(t) - 1):
-    s[i + 1] = s[i] + h*f(t[i], s[i])
+# # Congratulations
+#
+# This was the first notebook of this semester about the LIF model. 
 
-plt.figure(figsize = (12, 8))
-plt.plot(t, np.exp(t)-2, '--', label='S(t)')
-plt.plot(t, s, 'k-', label='Approximated Function', markerfacecolor=(0,0,0,0), markeredgecolor='r')
-
-plt.title('Approximate and Exact Solution \
-for Simple ODE')
-plt.xlabel('t')
-plt.ylabel('S(t)')
-plt.grid()
-plt.legend(loc='lower right')
-plt.show()
-# -
 
 
