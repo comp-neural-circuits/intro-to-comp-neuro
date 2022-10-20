@@ -2,14 +2,14 @@
 
 ```python
 def voltage_evolution(el, v_start=-50):
-    tau_m = 20 # in ms
+    tau_m = 10 # in ms
     dt = 0.1 # in ms
     v = v_start
     
     v_list = []
     t_list = []    
 
-    for ii in range(1000):
+    for ii in range(500):
         dv_dt = (-v + el)/tau_m
         v = v + dv_dt * dt
         v_list.append(v) 

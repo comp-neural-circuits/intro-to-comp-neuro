@@ -1,14 +1,14 @@
 #### Solution 10
 
 ```python
-tau_m = 20 # in ms
+tau_m = 10 # in ms
 v = -50 # in mV
 el = -60 # in mV
 dt = 0.1 # in ms
 v_list = []
 t_list = []
 
-for ii in range(1000):
+for ii in range(500):
     dv_dt = (-v + el)/tau_m
     v = v + dv_dt * dt
     v_list.append(v) 

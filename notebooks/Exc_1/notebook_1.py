@@ -44,12 +44,16 @@ print (a)
 # \tau_m\,\frac{dV}{dt} = - V + E_{L} + R_m\,I_e \qquad (1)
 # \end{equation}
 #
+# where $V$ is the membrane potential, $\tau_m$ is the membrane time constant, $E_{L}$ is the leak potential, $R_m$ is the membrane resistance, $I_e$ is the external current.
+#
 # We ignore the injected external current for now ($I_e = 0$) which means the equation simplifies to 
 # \begin{equation}
 # \tau_m\,\frac{dV}{dt} = - V + E_{L} \qquad (2)
 # \end{equation}
 #
-# in this equation we have three parameters, let's define them. 
+#
+#
+# in this equation we have three parameters that we need to define, let's do this: 
 
 # #### Task 1 - Execute the cell below
 # When executing a cell, the python interpreter will run the code we provide.
@@ -58,7 +62,7 @@ print (a)
 #
 # try it out:
 
-tau_m = 20 # in ms
+tau_m = 10 # in ms
 v = -50 # in mV
 el = -60 # in mV
 print (tau_m, v, el)
@@ -69,7 +73,7 @@ print (tau_m, v, el)
 #
 # Following equation (2), we can now calculate the change in the membrane that occurs for our defined voltage value. 
 
-tau_m = 20 # in ms
+tau_m = 10 # in ms
 v = -50 # in mV
 el = -60 # in mV
 dv_dt = (-v + el)/tau_m
@@ -81,7 +85,7 @@ print (dv_dt)
 #
 # After applying the change in voltage as we did above for one time step (adding -0.5mV/ms * 1ms to -50mV), we can ask again what the change is - given the new voltage value, then apply this again and so on
 
-tau_m = 20 # in ms
+tau_m = 10 # in ms
 v = -50 # in mV
 el = -60 # in mV
 dt = 0.1 # in ms
@@ -105,7 +109,7 @@ print ('v', v)
 # Initially we execute the code block from above (2 times). You can change how often it will be repeated by changing the number in the 'range' function. Try it out.
 
 # +
-tau_m = 20 # in ms
+tau_m = 10 # in ms
 v = -50 # in mV
 el = -60 # in mV
 dt = 0.1 # in ms
@@ -160,13 +164,13 @@ for ii in range(4):
 # However, you should see that (given we have enough repetitions), your final v should always be very close to the same value. Can you explain why this is correct?
 
 # +
-tau_m = 20 # in ms
+tau_m = 10 # in ms
 el = -60 # in mV
 dt = 0.1 # in ms
 
 v = -50 # in mV
 
-for ii in range(1000):
+for ii in range(500):
     dv_dt = (-v + el)/tau_m
     v = v + dv_dt * dt
 
@@ -194,7 +198,7 @@ print ('final v', v)
 # can you re-write the code from above, so that we do not only print the final v but a list of all v's after the loop has finsihed?
 
 # +
-tau_m = 20 # in ms
+tau_m = 10 # in ms
 v = -50 # in mV
 el = -60 # in mV
 dt = 0.1 # in ms
@@ -270,7 +274,7 @@ plt.show()
 #
 # Try to combine the code where we calculate and save the v and t values and the plotting code to create a figure that should look roughly like this:
 #
-# (with a starting value of v = -55, a timestep dt=0.1 and iterating over range(1000) )
+# (with a starting value of v = -55, a timestep dt=0.1 and iterating over range(500) )
 #
 # <div>
 # <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_1/static/membrane_voltage_decay.png" width="350"/>
@@ -309,7 +313,7 @@ plt.show()
 #
 # ```python
 # def voltage_evolution(v_start):
-#     tau_m = 20 # in ms
+#     tau_m = 10 # in ms
 #     el = -60 # in mV
 #     dt = 0.1 # in ms
 #     v = v_start
@@ -317,7 +321,7 @@ plt.show()
 #     v_list = []
 #     t_list = []    
 #
-#     for ii in range(1000):
+#     for ii in range(500):
 #         dv_dt = (-v + el)/tau_m
 #         v = v + dv_dt * dt
 #         v_list.append(v) 
@@ -334,7 +338,7 @@ plt.show()
 
 # +
 def voltage_evolution(v_start):
-    tau_m = 20 # in ms
+    tau_m = 10 # in ms
     el = -60 # in mV
     dt = 0.1 # in ms
     v = v_start
@@ -342,7 +346,7 @@ def voltage_evolution(v_start):
     v_list = []
     t_list = []    
 
-    for ii in range(1000):
+    for ii in range(500):
         dv_dt = (-v + el)/tau_m
         v = v + dv_dt * dt
         v_list.append(v) 
@@ -389,7 +393,7 @@ plt.show()
 #Change the code in this cell. You can always copy the code from above in case something breaks that you cannot recover
 
 def voltage_evolution(v_start):
-    tau_m = 20 # in ms
+    tau_m = 10 # in ms
     el = -60 # in mV
     dt = 0.1 # in ms
     v = v_start
@@ -397,7 +401,7 @@ def voltage_evolution(v_start):
     v_list = []
     t_list = []    
 
-    for ii in range(1000):
+    for ii in range(500):
         dv_dt = (-v + el)/tau_m
         v = v + dv_dt * dt
         v_list.append(v) 
@@ -455,8 +459,8 @@ def voltage_evolution(el, tau_m, v):
     return v_list, t_list
 
 
-def run_simulation_and_show_plot(el, tau_m, v):
-    
+def run_simulation_and_show_plot(el=-60, tau_m=10, v=-50):
+        
     v_list, t_list = voltage_evolution(el, tau_m, v)
 
     plt.figure()
@@ -594,7 +598,7 @@ class LIFNeuron(object):
     and plot the results of the run
     """
     def __init__(self, 
-                 tau_m = 20, v_start = -50, el = -75, r_m = 100e6, v_reset = -70, v_th = -50,
+                 tau_m = 10, v_start = -50, el = -75, r_m = 100e6, v_reset = -70, v_th = -50,
                  I_e = 10e-8,
                  dt = 0.1):
         '''This function is executed when we create an object from that class'''
@@ -658,13 +662,13 @@ test.plot_traces()
 # Even more, we can now use this class in a very flexible way, since we can also access and change the parameters in an instance, once it is created. Can you describe what happens in the next cell? 
 
 test = LIFNeuron(I_e = 0)
-test.run_simulation(1000)
-test.I_e = 4e-9
-test.run_simulation(1000)
+test.run_simulation(500)
+test.I_e = 8e-9
+test.run_simulation(500)
 test.I_e = 0
-test.run_simulation(1000)
-test.I_e = 2e-8
-test.run_simulation(1000)
+test.run_simulation(500)
+test.I_e = 4e-8
+test.run_simulation(500)
 test.plot_traces()
 
 # [Solution 15 - what happend](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_1/solutions/08adc119b92a93040de437337a924b92.txt)

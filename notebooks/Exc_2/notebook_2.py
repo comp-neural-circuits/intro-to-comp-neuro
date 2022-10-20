@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.14.0
+#       jupytext_version: 1.14.1
 #   kernelspec:
 #     display_name: intro-to-comp-neuro
 #     language: python
@@ -15,33 +15,206 @@
 
 # # From Data to a model
 
-# +
-import numpy as np
-import matplotlib.pyplot as plt
+# # Notebook 2 - (add theme here)
+#
+# From now on we will import libraries that we already introduced in the first code cell of th notebook. In turn, this means you have to execute it in order for the rest to work properly
 
+# +
+# Execute this cell to import all the libraries that we are going to use
+# Once imported, you can then use them in every cell in this notebook. The same holds for 
+# functions/classes you define or variables you declare (more on that mayne later) 
+
+
+import matplotlib.pyplot as plt
 # Settings for the figures
-plt.style.use(plt.style.available[20])
 plt.style.use("https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/plots_style.txt")
+from ipywidgets import interact
+
+
 # -
 
 # # The Leaky Integrate and fire model
 #
-# Now we use the learned python concepts to implement the leaky-integrate and fire neuron model:
-#
+# Today we will expand upon the class we developed in the last sessions and incorporate the new features we learned in the lecture.
 # As a reminder, here is the differential equation that describes the membrane potential of our neuron:
 #
 # \begin{align}
-# \tau_m\,\frac{d}{dt}\,V(t) &= E_{L} - V(t) + R\,I(t) &\text{if }\quad V(t) \leq V_{th} \\ 
+# \tau_m\,\frac{dV}{dt} &= - V + E_{L} + R_m\,I_e &\text{if }\quad V(t) \leq V_{th} \\ 
 # \\
 # V(t) &= V_{reset} &\text{otherwise}
 # \end{align}
 #
-# where $V(t)$ is the membrane potential, $\tau_m$ is the membrane time constant, $E_{L}$ is the leak potential, $R$ is the membrane resistance, $I(t)$ is the synaptic input current, $V_{th}$ is the firing threshold, and $V_{reset}$ is the reset voltage. We can also write $V_m$ for membrane potential, which is more convenient for plot labels.
+#
+# where $V$ is the membrane potential, $\tau_m$ is the membrane time constant, $E_{L}$ is the leak potential, $R_m$ is the membrane resistance, $I_e$ is the synaptic input current, $V_{th}$ is the firing threshold, and $V_{reset}$ is the reset voltage.
 #
 # The membrane equation describes the time evolution of membrane potential $V(t)$ in response to synaptic input and leaking of charge across the cell membrane. This is an *ordinary differential equation (ODE)*.
 #
+# We first come back to the class of the LIF that we developed last time:
 #
+# <details>
+#     <summary><font color="red"><b>click here to show/hide class code</b></font></summary>
 #
+# ```python
+# class LIFNeuron(object):
+#     """The first version of our LIF neuron class that can initiate a single neuron, 
+#     run the simulation for a certain number of steps while keeping track of the membrane voltage
+#     and plot the results of the run
+#     """
+#     def __init__(self, 
+#                  tau_m = 20, v_start = -50, el = -75, r_m = 100e6, v_reset = -70, v_th = -50,
+#                  I_e = 10e-8,
+#                  dt = 0.1):
+#         '''This function is executed when we create an object from that class'''
+#         super(LIFNeuron, self).__init__()
+#         self.tau_m = tau_m
+#         self.el = el
+#         self.dt = dt
+#         self.r_m = r_m
+#         self.v_reset = v_reset
+#         self.v_th = v_th
+#         
+#         self.v = v_start
+#         
+#         self.I_e = I_e
+#         
+#         self.v_list = [v_start]
+#         self.t_list = [0]
+#     
+#     def timestep(self):
+#         if self.v <= self.v_th:
+#             dv_dt = (-self.v + self.el)/self.tau_m + self.r_m * self.I_e
+#             self.v += dv_dt * self.dt
+#         else:
+#             self.v = self.v_reset
+#             
+#     
+#     def run_simulation(self, time_steps = 100):
+#         
+#         for ii in range(time_steps):
+#             self.timestep()
+#             
+#             self.v_list.append(self.v)
+#             current_time = self.t_list[-1] + self.dt
+#             self.t_list.append(current_time) 
+#             
+#     def plot_traces(self):
+#         
+#         plt.figure()
+#         plt.title('Time evolution of membrane voltage')
+#
+#         plt.plot(self.t_list,self.v_list,linewidth=2.5)
+#
+#         plt.xlabel('Time in ms')
+#         plt.ylabel('Voltage in mV')
+#
+#         plt.ylim([-80,20])
+#         plt.show()
+# ```
+#
+# </details>
+
+# We now want to have a look at the different integration methods. We have seen two in the lecture: 
+#
+# The euler method and Runge Kutta 4. 
+#
+# We already use the euler method and now want to add the ability to run our simulation either with the euler or the Runge Kutta 4 method. 
+# There are manz solutions to this problem. 
+# One possible way is to add two new methods to the class:
+# ```python
+#     def dv_dt_euler( 
+# ```
+#
+# <details>
+#     <summary><font color="blue"><b>Runge Kutta 4</b></font></summary>
+#
+# $S\left(t_{i+1}\right) = S\left(t_i\right) + \frac{h}{6}\left(k_1 + 2\,k_2 + 2\, k_3 + k_4\right)$
+# <details>
+#  
+# test 
+# <details>
+#     <summary><font color="blue"><b>Euler</b></font></summary>
+#
+# $S\left(t_{i+1}\right) = S\left(t_i\right) + \frac{h}{6}\left(k_1 + 2\,k_2 + 2\, k_3 + k_4\right)$
+# <details>
+
+# +
+class LIFNeuron(object):
+    """The first version of our LIF neuron class that can initiate a single neuron, 
+    run the simulation for a certain number of steps while keeping track of the membrane voltage
+    and plot the results of the run
+    """
+    def __init__(self, 
+                 tau_m = 20, v_start = -50, el = -75, r_m = 100e6, v_reset = -70, v_th = -50,
+                 I_e = 10e-8,
+                 dt = 0.1,
+                 integration_method = 'euler'):
+        '''This function is executed when we create an object from that class'''
+        super(LIFNeuron, self).__init__()
+        self.tau_m = tau_m
+        self.el = el
+        self.dt = dt
+        self.r_m = r_m
+        self.v_reset = v_reset
+        self.v_th = v_th
+
+        self.v = v_start
+
+        self.I_e = I_e
+
+        self.v_list = [v_start]
+        self.t_list = [0]
+        
+        self.integration_method = integration_method
+
+    
+    def dv_dt(self, v):
+        return (-v + self.el)/self.tau_m + self.r_m * self.I_e
+        
+    def timestep(self):
+        if self.v <= self.v_th:
+            if self.integration_method == 'euler':
+                dv_dt = self.dv_dt_euler()
+            if self.integration_method == 'runge_kutta_4':
+                dv_dt = self.dv_dt_runge_kutta_4()
+            self.v += dv_dt * self.dt
+        else:
+            self.v = self.v_reset
+
+
+    def run_simulation(self, time_steps = 100):
+
+        for ii in range(time_steps):
+            self.timestep()
+
+            self.v_list.append(self.v)
+            current_time = self.t_list[-1] + self.dt
+            self.t_list.append(current_time) 
+
+    def plot_traces(self):
+
+        plt.figure()
+        plt.title('Time evolution of membrane voltage')
+
+        plt.plot(self.t_list,self.v_list,linewidth=2.5)
+
+        plt.xlabel('Time in ms')
+        plt.ylabel('Voltage in mV')
+
+        plt.ylim([-80,20])
+        plt.show()
+        
+
+test = LIFNeuron(I_e = 0, method='euler')
+
+test.run_simulation(1000)
+test.I_e = 4e-9
+test.run_simulation(1000)
+test.I_e = 0
+test.run_simulation(1000)
+test.I_e = 2e-8
+test.run_simulation(1000)
+test.plot_traces()
+# -
 
 # ### Defining Parameters 
 #

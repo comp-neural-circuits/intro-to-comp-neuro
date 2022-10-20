@@ -1,7 +1,7 @@
 #### Solution 7 
 
 ```python
-tau_m = 20 # in ms
+tau_m = 10 # in ms
 v = -50 # in mV
 el = -60 # in mV
 dt = 0.1 # in ms

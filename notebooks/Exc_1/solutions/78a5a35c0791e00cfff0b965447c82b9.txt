@@ -13,7 +13,7 @@ def voltage_evolution(I_e, el, tau_m, v):
     I_e *= 1e-8 
     # here we multiply by 10^-8, you can also just provide the value to the function, 
     # but it does not work with interact then, since the numbers are too small
-    for ii in range(100):
+    for ii in range(50):
         if v <= v_th:
             dv_dt = (-v + el)/tau_m + r_m * I_e
             v = v + dv_dt * dt
@@ -26,7 +26,7 @@ def voltage_evolution(I_e, el, tau_m, v):
     return v_list, t_list
 
 
-def run_simulation_and_show_plot(I_e):
+def run_simulation_and_show_plot(I_e, el=-60, tau_m=10, v=-50):
     
     v_list, t_list = voltage_evolution(I_e, el, tau_m, v)
 
