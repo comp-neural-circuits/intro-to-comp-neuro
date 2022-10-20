@@ -654,22 +654,22 @@ class LIFNeuron(object):
 
 # Once you executed the cell above, we can now run our simulation and show the results like before, with only three lines of code.
 
-test = LIFNeuron()
-test.run_simulation(100)
-test.plot_traces()
+neuron = LIFNeuron()
+neuron.run_simulation(100)
+neuron.plot_traces()
 
 # #### Task 15 - Explain the plot below
 # Even more, we can now use this class in a very flexible way, since we can also access and change the parameters in an instance, once it is created. Can you describe what happens in the next cell? 
 
-test = LIFNeuron(I_e = 0)
-test.run_simulation(500)
-test.I_e = 8e-9
-test.run_simulation(500)
-test.I_e = 0
-test.run_simulation(500)
-test.I_e = 4e-8
-test.run_simulation(500)
-test.plot_traces()
+neuron = LIFNeuron(I_e = 0)
+neuron.run_simulation(500)
+neuron.I_e = 8e-9
+neuron.run_simulation(500)
+neuron.I_e = 0
+neuron.run_simulation(500)
+neuron.I_e = 4e-8
+neuron.run_simulation(500)
+neuron.plot_traces()
 
 # [Solution 15 - what happend](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_1/solutions/08adc119b92a93040de437337a924b92.txt)
 
