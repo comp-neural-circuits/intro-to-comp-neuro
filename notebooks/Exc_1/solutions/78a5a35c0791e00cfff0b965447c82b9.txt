@@ -15,7 +15,7 @@ def voltage_evolution(I_e, el, tau_m, v):
     # but it does not work with interact then, since the numbers are too small
     for ii in range(50):
         if v <= v_th:
-            dv_dt = (-v + el)/tau_m + r_m * I_e
+            dv_dt = (-v + el+ r_m * I_e)/tau_m
             v = v + dv_dt * dt
         else:
             v = v_reset

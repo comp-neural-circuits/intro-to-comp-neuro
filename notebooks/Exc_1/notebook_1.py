@@ -490,7 +490,7 @@ interact(run_simulation_and_show_plot, el=(-180,60,2), tau_m=(1,30,1), v=(-180,6
 #
 # We have to modify how the voltage changes in each time step
 # ```python
-# dv_dt = (-v + el)/tau_m + r_m * I_e
+# dv_dt = (-v + el + r_m * I_e)/tau_m
 # ```
 #
 # and we need to define the new varibles as well. 
@@ -619,7 +619,7 @@ class LIFNeuron(object):
     
     def timestep(self):
         if self.v <= self.v_th:
-            dv_dt = (-self.v + self.el)/self.tau_m + self.r_m * self.I_e
+            dv_dt = (-self.v + self.el + self.r_m * self.I_e)/self.tau_m
             self.v += dv_dt * self.dt
         else:
             self.v = self.v_reset

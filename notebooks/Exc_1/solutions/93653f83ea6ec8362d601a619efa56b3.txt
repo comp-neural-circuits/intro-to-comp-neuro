@@ -10,7 +10,7 @@ def voltage_evolution(I_e, el, tau_m, v):
     # here we multiply by 10^-8, you can also just provide the value to the function, 
     # but it does not work with interact then, since the numbers are too small
     for ii in range(100):
-        dv_dt = (-v + el)/tau_m + r_m * I_e
+        dv_dt = (-v + el+ r_m * I_e)/tau_m
         v = v + dv_dt * dt
         v_list.append(v) 
         t_list.append(ii*dt) # we multiply our time step with our iteration variable to get the time
