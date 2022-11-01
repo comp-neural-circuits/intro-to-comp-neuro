@@ -1,0 +1,94 @@
+### Solution 1
+
+```python
+
+class LIFNeuron_AMPA(object):
+    """A LIF neuron with the possibility to add AMPA inputs 
+    the methods allow to run the simulation for a certain number of steps while keeping track of the membrane voltage
+    and plot the results of the run
+    """
+    def __init__(self, 
+                 tau_m = 10, v_reset = -70, v_th = -50, I_e = 10e-8, dt = 0.1,
+                g_ampa = 0.85):
+        '''This function is executed when we create an object from that class'''
+        super(LIFNeuron_AMPA, self).__init__()
+        
+        ### assign the attributes of the class
+        self.tau_m = tau_m  # membrane time constant
+        self.el = -75 # leak reversal potential
+        
+        self.r_m = 100e6 # membrane resistance
+        self.v_reset = v_reset # reset voltage after a spike
+        self.v_th = v_th # threshold voltage
+        self.I_e = I_e # Input current
+        
+        
+        self.v = -60 # starting voltage value for the simulation
+        self.dt = dt # simulation timestep    
+        
+        
+        ### Initiate the recording lists
+        self.v_list = [self.v]
+        self.t_list = [0]
+        
+        
+        ### Initiate synaptic paramters
+        self.ps_ampa = 0 # when starting the simulations the channels should be closed
+        self.ampa_input = False # and there is no input
+        self.g_ampa = g_ampa # strength of synaptic input
+        
+        self.e_ampa = 0 # reversal potential of the AMPA channel
+        self.tau_ampa = 5.26 # in ms, AMPA is rather fast
+    
+    def timestep(self):
+        '''
+            This function performs an update step of the membrane voltage evolution
+            we use forward euler
+        '''            
+        ### Time evolution of the synaptic input
+        if self.ampa_input == True:
+            self.ps_ampa = 1 # if there is a spike in this time step, the channels open
+            self.ampa_input = False # remove the input 
+        else:
+            dps_ampa_dt = -self.ps_ampa / (self.tau_ampa) # The channels close with an exponential decay
+            self.ps_ampa += dps_ampa_dt * self.dt
+            
+        ### Time evolution of the membrane potential
+        i_ampa = self.g_ampa*self.ps_ampa*(self.e_ampa-self.v)
+        if self.v <= self.v_th:
+            dv_dt = (-self.v + self.el + self.r_m * self.I_e + i_ampa)/self.tau_m
+            self.v += dv_dt * self.dt
+        else:
+            self.v = self.v_reset
+        
+    def run_simulation(self, time_steps = 100):
+        '''
+            Function to run the simulation for a fixed number of time steps (time_steps)
+        '''
+        
+        for ii in range(time_steps):
+            self.timestep()
+            
+            self.v_list.append(self.v)
+            current_time = self.t_list[-1] + self.dt
+            self.t_list.append(current_time) 
+            
+    def plot_traces(self):
+        '''
+            Function to plot the simulated results
+            creates a figure and plots the voltage traces vs. the simulated time
+        '''
+        
+        plt.figure()
+        plt.title('Time evolution of membrane voltage')
+
+        plt.plot(self.t_list,self.v_list,linewidth=2.5)
+
+        plt.xlabel('Time in ms')
+        plt.ylabel('Voltage in mV')
+
+        plt.ylim([-80,20])
+
+        
+```
+

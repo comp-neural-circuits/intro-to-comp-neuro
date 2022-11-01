@@ -29,6 +29,7 @@ import matplotlib.pyplot as plt
 # Settings for the figures
 plt.style.use("https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/plots_style.txt")
 from ipywidgets import interact
+import numpy as np # we will not really use it yet in this notebook
 
 
 # -
@@ -57,15 +58,17 @@ from ipywidgets import interact
 # V(t) &= V_{reset} &\text{otherwise}
 # \end{align}
 #
+
+# ### Task  1
 #
-# The task is to add the syanptic inputs to our class from the previous notebook. We <b>first start with the excitatory input $i_{ampa}$</b>, it follows the same logic as the inhibitory one - adding $i_{gaba}$ is therefore rather straightorward afterwards.
+# Add the syanptic inputs to our class from the previous notebook. We <b>first start with the excitatory input $i_{ampa}$</b>, it follows the same logic as the inhibitory one - adding $i_{gaba}$ is therefore rather straightorward afterwards.
 #
 # There are a couple of things we want to add now, let's break it down step by step: 
 #
-# 1) We need to consider the equation for synaptic inputs, from the lecture we know that we can fit the excitatory postsynaptic current with an exponential function because $P(s) \propto e^{-\frac{t}{\tau_{ampa}}}$. we already know another implementation of an exponential decay (the voltage membrane) so we use the same principle for the channel open probaility:
+# 1) We need to consider the equation for synaptic inputs, from the lecture we know that we can fit the excitatory postsynaptic current with an exponential function because $P(s) \propto e^{-\frac{t}{\tau_{ampa}}}$. we already know another implementation of an exponential decay: the voltage membrane. We therefore use the same principle for the implementation of the channel open probaility:
 #
 # \begin{equation}
-# \frac{dP_s}{dt} = - P_s/\tau_{AMPA}
+# \frac{d\,P_s}{d\,t} = - \frac{P_s}{\tau_{AMPA}}
 # \end{equation}
 #
 # This is our time evolution of the channel open probability. We need to add this to the 'timestep' function of our class, in the same way as we update the membrane evolution.
@@ -78,56 +81,72 @@ from ipywidgets import interact
 # P_s = 1 \qquad \qquad\text{if presynaptic spike}
 # \end{equation}
 #
-# \begin{align}
-# \frac{d\,P_s}{d\,t} = - P_s/\tau_{AMPA}
-# \end{algin}
 #
 # 3) We actually need to define all those variables when we initiate the class (so in the 'init' method of our class. The parameters are:
 #
-# \begin{equation}
+# ```python
+#         ps_ampa # The channel open proability: Think about the initial state this variable should be in
+#         ampa_input = # A boolean variable to track whether there is a new input
+#         g_ampa # the strength of synaptic input, we should be able to change it when creating an object of that class 
+#         e_ampa # The reversal potential od the AMPA channel, it is usually set to 0 mV
+#         tau_ampa # the time constant: a good value is 5.26 ms, AMPA is rather fast
+# ```
 #
-# \end{equation}
+# Ialready applied slight changes to the previous class (like the name) in the cell below. I also added a function to run the simulation, you can also see there how we want to implement the synaptic input (set ampa_input = True). 
+# You can already run the cell, but you need to fulfill the tasks in order to see the synaptic event.
 #
+# In cas you changed your code too drastically, you can always find the starting code hidden here:
 #
 # <details>
-#     <summary><font color="red"><b>click here to show/hide class code</b></font></summary>
+#     <summary><font color="red"><b>click here to show/hide starting code for this task</b></font></summary>
 #
 # ```python
 # class LIFNeuron(object):
-#     """The first version of our LIF neuron class that can initiate a single neuron, 
-#     run the simulation for a certain number of steps while keeping track of the membrane voltage
+# class LIFNeuron_AMPA(object):
+#     """A LIF neuron with the possibility to add AMPA inputs 
+#     the methods allow to run the simulation for a certain number of steps while keeping track of the membrane voltage
 #     and plot the results of the run
 #     """
 #     def __init__(self, 
-#                  tau_m = 10, v_start = -50, el = -75, r_m = 100e6, v_reset = -70, v_th = -50, I_e = 10e-8, dt = 0.1):
+#                  tau_m = 10, v_reset = -70, v_th = -50, I_e = 10e-8, dt = 0.1,
+#                 g_ampa = 0.85):
 #         '''This function is executed when we create an object from that class'''
-#         super(LIFNeuron, self).__init__()
+#         super(LIFNeuron_AMPA, self).__init__()
 #         
 #         ### assign the attributes of the class
 #         self.tau_m = tau_m  # membrane time constant
-#         self.el = el # leak reversal potential
+#         self.el = -75 # leak reversal potential
 #         
-#         self.r_m = r_m # membrane resistance
+#         self.r_m = 100e6 # membrane resistance
 #         self.v_reset = v_reset # reset voltage after a spike
 #         self.v_th = v_th # threshold voltage
 #         self.I_e = I_e # Input current
 #         
 #         
-#         self.v = v_start # starting voltage value for the simulation
+#         self.v = -60 # starting voltage value for the simulation
 #         self.dt = dt # simulation timestep    
 #         
 #         
 #         ### Initiate the recording lists
-#         self.v_list = [v_start]
+#         self.v_list = [self.v]
 #         self.t_list = [0]
 #         
+#         
+#         ### Initiate synaptic paramters
+#         ''' Code below '''
 #         
 #     
 #     def timestep(self):
 #         '''
 #             This function performs an update step of the membrane voltage evolution
 #             we use forward euler
-#         '''
+#         '''            
+#         ### Time evolution of the synaptic input
+#         ''' Code below '''
+#             
+#             
+#         ### Time evolution of the membrane potential
+#         ''' You need to change some parts here as well'''
 #         if self.v <= self.v_th:
 #             dv_dt = (-self.v + self.el + self.r_m * self.I_e)/self.tau_m
 #             self.v += dv_dt * self.dt
@@ -162,199 +181,66 @@ from ipywidgets import interact
 #         plt.ylabel('Voltage in mV')
 #
 #         plt.ylim([-80,20])
+#
+#         
+# def single_input():
+#     test = LIFNeuron_AMPA(I_e = 0, g_ampa = 0.85)
+#     test.run_simulation(1000)
+#     test.ampa_input = True
+#     test.run_simulation(1000)
+#     test.plot_traces()
+#
+# single_input()
 # ```
 #
 # </details>
 
-# We now want to have a look at the different integration methods. We have seen two in the lecture: 
-#
-# The euler method and Runge Kutta 4. 
-#
-# We already use the euler method and now want to add the ability to run our simulation either with the euler or the Runge Kutta 4 method. 
-# There are manz solutions to this problem. 
-# One possible way is to add two new methods to the class:
-# ```python
-#     def dv_dt_euler( 
-# ```
-#
-# <details>
-#     <summary><font color="red"><b>Show equations</b></font></summary>
-# \begin{equation}
-# \begin{aligned}
-# F(V,t) = \frac{dV}{dt} &= \left(- V + E_{L} + R_m\,I_e \right)/\tau_m\\ 
-# h &= \Delta t
-# \end{aligned}
-# \end{equation}
-#
-# \begin{equation}
-# \begin{aligned}
-# &&k_1=F\left(t_i, S\left(t_i\right)\right) \\
-#     &&k_2=F\left(t_i+\frac{h}{2}, S\left(t_i\right)+\frac{1}{2} k_1 h\right) \\
-#     &&k_3=F\left(t_i+\frac{h}{2}, S\left(t_i\right)+\frac{1}{2} k_2 h\right) \\
-# &&k_4=F\left(t_i+h, S\left(t_i\right)+k_3 h\right)
-# \end{aligned}
-# \end{equation}
-#     
-#
-# ### <font color="blue"><b>Runge Kutta 4</b></font>
-#
-#     
-# \begin{equation}
-# \begin{aligned}
-# &S\left(t_{i+1}\right) = S\left(t_i\right) + \frac{h}{6}\left(k_1 + 2\,k_2 + 2\, k_3 + k_4\right)&
-# \end{aligned}
-# \end{equation}
-#     
-#     
-# ### <font color="blue"><b>Euler</b></font>
-#
-# \begin{equation}
-# \begin{aligned}
-# &S\left(t_{i+1}\right) = S\left(t_i\right) + k_1 * h&\\
-# \end{aligned}
-# \end{equation}
-
 # +
-class LIFNeuron(object):
-    """The first version of our LIF neuron class that can initiate a single neuron, 
-    run the simulation for a certain number of steps while keeping track of the membrane voltage
+class LIFNeuron_AMPA(object):
+    """A LIF neuron with the possibility to add AMPA inputs 
+    the methods allow to run the simulation for a certain number of steps while keeping track of the membrane voltage
     and plot the results of the run
     """
     def __init__(self, 
-                 tau_m = 20, v_start = -55, el = -75, r_m = 100e6, v_reset = -70, v_th = -50,
-                 I_e = 10e-8,
-                 dt = 0.1,
-                 integration_method = 'euler'):
+                 tau_m = 10, v_reset = -70, v_th = -50, I_e = 10e-8, dt = 0.1,
+                g_ampa = 0.85):
         '''This function is executed when we create an object from that class'''
-        super(LIFNeuron, self).__init__()
-        self.tau_m = tau_m
-        self.el = el
-        self.dt = dt
-        self.r_m = r_m
-        self.v_reset = v_reset
-        self.v_th = v_th
-
-        self.v = v_start
-
-        self.I_e = I_e
-
-        self.v_list = [v_start]
-        self.t_list = [0]
-        
-        self.integration_method = integration_method
-
-    
-    def dv_dt(self, v): # new
-        return (-v + self.el)/self.tau_m + self.r_m * self.I_e # new
-        
-    def timestep(self):
-        if self.v <= self.v_th:
-            dv_dt_1 = self.dv_dt(self.v) # new
-            
-            if self.integration_method == 'euler': # new
-                self.v += dv_dt_1 * self.dt
-                return
-            
-            if self.integration_method == 'rk4': # new
-                dv_dt_2 = self.dv_dt(self.v + dv_dt_1*self.dt/2.)
-                dv_dt_3 = self.dv_dt(self.v + dv_dt_2*self.dt/2.)
-                dv_dt_4 = self.dv_dt(self.v + dv_dt_3*self.dt)
-                self.v += self.dt/6 * (dv_dt_1 + dv_dt_2 * 2+ dv_dt_3 * 2 + dv_dt_4)
-        else:
-            self.v = self.v_reset
-
-
-    def run_simulation(self, time_steps = 100):
-
-        for ii in range(time_steps):
-            self.timestep()
-            current_time = self.t_list[-1] + self.dt
-            
-            
-            
-            self.v_list.append(self.v)
-            
-            self.t_list.append(current_time) 
-
-    def plot_traces(self):
-
-        plt.figure()
-        plt.title('Time evolution of membrane voltage')
-
-        plt.plot(self.t_list,self.v_list,linewidth=2.5)
-
-        plt.xlabel('Time in ms')
-        plt.ylabel('Voltage in mV')
-
-        plt.ylim([-80,20])
-        
-
-factor = 10000
-
-dt = 1
-time_steps = 10
-
-neuron_compare = LIFNeuron(I_e = 2e-8,dt=dt/factor, integration_method='euler')
-neuron_euler =   LIFNeuron(I_e = 2e-8,dt=dt       , integration_method='euler')
-neuron_rk4 =     LIFNeuron(I_e = 2e-8,dt=dt       , integration_method='rk4')
-
-neuron_compare.run_simulation(time_steps = time_steps*factor)
-neuron_euler.run_simulation  (time_steps = time_steps)
-neuron_rk4.run_simulation    (time_steps = time_steps)
-
-plt.figure()
-plt.title('Time evolution of membrane voltage')
-
-# plt.plot(neuron_compare.t_list,neuron_compare.v_list,linewidth=2.5, label='Euler')
-plt.plot(neuron_euler.t_list,neuron_euler.v_list,linewidth=2.5, label='Euler')
-plt.plot(neuron_rk4.t_list,neuron_euler.v_list,linewidth=2.5, label='Runge Kutta 4')
-# plt.plot(neuron_rk4.t_list,np.array(neuron_compare.v_list)[::factor]-np.array(neuron_euler.v_list),linewidth=2.5, label='Runge Kutta 4')
-# plt.plot(neuron_rk4.t_list,np.array(neuron_compare.v_list)[::factor]-np.array(neuron_rk4.v_list),linewidth=2.5, label='Runge Kutta 4')
-plt.plot(neuron_rk4.t_list,np.array(neuron_euler.v_list)-np.array(neuron_rk4.v_list),linewidth=2.5, label='Difference')
-plt.xlabel('Time in ms')
-plt.ylabel('Voltage in mV')
-
-# plt.ylim([-80,20])
-plt.legend()
-# -
-
-
-
-class LIFNeuron(object):
-    """The first version of our LIF neuron class that can initiate a single neuron, 
-    run the simulation for a certain number of steps while keeping track of the membrane voltage
-    and plot the results of the run
-    """
-    def __init__(self, 
-                 tau_m = 10, v_start = -50, el = -75, r_m = 100e6, v_reset = -70, v_th = -50, I_e = 10e-8, dt = 0.1):
-        '''This function is executed when we create an object from that class'''
-        super(LIFNeuron, self).__init__()
+        super(LIFNeuron_AMPA, self).__init__()
         
         ### assign the attributes of the class
         self.tau_m = tau_m  # membrane time constant
-        self.el = el # leak reversal potential
+        self.el = -75 # leak reversal potential
         
-        self.r_m = r_m # membrane resistance
+        self.r_m = 100e6 # membrane resistance
         self.v_reset = v_reset # reset voltage after a spike
         self.v_th = v_th # threshold voltage
         self.I_e = I_e # Input current
         
         
-        self.v = v_start # starting voltage value for the simulation
+        self.v = -60 # starting voltage value for the simulation
         self.dt = dt # simulation timestep    
         
         
         ### Initiate the recording lists
-        self.v_list = [v_start]
+        self.v_list = [self.v]
         self.t_list = [0]
         
+        
+        ### Initiate synaptic paramters
+        ''' Code below '''
         
     
     def timestep(self):
         '''
             This function performs an update step of the membrane voltage evolution
             we use forward euler
-        '''
+        '''            
+        ### Time evolution of the synaptic input
+        ''' Code below '''
+            
+            
+        ### Time evolution of the membrane potential
+        ''' You need to change some parts here as well'''
         if self.v <= self.v_th:
             dv_dt = (-self.v + self.el + self.r_m * self.I_e)/self.tau_m
             self.v += dv_dt * self.dt
@@ -390,50 +276,83 @@ class LIFNeuron(object):
 
         plt.ylim([-80,20])
 
-import numpy as np
-from ipywidgets import interact
+        
+def single_input():
+    test = LIFNeuron_AMPA(I_e = 0, g_ampa = 0.85)
+    test.run_simulation(1000)
+    test.ampa_input = True
+    test.run_simulation(1000)
+    test.plot_traces()
+
+single_input()
 
 
-# <pre><code>
-# def main():
-#     __config_bash
-#     <mark>__config_xdg_dirs</mark>
-#     
-# </code></pre>
+# -
 
-def main():
-    __config_bash
-    __config_xdg_dirs
+# ### [Solution 1](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_2/solutions/0b6d6a1ac53626e00xdee2ae7ca52865.txt)
 
+# ### Task 2
+#
+# Show the difference between the excitatory postsynaptic potential (EPSP) and the excitatory postsynaptic current (EPSC) and the excitatory postsynaptic conductance (EPSC)
+#
+# To achieve this, you can use the same class you just created, you need to modify 
+#
+# a) the values that you collect per timestep (at the moment its only t and v) we need to collect the current and the conductance as well and 
+# b) you need a new plotting function, call it 'plot_voltage_current_and_conductance'
+#
+# To create three subplots (so that you can show all traces at once) you can use the following code (try it out in a new cell):
+#
+# ```python
+# fig, axes = plt.subplots(2)
+#
+# x = np.linspace(0,10,100)
+# y = np.sin(x)
+# fig.suptitle('Vertically stacked subplots')
+# axes[0].plot(x, y)
+# axes[1].plot(x, -y)
+#
+# axes[0].set(
+#     xlabel = 'Time in ms',
+#     ylabel = 'arbitraty units'
+#     )
+# axes[1].set(
+#     xlabel = 'Time in ms',
+#     ylabel = 'arbitraty units'
+#     )
+# plt.tight_layout() # This makes the plot cleaner, you can try how it looks if you remove this part
+# ```
+#
+# I already added the skeleton of the solution in the cell below.
+#
 
 # +
 class LIFNeuron_AMPA(object):
-    """The first version of our LIF neuron class that can initiate a single neuron, 
-    run the simulation for a certain number of steps while keeping track of the membrane voltage
+    """A LIF neuron with the possibility to add AMPA inputs 
+    the methods allow to run the simulation for a certain number of steps while keeping track of the membrane voltage
     and plot the results of the run
     """
     def __init__(self, 
-                 tau_m = 10, v_start = -50, el = -75, r_m = 100e6, v_reset = -70, v_th = -50, I_e = 10e-8, dt = 0.1,
-                g_ampa = 100):
+                 tau_m = 10, v_reset = -70, v_th = -50, I_e = 10e-8, dt = 0.1,
+                g_ampa = 0.85):
         '''This function is executed when we create an object from that class'''
         super(LIFNeuron_AMPA, self).__init__()
         
         ### assign the attributes of the class
         self.tau_m = tau_m  # membrane time constant
-        self.el = el # leak reversal potential
+        self.el = -75 # leak reversal potential
         
-        self.r_m = r_m # membrane resistance
+        self.r_m = 100e6 # membrane resistance
         self.v_reset = v_reset # reset voltage after a spike
         self.v_th = v_th # threshold voltage
         self.I_e = I_e # Input current
         
         
-        self.v = v_start # starting voltage value for the simulation
+        self.v = -60 # starting voltage value for the simulation
         self.dt = dt # simulation timestep    
         
         
         ### Initiate the recording lists
-        self.v_list = [v_start]
+        self.v_list = [self.v]
         self.t_list = [0]
         
         
@@ -444,6 +363,8 @@ class LIFNeuron_AMPA(object):
         
         self.e_ampa = 0 # reversal potential of the AMPA channel
         self.tau_ampa = 5.26 # in ms, AMPA is rather fast
+        
+        ''' add code here '''
         
     
     def timestep(self):
@@ -460,14 +381,15 @@ class LIFNeuron_AMPA(object):
             self.ps_ampa += dps_ampa_dt * self.dt
             
         ### Time evolution of the membrane potential
+        i_ampa = self.g_ampa*self.ps_ampa*(self.e_ampa-self.v)
         if self.v <= self.v_th:
-            i_ampa = self.g_ampa*self.ps_ampa*(self.e_ampa-self.v)
             dv_dt = (-self.v + self.el + self.r_m * self.I_e + i_ampa)/self.tau_m
             self.v += dv_dt * self.dt
         else:
             self.v = self.v_reset
             
-    
+        ''' add code here '''
+        
     def run_simulation(self, time_steps = 100):
         '''
             Function to run the simulation for a fixed number of time steps (time_steps)
@@ -495,25 +417,70 @@ class LIFNeuron_AMPA(object):
         plt.ylabel('Voltage in mV')
 
         plt.ylim([-80,20])
+        
+    def plot_voltage_current_and_conductance(self):
+        '''
+            Function to plot the simulated results
+            creates a figure with 3 subplots and plots 
+            voltage traces, current traces and conductance traces vs. the simulated time
+        '''
+        pass
 
         
-def run_and_plot(I_e, d_T):
-    test = LIFNeuron_AMPA(I_e = I_e*1e-8, g_ampa = 0.85)
+def single_input():
+    test = LIFNeuron_AMPA(I_e = 0, g_ampa = 0.85)
     test.run_simulation(1000)
     test.ampa_input = True
-    test.run_simulation(10 + d_T)
-    test.ampa_input = True
-    test.run_simulation(10 + d_T)
-    test.ampa_input = True
-    test.run_simulation(10 + d_T)
-    test.ampa_input = True
-    test.run_simulation(10 + d_T)
-    test.ampa_input = True
     test.run_simulation(1000)
-    test.plot_traces()
+    test.plot_voltage_current_and_conductance()
 
-interact(run_and_plot, I_e = (0,10,1),d_T=(0,1000,100))
+single_input() 
+# -
 
+# ### [Solution 2](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_2/solutions/55fb97641ed9b37a13eed8e5a19f663a.txt)
+
+# ### Task 3
+#
+# Now we want to use our class to see how many inputs can lead to a spike of the cell. 
+# Can a single input make the cell spike? 
+# How strong does it need to be? 
+#
+# can you make the cell spike with multiple inputs? 
+# How close in time do they have to be? 
+#
+# Feel free to come up with your own implmentation, or you can have a look at the solution
+
+# +
+''' put your code in this cell'''
+
+
+
+# -
+
+# ### [Solution 3](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_2/solutions/e9301038090326b69fb0b4d6c8c80217.txt)
+
+# ### Task 4 
+#
+# Add an inhibitory input to the class. 
+#
+# The implementation follows exactly the implementation of the AMPA inputs. Now it's GABA
+#
+# the paramters are:
+#
+# ``` python
+#     ps_gaba = 0 # when starting the simulations the channels should be closed
+#     gaba_input = False # and there is no input
+#     g_gaba = g_gaba # strength of synaptic input (we can define it when creating the class)
+#         
+#     e_gaba = -80 # reversal potential of the GABA channel
+#     tau_gaba = 8 # in ms
+# ```
+#
+# You also need to add the implementation in the timestep function
+#
+# The function 'run_simulation' is already modified. In this way it allows for a more flexible way of handling mulitple inputs. 
+# There is also already an interactive function coded in the end, so that once you finished the implementation, you can investigate the impact of an inhibitory input onto the spiking behavior of a cell.
+#
 
 # +
 class LIFNeuron_AMPA_GABA(object):
@@ -522,27 +489,27 @@ class LIFNeuron_AMPA_GABA(object):
     and plot the results of the run
     """
     def __init__(self, 
-                 tau_m = 10, v_start = -50, el = -75, r_m = 100e6, v_reset = -70, v_th = -50, I_e = 10e-8, dt = 0.1,
-                g_ampa = 100, g_gaba = 100):
+                 tau_m = 10, v_reset = -70, v_th = -50, I_e = 10e-8, dt = 0.1,
+                g_ampa = 0.85, g_gaba = 0.85):
         '''This function is executed when we create an object from that class'''
         super(LIFNeuron_AMPA_GABA, self).__init__()
         
         ### assign the attributes of the class
         self.tau_m = tau_m  # membrane time constant
-        self.el = el # leak reversal potential
+        self.el = -75 # leak reversal potential
         
-        self.r_m = r_m # membrane resistance
+        self.r_m = 100e6 # membrane resistance
         self.v_reset = v_reset # reset voltage after a spike
         self.v_th = v_th # threshold voltage
         self.I_e = I_e # Input current
         
         
-        self.v = v_start # starting voltage value for the simulation
+        self.v = -60 # starting voltage value for the simulation
         self.dt = dt # simulation timestep    
         
         
         ### Initiate the recording lists
-        self.v_list = [v_start]
+        self.v_list = [self.v]
         self.t_list = [0]
         
         
@@ -554,13 +521,11 @@ class LIFNeuron_AMPA_GABA(object):
         self.e_ampa = 0 # reversal potential of the AMPA channel
         self.tau_ampa = 5.26 # in ms, AMPA is rather fast
         
-        self.ps_gaba = 0 # when starting the simulations the channels should be closed
-        self.gaba_input = False # and there is no input
-        self.g_gaba = g_gaba # strength of synaptic input
+        ''' add parameters here '''
         
-        self.e_gaba = -80 # reversal potential of the GABA channel
-        self.tau_gaba = 8 # in ms
         
+        self.i_ampa_list = [0]
+        self.g_ampa_list = [0]
     
     def timestep(self):
         '''
@@ -575,22 +540,22 @@ class LIFNeuron_AMPA_GABA(object):
             dps_ampa_dt = -self.ps_ampa / (self.tau_ampa) # The channels close with an exponential decay
             self.ps_ampa += dps_ampa_dt * self.dt
             
-        if self.gaba_input == True:
-            self.ps_gaba = 1 # if there is a spike in this time step, the channels open
-            self.gaba_input = False # remove the input 
-        else:
-            dps_gaba_dt = -self.ps_gaba / (self.tau_gaba) # The channels close with an exponential decay
-            self.ps_gaba += dps_gaba_dt * self.dt
+        ''' add code here '''
             
         ### Time evolution of the membrane potential
+        i_ampa = self.g_ampa*self.ps_ampa*(self.e_ampa-self.v)
+        ''' add code here  '''
         if self.v <= self.v_th:
-            i_ampa = self.g_ampa*self.ps_ampa*(self.e_ampa-self.v)
-            i_gaba = self.g_gaba*self.ps_gaba*(self.e_gaba-self.v)
-            dv_dt = (-self.v + self.el + self.r_m * self.I_e + i_ampa + i_gaba)/self.tau_m
+            ''' modify the code here '''
+            dv_dt = (-self.v + self.el + self.r_m * self.I_e + i_ampa)/self.tau_m
             self.v += dv_dt * self.dt
         else:
             self.v = self.v_reset
             
+    
+        self.i_ampa_list.append(i_ampa)
+        self.g_ampa_list.append(self.g_ampa * self.ps_ampa)
+    
     
     def run_simulation(self, 
                        time_steps = 100,
@@ -633,21 +598,46 @@ class LIFNeuron_AMPA_GABA(object):
 
         plt.ylim([-80,20])
     
+    def plot_voltage_current_and_conductance(self):
+        '''
+            Function to plot the simulated results
+            creates a figure with 3 subplots and plots 
+            voltage traces, current traces and conductance traces vs. the simulated time
+        '''
+        fig, axes = plt.subplots(3)
+        fig.suptitle('Comparison of excitatory postsynaptic voltage, current, and conductance')
+        axes[0].plot(self.t_list,self.v_list,linewidth=2.5)
+        axes[1].plot(self.t_list,self.i_ampa_list,linewidth=2.5)
+        axes[2].plot(self.t_list,self.g_ampa_list,linewidth=2.5)
 
+        axes[0].set(
+            xlabel = 'Time in ms',
+            ylabel = 'Voltage in mV'
+            )
+        axes[1].set(
+            xlabel = 'Time in ms',
+            ylabel = 'Current in micro A'
+            )
+        axes[2].set(
+            xlabel = 'Time in ms',
+            ylabel = 'Conductance in nS'
+            )
+        plt.tight_layout() # This makes the plot cleaner, you can try how it looks if you remove this part
+        
         
 def run_and_plot(I_e, gaba_input_timestep):
-    test = LIFNeuron_AMPA_GABA(I_e = I_e*1e-8, g_ampa = 0.85, g_gaba = 0.8)
-    test.run_simulation(2000, 
+    neuron = LIFNeuron_AMPA_GABA(I_e = I_e*1e-8, g_ampa = 0.85, g_gaba = 0.8)
+    neuron.run_simulation(2000, 
                         ampa_inputs = [1000, 1050, 1100],
                        gaba_inputs = [gaba_input_timestep],
                        )
-    test.plot_traces()
+    neuron.plot_traces()
     
     
     # reading out the time and voltage value so that the arrow points to the plot
     # If you don't know how to access an element in the list, feel free to ask
-    x_input = test.t_list[gaba_input_timestep] 
-    y_input = test.v_list[gaba_input_timestep]
+    x_input = neuron.t_list[gaba_input_timestep] 
+    y_input = neuron.v_list[gaba_input_timestep]
     
     # use the annotate function to plot an arrow and the text 'GABA input'
     plt.annotate('GABA input', xy =(x_input, y_input),
@@ -660,39 +650,62 @@ interact(run_and_plot,I_e = 5, gaba_input_timestep=(700,1150,10))
 
 # -
 
+# ### [Solution 4](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_2/solutions/dc08a6dbb265e55110b411903611e3ab.txt)
+
+# ### Task 5
+#
+# Implement a multi-compartment model. 
+#
+# We now re-write our class again, so that we can use it to describe the voltage value within distinct compartments. 
+# We can then later use this class to couple multiple compartments together. 
+# Remember from the lecture how the coupling is implemented: 
+#
+# \begin{equation}
+# c_m \frac{dV_{\mu}}{dt} = -i^{\mu}_m + \frac{I_e^{\mu}}{A_{\mu}} + g_{\mu, \mu+1} \left(V_{\mu + 1} - V_{\mu}\right) + g_{\mu, \mu - 1}\left(V_{\mu - 1} - V_{\mu}\right)
+# \end{equation}
+#
+# we now name our relevant parameters
+#
+# ```python
+# v_end_a # voltage value of the previous compartment
+# v_end_b # voltage value of the next compartment
+# g_end_a # conductance value of the previouse compartment 
+# g_end_b # conductance value of the next compartment
+# ```
+#
+#
+#
+
 class LIFComp_AMPA_GABA(object):
     """The first version of our LIF neuron class that can initiate a single neuron, 
     run the simulation for a certain number of steps while keeping track of the membrane voltage
     and plot the results of the run
     """
     def __init__(self, 
-                 tau_m = 10, v_start = -50, el = -75, r_m = 100e6, v_reset = -70, v_th = -50, I_e = 10e-8, dt = 0.1,
-                g_ampa = 0.9, g_gaba = 0.9,
+                 tau_m = 10, v_reset = -70, v_th = -50, I_e = 10e-8, dt = 0.1,
+                g_ampa = 0.85, g_gaba = 0.85,
                  g_end_a = 0.5, g_end_b = 0.5,
                  can_spike = True):
         '''This function is executed when we create an object from that class'''
         super(LIFComp_AMPA_GABA, self).__init__()
         
-        self.can_spike = can_spike
-        
         ### assign the attributes of the class
         self.tau_m = tau_m  # membrane time constant
-        self.el = el # leak reversal potential
+        self.el = -75 # leak reversal potential
         
-        self.r_m = r_m # membrane resistance
+        self.r_m = 100e6 # membrane resistance
         self.v_reset = v_reset # reset voltage after a spike
         self.v_th = v_th # threshold voltage
         self.I_e = I_e # Input current
         
         
-        self.v = v_start # starting voltage value for the simulation
+        self.v = -60 # starting voltage value for the simulation
         self.dt = dt # simulation timestep    
         
         
         ### Initiate the recording lists
-        self.v_list = [v_start]
-        self.t_list = [0]
-        
+        self.v_list = [self.v]
+        self.t_list = [0]        
         
         ### Initiate synaptic paramters
         self.ps_ampa = 0 # when starting the simulations the channels should be closed
@@ -711,10 +724,9 @@ class LIFComp_AMPA_GABA(object):
         
         
         ### Initiate neighbour parameters
-        self.v_end_a = v_start
-        self.v_end_b = v_start
-        self.g_end_a = g_end_a
-        self.g_end_b = g_end_b
+        ''' put your code here'''
+        
+        self.can_spike = can_spike
         
         
     
@@ -739,12 +751,16 @@ class LIFComp_AMPA_GABA(object):
             self.ps_gaba += dps_gaba_dt * self.dt
             
         ### Time evolution of the membrane potential
+        i_ampa = self.g_ampa*self.ps_ampa*(self.e_ampa-self.v)
+        i_gaba = self.g_gaba*self.ps_gaba*(self.e_gaba-self.v)
+        
+        '''  you need to add some code here'''
+        
+        
+        
         if self.v <= self.v_th or not self.can_spike:
-            i_ampa = self.g_ampa*self.ps_ampa*(self.e_ampa-self.v)
-            i_gaba = self.g_gaba*self.ps_gaba*(self.e_gaba-self.v)
-            i_end_a = self.g_end_a * (self.v_end_a - self.v)
-            i_end_b = self.g_end_b * (self.v_end_b - self.v)
-            dv_dt = (-self.v + self.el + self.r_m * self.I_e + i_ampa + i_gaba + i_end_a + i_end_b)/self.tau_m
+            ''' you need to modify this equation '''
+            dv_dt = (-self.v + self.el + self.r_m * self.I_e + i_ampa + i_gaba )/self.tau_m
             self.v += dv_dt * self.dt
         else:
             self.v = self.v_reset
@@ -774,7 +790,76 @@ class LIFComp_AMPA_GABA(object):
             self.v_list.append(self.v)
             current_time = self.t_list[-1] + self.dt
             self.t_list.append(current_time) 
-            
+
+# ### [Solution 5](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_2/solutions/e9301038094966b69fb04ff6c8c80217.txt)
+
+# ### Task 6
+#
+# Now we construct a two-compartment model. 
+# Try to understand the code and answer the following questions when you run it
+#
+# Does it make sense that for one input the soma spikes and for the other it doesn't?
+#
+# What are the differences between the postysnaptic potentials in the soma and the dendrite when the input arrives at the dendrite? 
+
+# +
+# Constructing a two-compartment model
+
+g_couple_soma_dendrite = 0.4
+g_couple_dendrite_soma = 1.2
+
+soma = LIFComp_AMPA_GABA(g_end_a = 0, g_end_b = g_couple_soma_dendrite, can_spike=True, g_ampa = 1.25)
+dend = LIFComp_AMPA_GABA(g_end_a = g_couple_dendrite_soma, g_end_b = 0, can_spike=False, g_ampa = 1.25)
+
+# now we run the simulation
+for ii in range(1200):
+
+    # we first need to set the voltage value of the neighbour compartments
+    soma.v_end_b = dend.v
+    dend.v_end_a = soma.v
+
+    # now we run the timestep 
+    soma.timestep()
+    dend.timestep()
+
+
+    # add the current values to the lists of the compartments
+    soma.v_list.append(soma.v)
+    dend.v_list.append(dend.v)
+    current_time = soma.t_list[-1] + soma.dt
+    soma.t_list.append(current_time) 
+    dend.t_list.append(current_time) 
+    
+    
+    if ii == 400:
+        dend.ampa_input = True
+        
+    if ii == 800:
+        soma.ampa_input = True
+
+plt.figure()
+plt.title('Time evolution of membrane voltage')
+plt.plot(soma.t_list,soma.v_list,linewidth=1.5, label = 'Soma')
+plt.plot(dend.t_list,dend.v_list,linewidth=1.5, label = 'Dendrite')
+plt.xlabel('Time in ms')
+plt.ylabel('Voltage in mV')
+plt.ylim([-80,20])
+
+plt.legend()
+
+
+# -
+
+# ### Task 7 
+#
+# We now (very rudimentary) try to replicate the result from Rall, that dendrites can detect whether synaptic inputs arrive directed towards the soma or away from it. 
+# <div>
+# <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_2/static/rall_results.png" width="750"/>
+# </div>
+#
+# Therefore we create a multi-compartment model with four dendritic units and apply a sequence of inputs to these compartments.
+#
+# you can run the cell below to 'run the experiment'
 
 # +
 
@@ -782,11 +867,11 @@ class LIFComp_AMPA_GABA(object):
 
 def construct_and_run_multicompartment(delta_inputs = 100, g_ampa = 0.8, g_couple = 0.8, n_inputs = 4):
     # first the soma
-    soma = LIFComp_AMPA_GABA(g_end_a = 0, g_end_b = g_couple, can_spike=True, v_start=-65, g_ampa = g_ampa)
-    dend_1 = LIFComp_AMPA_GABA(g_end_a = g_couple, g_end_b = g_couple, can_spike=False, v_start=-65, g_ampa = g_ampa)
-    dend_2 = LIFComp_AMPA_GABA(g_end_a = g_couple, g_end_b = g_couple, can_spike=False, v_start=-65, g_ampa = g_ampa)
-    dend_3 = LIFComp_AMPA_GABA(g_end_a = g_couple, g_end_b = g_couple, can_spike=False, v_start=-65, g_ampa = g_ampa)
-    dend_4 = LIFComp_AMPA_GABA(g_end_a = g_couple, g_end_b = 0, can_spike=False, v_start=-65, g_ampa = g_ampa)
+    soma = LIFComp_AMPA_GABA(g_end_a = 0, g_end_b = g_couple * 0.5, can_spike=True, g_ampa = g_ampa)
+    dend_1 = LIFComp_AMPA_GABA(g_end_a = g_couple * 2, g_end_b = g_couple, can_spike=False, g_ampa = g_ampa)
+    dend_2 = LIFComp_AMPA_GABA(g_end_a = g_couple, g_end_b = g_couple, can_spike=False, g_ampa = g_ampa)
+    dend_3 = LIFComp_AMPA_GABA(g_end_a = g_couple, g_end_b = g_couple, can_spike=False, g_ampa = g_ampa)
+    dend_4 = LIFComp_AMPA_GABA(g_end_a = g_couple, g_end_b = 0, can_spike=False, g_ampa = g_ampa)
 
     all_compartments = [soma, dend_1, dend_2, dend_3, dend_4]
 
@@ -850,280 +935,6 @@ interact(construct_and_run_multicompartment,
 
 
 # -
-
-# ### Defining Parameters 
-#
-# We first define the parameters we need in order to simulate our neuron model. In order to define and print the parameters below, you need to 'comment out' the code first before you run the cell
-
-# +
-t_max = 150e-3   # second
-tau_m = 20e-3      # second
-el = -60e-3      # milivolt
-vr = -70e-3      # milivolt
-vth = -50e-3     # milivolt
-r = 100e6        # ohm
-i_mean = 25e-11  # ampere
-
-# print(t_max, tau_m, el, vr, vth, r, i_mean)
-# -
-
-# After executing the cell above, you should see all defined parameters printed. You might have noted that we use variable names that correspond to the names in the math notation. We also use comments behing the variables, to indicate what unit we used for those numbers.
-#
-# As a reminder
-# ```python
-# 25e-11
-# ```
-# is the same as 25*10^(-11)
-
-# ### Implementation
-#
-# In the next exercises, we will simulate the evolution of the membrane equation in discrete time steps, with a sufficiently small $\Delta t$.
-#
-# We start by writing the time derivative $d/dt\,V(t)$ in the membrane equation without taking the limit $\Delta t \to 0$:
-#
-# \begin{equation}
-# \tau_m\,\frac{V\left(t+\Delta t\right)-V\left(t\right)}{\Delta t} = E_{L} - V(t) + R\,I(t) \qquad \qquad (1)
-# \end{equation}
-#
-# The value of membrane potential $V\left(t+\Delta t\right)$ can be expressed in terms of its previous value $V(t)$ by simple algebraic manipulation. For *small enough* values of $\Delta t$, this provides a good approximation of the continuous-time integration.
-#
-# This operation is an integration since we obtain a sequence $\{V(t), V(t+\Delta t), V(t+2\Delta t),...\}$ starting from the ODE. Notice how the ODE describes the evolution of $\frac{d}{dt}\,V(t)$, the derivative of $V(t)$, but not directly the evolution of $V(t)$. For the evolution of $V(t)$ we need to integrate the ODE, and in this tutorial, we will do a discrete-time integration using the Euler method. See [Numerical methods for ordinary differential equations](https://en.wikipedia.org/wiki/Numerical_methods_for_ordinary_differential_equations) for additional details.
-#
-# We need to reorganize the Eq. (1) to isolate $V\left(t+\Delta t\right)$ on the left side, and express it as function of $V(t)$ and the other terms:
-#
-# \begin{equation}
-# V(t + \Delta t) =  V(t) + \frac{\Delta t}{\tau_m}(E_l -V(t) + R I(t)) \qquad \qquad (2)
-# \end{equation}
-
-# #### Excercise
-
-# +
-'''
-We now want to define the function shown in 2.
-We need it to take the parameters v_t, dt and It 
-The other paramters will not change.
-We defined them already above - now we can re-use them.
-
-Finish the implementation below, when you are done, execute the cell, the output should be:
-
-9.4976
-
-'''
-
-def v_dt (v_t, i_t, dt):
-    v_dt = v_t + dt/tau_m *(el-v_t + r*i_t)
-    return v_dt
-
-
-print (v_dt(v_t = 10, i_t = 12e-11, dt = 1e-3))
-
-# + active=""
-#
-# -
-fig, ax = plt.subplots()
-ax.plot([0,1],[0.2,0.8])
-ax.plot([0,1],[-0.2,-0.8])
-ax.set(
-    xlabel='X Label',
-    ylabel='Y Label',
-    title='Title')
-
-
-# +
-# Simulation class
-class LIFNeurons:
-    """
-    Keeps track of membrane potential for multiple realizations of LIF neuron,
-    and performs single step discrete time integration.
-    """
-    def __init__(self, n, t_ref_mu=0.01, t_ref_sigma=0.002,
-               tau=20e-3, el=-60e-3, vr=-70e-3, vth=-50e-3, r=100e6):
-
-        # Neuron count
-        self.n = n
-
-        # Neuron parameters
-        self.tau = tau        # second
-        self.el = el          # milivolt
-        self.vr = vr          # milivolt
-        self.vth = vth        # milivolt
-        self.r = r            # ohm
-
-        # Initializes refractory period distribution
-        self.t_ref_mu = t_ref_mu
-        self.t_ref_sigma = t_ref_sigma
-        self.t_ref = self.t_ref_mu + self.t_ref_sigma * np.random.normal(size=self.n)
-        self.t_ref[self.t_ref<0] = 0
-
-        # State variables
-        self.v = self.el * np.ones(self.n)
-        self.spiked = self.v >= self.vth
-        self.last_spike = -self.t_ref * np.ones([self.n])
-        self.t = 0.
-        self.steps = 0
-
-
-    def ode_step(self, dt, i):
-        """
-        perform a single update step
-        """
-
-        # Update running time and steps
-        self.t += dt
-        self.steps += 1
-
-        # One step of discrete time integration of dt
-        self.v = self.v + dt / self.tau * (self.el - self.v + self.r * i)
-
-        # Spike and clamp
-        self.spiked = (self.v >= self.vth)
-        self.v[self.spiked] = self.vr
-        self.last_spike[self.spiked] = self.t
-        clamped = (self.t_ref > self.t-self.last_spike)
-        self.v[clamped] = self.vr
-
-        self.last_spike[self.spiked] = self.t
-
-
-t_max = 1
-dt = 0.1
-i_mean = 25e-11
-# Set random number generator
-np.random.seed(2020)
-
-# Initialize step_end, t_range, n, v_n and i
-t_range = np.arange(0, t_max, dt)
-step_end = len(t_range)
-n = 500
-v_n = np.ones([n, step_end])
-i = i_mean * (1 + 0.1 * (t_max / dt)**(0.5) * (2 * np.random.random([n, step_end]) - 1))
-
-# Initialize binary numpy array for raster plot
-raster = np.zeros([n,step_end])
-
-# Initialize neurons
-neurons = LIFNeurons(n)
-
-# Loop over time steps
-for step, t in enumerate(t_range):
-
-  # Call ode_step method
-  neurons.ode_step(dt, i[:,step])
-
-  # Log v_n and spike history
-  v_n[:,step] = neurons.v
-  raster[neurons.spiked, step] = 1.
-
-# Report running time and steps
-print(f'Ran for {neurons.t:.3}s in {neurons.steps} steps.')
-
-# Plot multiple realizations of Vm, spikes and mean spike rate
-with plt.xkcd():
-  plot_all(t_range, v_n, raster)
-
-
-# -
-
-def plot_all(t_range, v, raster=None, spikes=None, spikes_mean=None):
-  """
-  Plots Time evolution for
-  (1) multiple realizations of membrane potential
-  (2) spikes
-  (3) mean spike rate (optional)
-
-  Args:
-    t_range (numpy array of floats)
-        range of time steps for the plots of shape (time steps)
-
-    v (numpy array of floats)
-        membrane potential values of shape (neurons, time steps)
-
-    raster (numpy array of floats)
-        spike raster of shape (neurons, time steps)
-
-    spikes (dictionary of lists)
-        list with spike times indexed by neuron number
-
-    spikes_mean (numpy array of floats)
-        Mean spike rate for spikes as dictionary
-
-  Returns:
-    Nothing.
-  """
-
-  v_mean = np.mean(v, axis=0)
-  fig_w, fig_h = plt.rcParams['figure.figsize']
-  plt.figure(figsize=(fig_w, 1.5 * fig_h))
-
-  ax1 = plt.subplot(3, 1, 1)
-  for j in range(n):
-    plt.scatter(t_range, v[j], color="k", marker=".", alpha=0.01)
-  plt.plot(t_range, v_mean, 'C1', alpha=0.8, linewidth=3)
-  plt.xticks([])
-  plt.ylabel(r'$V_m$ (V)')
-
-  if raster is not None:
-    plt.subplot(3, 1, 2)
-    spikes_mean = np.mean(raster, axis=0)
-    plt.imshow(raster, cmap='Greys', origin='lower', aspect='auto')
-
-  else:
-    plt.subplot(3, 1, 2, sharex=ax1)
-    for j in range(n):
-      times = np.array(spikes[j])
-      plt.scatter(times, j * np.ones_like(times), color="r", marker=".", alpha=0.2)
-
-  plt.xticks([])
-  plt.ylabel('neuron')
-
-  if spikes_mean is not None:
-    plt.subplot(3, 1, 3, sharex=ax1)
-    plt.plot(t_range, spikes_mean)
-    plt.xlabel('time (s)')
-    plt.ylabel('rate (Hz)')
-
-  plt.tight_layout()
-  plt.show()
-
-
-# +
-t_max = 0.1
-dt = 0.001
-i_mean = 25e-11/2
-# Set random number generator
-np.random.seed(2020)
-
-# Initialize step_end, t_range, n, v_n and i
-t_range = np.arange(0, t_max, dt)
-step_end = len(t_range)
-n = 1
-v_n = np.ones([n, step_end])
-i = i_mean #/7. * (1 + 0.1 * (t_max / dt)**(0.5) * (2 * np.random.random([n, step_end]) - 1))
-
-# Initialize binary numpy array for raster plot
-raster = np.zeros([n,step_end])
-
-# Initialize neurons
-neurons = LIFNeurons(n)
-
-# Loop over time steps
-for step, t in enumerate(t_range):
-
-  # Call ode_step method
-  neurons.ode_step(dt, i)
-
-  # Log v_n and spike history
-  v_n[:,step] = neurons.v
-  raster[neurons.spiked, step] = 1.
-
-# Report running time and steps
-print(f'Ran for {neurons.t:.3}s in {neurons.steps} steps.')
-
-# Plot multiple realizations of Vm, spikes and mean spike rate
-plt.figure();
-plt.plot(v_n[0])
-# -
-
 
 
 

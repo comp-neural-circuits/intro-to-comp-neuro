@@ -1,0 +1,22 @@
+### Solution 3
+
+```python
+
+def run_and_plot(I_e, d_T, tau_m, g_ampa):
+    test = LIFNeuron_AMPA(I_e = I_e*1e-8, g_ampa = g_ampa, tau_m = tau_m)
+    test.run_simulation(1000)
+    test.ampa_input = True
+    test.run_simulation(10 + d_T)
+    test.ampa_input = True
+    test.run_simulation(10 + d_T)
+    test.ampa_input = True
+    test.run_simulation(10 + d_T)
+    test.ampa_input = True
+    test.run_simulation(10 + d_T)
+    test.ampa_input = True
+    test.run_simulation(1000)
+    test.plot_traces()
+
+interact(run_and_plot, I_e = (0,10,0.2),d_T=(0,1000,10), tau_m = (1,100,1), g_ampa = (0.85, 2.85,0.1))
+
+```

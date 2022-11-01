@@ -1,0 +1,123 @@
+
+### solution 5
+
+
+```python
+
+class LIFComp_AMPA_GABA(object):
+    """A class that implements a single compartment to track the membrane voltage evolution and the possibiity 
+    of synaptic inputs that are either excitatory (AMPA) or inhibitory (GABA)
+    The compartment can have the ability to spike
+    """
+    def __init__(self, 
+                 tau_m = 10, v_reset = -70, v_th = -50, I_e = 10e-8, dt = 0.1,
+                g_ampa = 0.85, g_gaba = 0.85,
+                 g_end_a = 0.5, g_end_b = 0.5,
+                 can_spike = True):
+        '''This function is executed when we create an object from that class'''
+        super(LIFComp_AMPA_GABA, self).__init__()
+        
+        ### assign the attributes of the class
+        self.tau_m = tau_m  # membrane time constant
+        self.el = -75 # leak reversal potential
+        
+        self.r_m = 100e6 # membrane resistance
+        self.v_reset = v_reset # reset voltage after a spike
+        self.v_th = v_th # threshold voltage
+        self.I_e = I_e # Input current
+        
+        
+        self.v = -60 # starting voltage value for the simulation
+        self.dt = dt # simulation timestep    
+        
+        
+        ### Initiate the recording lists
+        self.v_list = [self.v]
+        self.t_list = [0]        
+        
+        ### Initiate synaptic paramters
+        self.ps_ampa = 0 # when starting the simulations the channels should be closed
+        self.ampa_input = False # and there is no input
+        self.g_ampa = g_ampa # strength of synaptic input
+        
+        self.e_ampa = 0 # reversal potential of the AMPA channel
+        self.tau_ampa = 5.26 # in ms, AMPA is rather fast
+        
+        self.ps_gaba = 0 # when starting the simulations the channels should be closed
+        self.gaba_input = False # and there is no input
+        self.g_gaba = g_gaba # strength of synaptic input
+        
+        self.e_gaba = -80 # reversal potential of the GABA channel
+        self.tau_gaba = 8 # in ms
+        
+        
+        ### Initiate neighbour parameters
+        self.v_end_a = self.v
+        self.v_end_b = self.v
+        self.g_end_a = g_end_a
+        self.g_end_b = g_end_b
+        
+        self.can_spike = can_spike
+        
+        
+    
+    def timestep(self):
+        '''
+            This function performs an update step of the membrane voltage evolution
+            we use forward euler
+        '''
+        ### Time evolution of the synaptic input
+        if self.ampa_input == True:
+            self.ps_ampa = 1 # if there is a spike in this time step, the channels open
+            self.ampa_input = False # remove the input 
+        else:
+            dps_ampa_dt = -self.ps_ampa / (self.tau_ampa) # The channels close with an exponential decay
+            self.ps_ampa += dps_ampa_dt * self.dt
+            
+        if self.gaba_input == True:
+            self.ps_gaba = 1 # if there is a spike in this time step, the channels open
+            self.gaba_input = False # remove the input 
+        else:
+            dps_gaba_dt = -self.ps_gaba / (self.tau_gaba) # The channels close with an exponential decay
+            self.ps_gaba += dps_gaba_dt * self.dt
+            
+        ### Time evolution of the membrane potential
+        i_ampa = self.g_ampa*self.ps_ampa*(self.e_ampa-self.v)
+        i_gaba = self.g_gaba*self.ps_gaba*(self.e_gaba-self.v)
+        i_end_a = self.g_end_a * (self.v_end_a - self.v)
+        i_end_b = self.g_end_b * (self.v_end_b - self.v)
+        
+        if self.v <= self.v_th or not self.can_spike:
+            dv_dt = (-self.v + self.el + self.r_m * self.I_e + i_ampa + i_gaba + i_end_a + i_end_b)/self.tau_m
+            self.v += dv_dt * self.dt
+        else:
+            self.v = self.v_reset
+            
+    
+    def run_simulation(self, 
+                       time_steps = 100,
+                       ampa_inputs = [],
+                       gaba_inputs = []):
+        '''
+            Function to run the simulation for a fixed number of time steps (time_steps)
+            We can define synaptic events as time_steps in a list.
+            either exitatory (ampa_inputs) or inhibitory (gaba_inputs)
+        '''
+        
+        for ii in range(time_steps):
+            
+            # we can check whether our current timestep is in the list of inputs we provide
+            if ii in ampa_inputs:
+                self.ampa_input = True
+            
+            if ii in gaba_inputs:
+                self.gaba_input = True
+            
+            self.timestep()
+            
+            self.v_list.append(self.v)
+            current_time = self.t_list[-1] + self.dt
+            self.t_list.append(current_time) 
+
+
+```
