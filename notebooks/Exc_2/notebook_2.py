@@ -854,7 +854,7 @@ plt.legend()
 #
 # We now (very rudimentary) try to replicate the result from Rall, that dendrites can detect whether synaptic inputs arrive directed towards the soma or away from it. 
 # <div>
-# <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_2/static/rall_results.png" width="750"/>
+# <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_2/static/rall_result.png" width="750"/>
 # </div>
 #
 # Therefore we create a multi-compartment model with four dendritic units and apply a sequence of inputs to these compartments.
