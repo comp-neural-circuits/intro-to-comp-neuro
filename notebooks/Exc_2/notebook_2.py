@@ -15,7 +15,7 @@
 
 # # From Data to a model
 
-# # Notebook 2 - (add theme here)
+# # Notebook 2 - Synaptic inputs and dendrites
 #
 # From now on we will import libraries that we already introduced in the first code cell of th notebook. In turn, this means you have to execute it in order for the rest to work properly
 
@@ -34,7 +34,7 @@ import numpy as np # we will not really use it yet in this notebook
 
 # -
 
-# # The Leaky Integrate and fire model
+# # Synaptic Input to the leaky integrate and fire model
 #
 # Today we will expand upon the class we developed in the last sessions and incorporate the new features we learned in the lecture.
 # As a reminder, here is the differential equation that described the membrane potential of our neuron:
