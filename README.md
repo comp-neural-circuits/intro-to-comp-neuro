@@ -4,10 +4,10 @@ The Excercises here accompany the lecture held in WS 22/23 at TUM
 
 |   | Run |
 | - | --- |
-|Exc1 - Intro to Python | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/comp-neural-circuits/intro-to-comp-neuro/blob/dev/notebooks/Exc_1/notebook_1.ipynb) |
-|Exc2 - Intro to Python/LIF | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/comp-neural-circuits/intro-to-comp-neuro/blob/dev/notebooks/Exc_2/notebook_2.ipynb) |
-|Exc3 - Neural Encoding Pt. I | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/comp-neural-circuits/intro-to-comp-neuro/blob/dev/notebooks/Exc_3/notebook_3.ipynb) |
-|Exc4 - Hodgkin-Huxley Model | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/comp-neural-circuits/intro-to-comp-neuro/blob/dev/notebooks/Exc_4/notebook_4.ipynb) |
+|Exc1 - Intro to Python/LIF | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/comp-neural-circuits/intro-to-comp-neuro/blob/dev/notebooks/Exc_1/notebook_1.ipynb) |
+|Exc2 - Synaptic Inputs/Multicompartment Modeling | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/comp-neural-circuits/intro-to-comp-neuro/blob/dev/notebooks/Exc_2/notebook_2.ipynb) |
+|Exc3 - Hodgkin-Huxley Model | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/comp-neural-circuits/intro-to-comp-neuro/blob/dev/notebooks/Exc_3/notebook_3.ipynb) |
+|Exc4 - Neural Coding (Pt. 1) | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/comp-neural-circuits/intro-to-comp-neuro/blob/dev/notebooks/Exc_4/notebook_4.ipynb) |
 |Exc5 - Dendrites and Synapses | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/comp-neural-circuits/intro-to-comp-neuro/blob/dev/notebooks/Exc_5/notebook_5.ipynb) |
 |Exc6 - Networks Pt. I | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/comp-neural-circuits/intro-to-comp-neuro/blob/dev/notebooks/Exc_6/notebook_6.ipynb) |
 |Exc7 - Networks Pt. II | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/comp-neural-circuits/intro-to-comp-neuro/blob/dev/notebooks/Exc_7/notebook_7.ipynb) |
