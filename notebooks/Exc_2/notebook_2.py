@@ -13,11 +13,9 @@
 #     name: intro-to-comp-neuro
 # ---
 
-# # From Data to a model
-
 # # Notebook 2 - Synaptic inputs and dendrites
 #
-# From now on we will import libraries that we already introduced in the first code cell of th notebook. In turn, this means you have to execute it in order for the rest to work properly
+# From now on we will import libraries that we already introduced in the first code cell of the notebook. In turn, this means you have to execute it in order for the rest to work properly
 
 # +
 # Execute this cell to import all the libraries that we are going to use
