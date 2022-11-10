@@ -454,57 +454,6 @@ model_lecture.run_sim_and_show_lecture_plot()
 #
 
 # ### [Solution 3](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_2/solutions/e930103b430326b69fb0b4d6c8c80217.txt)
-#
-# ### Solution 3
-#
-#
-# ### Before you read on
-#
-# Maybe you encountered weird artifacts? 
-# It helps to change the timestep (when creating the model):
-#
-# ``` python
-# model_dummy = HodgkinHuxleyNeuron(g_na=g_na, dt=0.01)
-# ```
-#
-#
-#
-#
-#
-# ### If you want to see the solution:
-#
-#
-# ```python
-#
-# fig, ax = plt.subplots(figsize = [11,5])
-# colors = ['#a6bddb','#74a9cf','#2b8cbe','#045a8d']
-# for color, g_na in zip(colors,[80,100, 120, 140]):
-#     model_dummy = HodgkinHuxleyNeuron(g_na=g_na, dt=0.01)
-#     
-#     model_dummy.run_simulation(500)
-#     model_dummy.i_e = 3
-#     model_dummy.run_simulation(2500)
-#     ax.plot(model_dummy.t_list, model_dummy.v_list, color = color, label = f"{g_na}")
-#     
-# ax.set(
-#     title = 'Membrane Potential $V$ for different values of $g_{Na}$',
-#     xlabel = '$t$ (ms)',
-#     ylabel = '$V$ (mV)',
-#     ylim = (-82,45)
-# )    
-# ax.legend(title = r"$g_{Na}$ in $\frac{mS}{cm^2}$" )
-#           
-# ```
-#
-# ### what happened
-#
-# You can see two main effects on the shape of the spike:
-#
-# 1) It shifts to the right with smaller g_na. This happens because we need to reach higher voltage values to enter the self-excciting loop of the Na-channel (and this takes more time). If the maximum conductance is too small, we actually see no spike at all.
-#
-# 2) It becomes smaller in amplitude with smaller g_na. The maximum current we can induce is smaller if g_max is smaller which means that g_K will be more dominant when the spike happens. 
-#
-#
 
 # #### Task 4
 #
@@ -514,55 +463,7 @@ model_lecture.run_sim_and_show_lecture_plot()
 #
 # What happens with the action potential, did you expect that? 
 
-# e9301038090326b69fb0b4d6c8c80fb2
-#
-# ### Solution 4
-#
-#
-# ### Before you read on
-#
-# Maybe you encountered weird artifacts? 
-# It helps to change the timestep (when creating the model):
-#
-# ``` python
-# model_dummy = HodgkinHuxleyNeuron(g_k=g_k, dt=0.01)
-# ```
-#
-#
-#
-#
-#
-# ### If you want to see the solution:
-#
-#
-# ```python
-#
-# fig, ax = plt.subplots(figsize = [11,5])
-# colors = ['#a6bddb','#74a9cf','#2b8cbe','#045a8d']
-# for color, g_k in zip(colors,[20,30,40,50]):
-#     model_dummy = HodgkinHuxleyNeuron(g_k=g_k, dt= 0.01)
-#     
-#     model_dummy.run_simulation(500)
-#     model_dummy.i_e = 3
-#     model_dummy.run_simulation(2500)
-#     ax.plot(model_dummy.t_list, model_dummy.v_list, color = color, label = f"{g_k}")
-#
-#     
-# ax.set(
-#     title = 'Membrane Potential $V$ or different values of $g_{K}$',
-#     xlabel = '$t$ (ms)',
-#     ylabel = '$V$ (mV)',
-#     ylim = (-82,45)
-# )    
-# ax.legend(title = r"$g_{K}$ in $\frac{mS}{cm^2}$" )
-#           
-# ```
-#
-# ### what happened
-#
-# The spike shifts to the left with smaller g_na. This happens because we now more easily reach higher voltage values to enter the self-excciting loop of the Na-channel because there is less K+ current already during small depolarizations. If the maximum conductance is too small, we already see spikes even with no input. the Na currents can always enter the self-excitation loop.
-#
-# If g_na is too big, there will be no spike at all. We also see that the action potential becomes smaller in amplitude for higher g_k values.
+# ### [Solution 4](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_2/solutions/e9301038090326b69fb0b4d6c8c80fb2.txt)
 
 # ### Task 5
 #
@@ -571,43 +472,14 @@ model_lecture.run_sim_and_show_lecture_plot()
 #
 # Draw your idea (how should the input current and the corresponding voltage trace look like?) on a paper or in digital form before proceeding to the implementation.
 
-# e9314538090326b69bbbb4d6c8c80217
-#
-# ### solution 5
-#
-# One way of illustrating the refractory period is the following:
-#
-# <div>
-# <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_3/static/refractory_example.png" width="650"/>
-# </div>
-#
+# ### [Solution 5](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_2/solutions/e9314538090326b69bbbb4d6c8c80217.txt)
 
 # ### Taks 6
 #
 # Implement your idea ( or the idea presented in solution 5) of how to illustrate the refractory period
 #
 
-# e9314538090326b69fb0b4d6c8c80217
-#
-# ### Solution 6
-#
-# ``` python
-#
-# def illustrate_refractory_period():
-#     sim_len = 600
-#
-#     i_e = np.zeros(sim_len)
-#     for ii in [100,250,400]:
-#         i_e[ii:ii + 75] = 6
-#
-#     model = HodgkinHuxleyNeuron()
-#     model.run_simulation(sim_len, i_e_array = i_e)
-#     model.plot_voltage_with_input_current()
-#     # model.plot_voltage_and_gating()
-#     
-# illustrate_refractory_period()
-#
-# ```
+# ### [Solution 6](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_2/solutions/e9314538090326b69fb0b4d6c8c80217.txt)
 
 # ### Task 7 
 #
