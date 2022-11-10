@@ -442,6 +442,8 @@ model_lecture.run_sim_and_show_lecture_plot()
 #
 # What do you observe in the membrane potential even if there is no spike?
 
+# 0b6d6a1ac53626e00xdee2ae7ca5b425
+#
 # ### Solution 2
 #
 # ```python
@@ -484,6 +486,8 @@ model_lecture.run_sim_and_show_lecture_plot()
 # What happens with the action potential, did you expect that? 
 #
 
+# e930103b430326b69fb0b4d6c8c80217
+#
 # ### Solution 3
 #
 #
@@ -543,6 +547,8 @@ model_lecture.run_sim_and_show_lecture_plot()
 #
 # What happens with the action potential, did you expect that? 
 
+# e9301038090326b69fb0b4d6c8c80fb2
+#
 # ### Solution 4
 #
 #
@@ -598,6 +604,8 @@ model_lecture.run_sim_and_show_lecture_plot()
 #
 # Draw your idea (how should the input current and the corresponding voltage trace look like?) on a paper or in digital form before proceeding to the implementation.
 
+# e9314538090326b69bbbb4d6c8c80217
+#
 # ### solution 5
 #
 # One way of illustrating the refractory period is the following:
@@ -612,6 +620,8 @@ model_lecture.run_sim_and_show_lecture_plot()
 # Implement your idea ( or the idea presented in solution 5) of how to illustrate the refractory period
 #
 
+# e9314538090326b69fb0b4d6c8c80217
+#
 # ### Solution 6
 #
 # ``` python
@@ -726,26 +736,32 @@ class LIFNeuron(object):
         ''' refractory period '''
         if self.refrac_tracker > 0:
             self.refrac_tracker -= self.dt
-            return
-        ''' refractory period '''
+            
         
-        
-        i_ampa = self.g_ampa*self.ps_ampa*(self.e_ampa-self.v)
-        i_gaba = self.g_gaba*self.ps_gaba*(self.e_gaba-self.v)
-        
-        
-        
-        ### Time evolution of the membrane potential
-        if self.v <= self.v_th:
-            dv_dt = (-self.v + self.e_l + self.r_m * self.i_e + i_ampa + i_gaba )/self.tau_m
-            self.v += dv_dt * self.dt
         else:
-            # here we implement a spiking behavior (mainly just for the look)
-            if self.v != 40:
-                self.v = 40
+            i_ampa = self.g_ampa*self.ps_ampa*(self.e_ampa-self.v)
+            i_gaba = self.g_gaba*self.ps_gaba*(self.e_gaba-self.v)
+
+
+
+            ### Time evolution of the membrane potential
+            if self.v <= self.v_th:
+                dv_dt = (-self.v + self.e_l + self.r_m * self.i_e + self.r_m*i_ampa + self.r_m*i_gaba )/self.tau_m
+                self.v += dv_dt * self.dt
             else:
-                self.v = self.v_reset
-                self.refrac_tracker = self.refrac_time
+                # here we implement a spiking behavior (mainly just for the look)
+                if self.v != 40:
+                    self.v = 40
+                else:
+                    self.v = self.v_reset
+                    self.refrac_tracker = self.refrac_time
+                
+                
+                
+        self.v_list.append(self.v)
+        current_time = self.t_list[-1] + self.dt
+        self.t_list.append(current_time) 
+        self.i_e_list.append(self.i_e)
 
 
     def run_simulation(self, time_steps = 100, i_e_array = np.array([]), # we can provide an array for the input current. 
@@ -762,12 +778,6 @@ class LIFNeuron(object):
             
             
             self.timestep()
-
-            
-            self.v_list.append(self.v)
-            current_time = self.t_list[-1] + self.dt
-            self.t_list.append(current_time) 
-            self.i_e_list.append(self.i_e)
 
 
 # ### Task 8 
@@ -788,7 +798,7 @@ class LIFNeuron(object):
 
 # +
 
-def test(c_m = 0.8, r_m = 2.9, refrac_time = 12.5, e_l = -65.5, v_th = -50):
+def test(c_m = 1.5, r_m = 3, refrac_time = 4, e_l = -70, v_th = -51):
     
     sim_len = 1000
 
@@ -832,11 +842,192 @@ widgets.interact(test,
                  v_th = (-60,-40,0.2))
 
 
+# -
+
+# ### Synaptic inputs
+#
+# We now add synaptic inputs to our Hodgkin Huxley class.
+# We also now use the idea of parent and child classes. 
+# Our new class will basially inherit all the attributes and methods from the class we defined at the beginning. 
+# if we add a method to this child class that has the same name as a method in the parent class, we overwrite that method. 
+#
+# it is not important for now to understand how the inheritance works. 
+# We could have achieved the exact same solution by copying the old class and addig in the lines for the synaptic inputs.
+
+class HodgkinHuxleyNeuron_AmpaGaba(HodgkinHuxleyNeuron):
+    """A class to model the Hodgkin Huxley formalism for a spiking neuron
+       The methods allow to run the simulation and plot the results
+    """
+    def __init__(self, 
+                 g_na=120, # mS/cm2
+                 g_k=36, # mS/cm2
+                 g_l=0.3, # mS/cm2
+                 e_na = 50, # mV
+                 e_k  = -77, # mV
+                 e_l  = -54.4, # mV
+                 c_m = 1, # micro F/cm2
+                 i_e = 0, # mu A /cm2,
+                 dt = 0.05, # in ms,
+                 g_ampa = 0,
+                 g_gaba = 0,
+                ):
+        '''This function is executed when we create an object from that class'''
+        
+        
+        # we first define the synaptic parameters
+        
+        
+        ### Initiate synaptic paramters
+        self.ps_ampa = 0 # when starting the simulations the channels should be closed
+        self.ampa_input = False # and there is no input
+        self.g_ampa = g_ampa # strength of synaptic input
+        
+        self.e_ampa = 0 # reversal potential of the AMPA channel
+        self.tau_ampa = 5.26 # in ms, AMPA is rather fast
+        
+        self.ps_gaba = 0 # when starting the simulations the channels should be closed
+        self.gaba_input = False # and there is no input
+        self.g_gaba = g_gaba # strength of synaptic input
+        
+        self.e_gaba = -80 # reversal potential of the GABA channel
+        self.tau_gaba = 8 # in ms
+        
+        ''' Then, we call the init function from the parent class 
+            HodgkinHuxleyNeuron and pass the parameters'''        
+        
+        super(HodgkinHuxleyNeuron_AmpaGaba, self).__init__(
+             g_na=g_na,
+             g_k=g_k,
+             g_l=g_l, 
+             e_na = e_na,
+             e_k = e_k,
+             e_l  = e_l,
+             c_m = c_m,
+             i_e = i_e, 
+             dt = dt,        
+        )
+
+        
+        
+        
+
+    ''' in addition to the init method, we also have to change the delta_v method '''
+    def delta_v(self):
+        # the change for one timestep of V        
+        
+        # we first calculate the currents through each channel type
+        self.i_na = self.g_na * self.h * (self.m**3) * (self.v - self.e_na)
+        self.i_k = self.g_k * (self.n**4) * (self.v - self.e_k)
+        self.i_l = self.g_l * (self.v - self.e_l)
+        
+        i_ampa = self.g_ampa*self.ps_ampa*(self.v-self.e_ampa)
+        i_gaba = self.g_gaba*self.ps_gaba*(self.v-self.e_gaba)
+        
+        delta_v = (- self.i_na - self.i_k - self.i_l + self.i_e - i_gaba - i_ampa) * self.dt / self.c_m
+        
+        return delta_v
+
+
+    ''' and we have to overwrite the timestep function '''
+    def timestep(self):
+        '''
+            This function performs an update step of the membrane voltage evolution
+            we use forward euler
+        '''
+        ### Time evolution of the synaptic input
+        if self.ampa_input == True:
+            self.ps_ampa = 1 # if there is a spike in this time step, the channels open
+            self.ampa_input = False # remove the input 
+        else:
+            dps_ampa_dt = -self.ps_ampa / (self.tau_ampa) # The channels close with an exponential decay
+            self.ps_ampa += dps_ampa_dt * self.dt
+            
+        if self.gaba_input == True:
+            self.ps_gaba = 1 # if there is a spike in this time step, the channels open
+            self.gaba_input = False # remove the input 
+        else:
+            dps_gaba_dt = -self.ps_gaba / (self.tau_gaba) # The channels close with an exponential decay
+            self.ps_gaba += dps_gaba_dt * self.dt
+        
+        
+        
+        self.v += self.delta_v()
+        self.h += self.delta_h()
+        self.m += self.delta_m()
+        self.n += self.delta_n()
+        
+        # append all the values to lists to save the data
+        self.v_list.append(self.v)
+        self.h_list.append(self.h)
+        self.m_list.append(self.m)
+        self.n_list.append(self.n)
+
+        self.i_k_list.append(self.i_k)
+        self.i_na_list.append(self.i_na)
+        self.i_l_list.append(self.i_l)
+        
+        self.i_e_list.append(self.i_e)
+        current_time = self.t_list[-1] + self.dt
+        self.t_list.append(current_time) 
+
+
+# ### Task 9 
+#
+# run the cell below. This is the same widget we already had for the LIF model, now for the HH model.
+
 # +
-def run_simulation(model, 
+def run_and_plot(I_e, gaba_input_timestep):
+    neuron = HodgkinHuxleyNeuron_AmpaGaba(g_ampa = 0.08, g_gaba = 0.6)
+    ampa_inputs = [1000, 1050, 1100]   
+    gaba_inputs = [gaba_input_timestep]
+    for ii in range(2000):
+        # we can check whether our current timestep is in the list of inputs we provide
+        if ii in ampa_inputs:
+            neuron.ampa_input = True
+
+        if ii in gaba_inputs:
+            neuron.gaba_input = True
+
+        neuron.timestep()
+                       
+    plt.figure()
+    plt.title('Time evolution of membrane voltage')
+
+    plt.plot(neuron.t_list,neuron.v_list,linewidth=2.5)
+
+    plt.xlabel('Time in ms')
+    plt.ylabel('Voltage in mV')
+
+    plt.ylim([-85,50])
+    
+    
+    # reading out the time and voltage value so that the arrow points to the plot
+    # If you don't know how to access an element in the list, feel free to ask
+    x_input = neuron.t_list[gaba_input_timestep] 
+    y_input = neuron.v_list[gaba_input_timestep]
+    
+    # use the annotate function to plot an arrow and the text 'GABA input'
+    plt.annotate('GABA input', xy =(x_input, y_input),
+                xytext =(x_input-40, y_input + 20), 
+                arrowprops = dict(arrowstyle='->',facecolor ='#CC1414', edgecolor='#CC1414',
+                                  shrinkA = 0.1))
+
+widgets.interact(run_and_plot,I_e = 5, gaba_input_timestep=(700,1150,10))
+
+
+# -
+
+# ### Task 10
+#
+# Now instead of a constant current as in task 8, we add more complex synaptic input patterns.
+# Can you use the same paramters that you found in task 8 to fit the LIF model to the HH model?
+
+# +
+def run_input_simulation(model, 
                    time_steps = 100,
                    ampa_inputs = [],
-                   gaba_inputs = []):
+                   gaba_inputs = [],
+                  i_e_array = np.array([])):
         '''
             Function to run the simulation for a fixed number of time steps (time_steps)
             We can define synaptic events as time_steps in a list.
@@ -845,39 +1036,43 @@ def run_simulation(model,
         
         for ii in range(time_steps):
             
+            # we check whether we can take the input current (i_e) value from the list of inputs
+            if len(i_e_array) > ii:
+                model.i_e = i_e_array[ii]            
+            
             # we can check whether our current timestep is in the list of inputs we provide
             if ii in ampa_inputs:
-                self.ampa_input = True
+                model.ampa_input = True
             
             if ii in gaba_inputs:
-                self.gaba_input = True
+                model.gaba_input = True
             
-            self.timestep()
-            
-            self.v_list.append(self.v)
-            current_time = self.t_list[-1] + self.dt
-            self.t_list.append(current_time) 
+            model.timestep()
 
-def test(c_m = 0.8, r_m = 2.9, refrac_time = 12.5, e_l = -65.5, v_th = -50):
+            
+def test(c_m = 1.5, r_m = 3, refrac_time = 4, e_l = -70, v_th = -51):
     
     sim_len = 1000
 
-    I_input = np.zeros(sim_len)
-    I_input[100:600] = 8
+    ampa_inputs = [100,110,120,160,170,220,240,280,500,520,560]
+    gaba_inputs = [20,90,130,180,250,280,480,510,570]
 
-    lif_model = LIFNeuron(c_m=c_m, r_m = r_m, refrac_time = refrac_time, e_l = e_l, v_th = v_th)
-    hh_model = HodgkinHuxleyNeuron()
+    lif_model = LIFNeuron(c_m=c_m, r_m = r_m, refrac_time = refrac_time, e_l = e_l, v_th = v_th,
+                         g_ampa = 8e-2, g_gaba = 12e-2)
+    hh_model = HodgkinHuxleyNeuron_AmpaGaba(g_ampa = 8e-2, g_gaba=1.8e-1)
+#     hh_model = HodgkinHuxleyNeuron()
 
-    lif_model.run_simulation(sim_len, i_e_array = I_input)
-    hh_model.run_simulation(sim_len, i_e_array = I_input)
+    run_input_simulation(lif_model, time_steps = sim_len, 
+                         ampa_inputs = ampa_inputs,
+                        gaba_inputs = gaba_inputs)
+    run_input_simulation(hh_model, time_steps = sim_len, 
+                         ampa_inputs = ampa_inputs,
+                        gaba_inputs = gaba_inputs)
 
 
     fig, axes = plt.subplots(2)
     axes[0].plot(hh_model.t_list, hh_model.v_list, label='Hodgin Huxley')
     axes[0].plot(lif_model.t_list, lif_model.v_list, label = 'LIF')
-    
-    axes[1].plot(hh_model.t_list, hh_model.i_e_list, label='Hodgin Huxley')
-    axes[1].plot(lif_model.t_list, lif_model.i_e_list, label = 'LIF')
 
     axes[0].set(
         xlabel='time in ms',
@@ -885,14 +1080,8 @@ def test(c_m = 0.8, r_m = 2.9, refrac_time = 12.5, e_l = -65.5, v_th = -50):
         ylim = [-80,50]
     )
     
-    axes[1].set(
-        xlabel = 'Time in ms',
-        ylabel='Input current in $\mu F/cm^2$',
-         ylim = [-0.1,10]
-    )
     
     axes[0].legend()
-    axes[1].legend()
 
 widgets.interact(test, 
                  c_m = (0.01, 5,0.01), 
@@ -901,5 +1090,8 @@ widgets.interact(test,
                  e_l = (-80,-60,0.2),
                  v_th = (-60,-40,0.2))
 
+
+
+# -
 
 

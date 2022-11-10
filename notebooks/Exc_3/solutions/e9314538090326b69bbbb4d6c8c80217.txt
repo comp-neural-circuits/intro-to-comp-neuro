@@ -1,0 +1,7 @@
+### solution 5
+
+One way of illustrating the refractory period is the following:
+
+<div>
+<img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_3/static/refractory_example.png" width="650"/>
+</div>

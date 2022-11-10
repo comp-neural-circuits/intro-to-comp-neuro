@@ -1,0 +1,19 @@
+### Solution 6
+
+``` python
+
+def illustrate_refractory_period():
+    sim_len = 600
+
+    i_e = np.zeros(sim_len)
+    for ii in [100,250,400]:
+        i_e[ii:ii + 75] = 6
+
+    model = HodgkinHuxleyNeuron()
+    model.run_simulation(sim_len, i_e_array = i_e)
+    model.plot_voltage_with_input_current()
+    # model.plot_voltage_and_gating()
+    
+illustrate_refractory_period()
+
+```

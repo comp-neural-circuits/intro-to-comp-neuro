@@ -1,0 +1,48 @@
+### Solution 3
+
+
+### Before you read on
+
+Maybe you encountered weird artifacts? 
+It helps to change the timestep (when creating the model):
+
+``` python
+model_dummy = HodgkinHuxleyNeuron(g_na=g_na, dt=0.01)
+```
+
+
+
+
+
+### If you want to see the solution:
+
+
+```python
+
+fig, ax = plt.subplots(figsize = [11,5])
+colors = ['#a6bddb','#74a9cf','#2b8cbe','#045a8d']
+for color, g_na in zip(colors,[80,100, 120, 140]):
+    model_dummy = HodgkinHuxleyNeuron(g_na=g_na, dt=0.01)
+    
+    model_dummy.run_simulation(500)
+    model_dummy.i_e = 3
+    model_dummy.run_simulation(2500)
+    ax.plot(model_dummy.t_list, model_dummy.v_list, color = color, label = f"{g_na}")
+    
+ax.set(
+    title = 'Membrane Potential $V$ for different values of $g_{Na}$',
+    xlabel = '$t$ (ms)',
+    ylabel = '$V$ (mV)',
+    ylim = (-82,45)
+)    
+ax.legend(title = r"$g_{Na}$ in $\frac{mS}{cm^2}$" )
+          
+```
+
+### what happened
+
+You can see two main effects on the shape of the spike:
+
+1) It shifts to the right with smaller g_na. This happens because we need to reach higher voltage values to enter the self-excciting loop of the Na-channel (and this takes more time). If the maximum conductance is too small, we actually see no spike at all.
+
+2) It becomes smaller in amplitude with smaller g_na. The maximum current we can induce is smaller if g_max is smaller which means that g_K will be more dominant when the spike happens. 

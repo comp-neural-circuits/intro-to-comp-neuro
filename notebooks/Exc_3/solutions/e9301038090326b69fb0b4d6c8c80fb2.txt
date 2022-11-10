@@ -1,0 +1,47 @@
+### Solution 4
+
+
+### Before you read on
+
+Maybe you encountered weird artifacts? 
+It helps to change the timestep (when creating the model):
+
+``` python
+model_dummy = HodgkinHuxleyNeuron(g_k=g_k, dt=0.01)
+```
+
+
+
+
+
+### If you want to see the solution:
+
+
+```python
+
+fig, ax = plt.subplots(figsize = [11,5])
+colors = ['#a6bddb','#74a9cf','#2b8cbe','#045a8d']
+for color, g_k in zip(colors,[20,30,40,50]):
+    model_dummy = HodgkinHuxleyNeuron(g_k=g_k, dt= 0.01)
+    
+    model_dummy.run_simulation(500)
+    model_dummy.i_e = 3
+    model_dummy.run_simulation(2500)
+    ax.plot(model_dummy.t_list, model_dummy.v_list, color = color, label = f"{g_k}")
+
+    
+ax.set(
+    title = 'Membrane Potential $V$ or different values of $g_{K}$',
+    xlabel = '$t$ (ms)',
+    ylabel = '$V$ (mV)',
+    ylim = (-82,45)
+)    
+ax.legend(title = r"$g_{K}$ in $\frac{mS}{cm^2}$" )
+          
+```
+
+### what happened
+
+The spike shifts to the left with smaller g_na. This happens because we now more easily reach higher voltage values to enter the self-excciting loop of the Na-channel because there is less K+ current already during small depolarizations. If the maximum conductance is too small, we already see spikes even with no input. the Na currents can always enter the self-excitation loop.
+
+If g_na is too big, there will be no spike at all. We also see that the action potential becomes smaller in amplitude for higher g_k values.
