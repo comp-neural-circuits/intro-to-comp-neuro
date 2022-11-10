@@ -442,40 +442,7 @@ model_lecture.run_sim_and_show_lecture_plot()
 #
 # What do you observe in the membrane potential even if there is no spike?
 
-# 0b6d6a1ac53626e00xdee2ae7ca5b425
-#
-# ### Solution 2
-#
-# ```python
-# def no_spike_1():
-#     
-#     # we will not generate a spike if the current is too small
-#     model = HodgkinHuxleyNeuron()
-#     model.run_simulation(100)
-#     model.i_e = 2.1
-#     model.run_simulation(500)
-# #     model.plot_voltage_and_gating()
-#     model.plot_voltage_with_input_current()
-#
-# def no_spike_2():
-#     
-#     # we will also not generate a spike if the current pulse is too short
-#     model = HodgkinHuxleyNeuron()
-#     model.run_simulation(100)
-#     model.i_e = 10
-#     model.run_simulation(12)
-#     model.i_e = 0.0
-#     model.run_simulation(500)
-# #     model.plot_voltage_and_gating()
-#     model.plot_voltage_with_input_current()
-#
-# no_spike_1()       
-# no_spike_2()
-# ```
-#
-# ### What happened? 
-#
-# In both cases we cannot activate the Na - self-exciting loop, such that the neuron does not spike. However, we still see the effect, that we have a small undershoot after the initial rise, even when the current remains, this is again due to the K+ channel that opens already du to the small depolarization we induced. 
+# ### [Solution 2](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_2/solutions/0b6d6a1ac53626e00xdee2ae7ca5b425.txt)
 
 # #### Task 3
 #
@@ -486,7 +453,7 @@ model_lecture.run_sim_and_show_lecture_plot()
 # What happens with the action potential, did you expect that? 
 #
 
-# e930103b430326b69fb0b4d6c8c80217
+# ### [Solution 3](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_2/solutions/e930103b430326b69fb0b4d6c8c80217.txt)
 #
 # ### Solution 3
 #
