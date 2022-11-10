@@ -576,7 +576,7 @@ model_lecture.run_sim_and_show_lecture_plot()
 #
 #     
 # ax.set(
-#     title = 'Membrane Potential $V$',
+#     title = 'Membrane Potential $V$ or different values of $g_{K}$',
 #     xlabel = '$t$ (ms)',
 #     ylabel = '$V$ (mV)',
 #     ylim = (-82,45)
@@ -593,7 +593,10 @@ model_lecture.run_sim_and_show_lecture_plot()
 
 # ### Task 5
 #
-# We now want to investigate 
+# We now want to investigate the refractory period of the Hodgkin Huxley neuron, i.e. the time after a spike, where no other spike can happen, even if there is input. 
+# Can you think about an input pattern that would illustrate this behavior? 
+#
+# Draw your idea (how should the input current and the corresponding voltage trace look like?) on a paper or in digital form before proceeding to the implementation.
 
 # ### solution 5
 #
@@ -629,6 +632,18 @@ model_lecture.run_sim_and_show_lecture_plot()
 #
 # ```
 
+# ### Task 7 
+#
+# We now come back to our LIF model. 
+# belwo you seethe class we developed in the last session (slightly adapted, so that it can now also take on more complex input patterns with an input array). 
+#
+# run the cell below to create the class and make sure that you understand the code (again).
+# There are two slight changes:
+#
+# 1) there is an actual spike implemented (the membrane potential is set to 40 mV for one time step when the threshold is crossed
+#
+# 2) there is a refractory period after each spike, within which the membrane potential is kept constant
+
 class LIFNeuron(object):
     """A LIF neuron with the possibility to add AMPA inputs 
     the methods allow to run the simulation for a certain number of steps while keeping track of the membrane voltage
@@ -636,6 +651,7 @@ class LIFNeuron(object):
     """
     def __init__(self, 
                  c_m = 1, r_m = 10, v_reset = -70, refrac_time = 10, v_th = -50, e_l = -75, i_e = 0, dt = 0.05,
+                 g_ampa = 0, g_gaba = 0,
                 ):
         '''This function is executed when we create an object from that class'''
         super(LIFNeuron, self).__init__()
@@ -655,13 +671,30 @@ class LIFNeuron(object):
         self.dt = dt # simulation timestep    
 
         
-        
+        ''' refractory period '''
         self.refrac_time = refrac_time # in ms
         self.refrac_tracker = 0
+        ''' refractory period '''
         
         self.v_list = [self.v]
         self.t_list = [0]
         self.i_e_list = [self.i_e]
+        
+        
+        ### Initiate synaptic paramters
+        self.ps_ampa = 0 # when starting the simulations the channels should be closed
+        self.ampa_input = False # and there is no input
+        self.g_ampa = g_ampa # strength of synaptic input
+        
+        self.e_ampa = 0 # reversal potential of the AMPA channel
+        self.tau_ampa = 5.26 # in ms, AMPA is rather fast
+        
+        self.ps_gaba = 0 # when starting the simulations the channels should be closed
+        self.gaba_input = False # and there is no input
+        self.g_gaba = g_gaba # strength of synaptic input
+        
+        self.e_gaba = -80 # reversal potential of the GABA channel
+        self.tau_gaba = 8 # in ms
 
 
     def timestep(self):
@@ -669,13 +702,42 @@ class LIFNeuron(object):
             This function performs an update step of the membrane voltage evolution
             we use forward euler
         '''
+        ### Time evolution of the synaptic input
+        if self.ampa_input == True:
+            self.ps_ampa = 1 # if there is a spike in this time step, the channels open
+            self.ampa_input = False # remove the input 
+        else:
+            dps_ampa_dt = -self.ps_ampa / (self.tau_ampa) # The channels close with an exponential decay
+            self.ps_ampa += dps_ampa_dt * self.dt
+            
+        if self.gaba_input == True:
+            self.ps_gaba = 1 # if there is a spike in this time step, the channels open
+            self.gaba_input = False # remove the input 
+        else:
+            dps_gaba_dt = -self.ps_gaba / (self.tau_gaba) # The channels close with an exponential decay
+            self.ps_gaba += dps_gaba_dt * self.dt
+
+        
+        
+            
+        ### Time evolution of the membrane potential
+        
+        
+        ''' refractory period '''
         if self.refrac_tracker > 0:
             self.refrac_tracker -= self.dt
             return
+        ''' refractory period '''
+        
+        
+        i_ampa = self.g_ampa*self.ps_ampa*(self.e_ampa-self.v)
+        i_gaba = self.g_gaba*self.ps_gaba*(self.e_gaba-self.v)
+        
+        
         
         ### Time evolution of the membrane potential
         if self.v <= self.v_th:
-            dv_dt = (-self.v + self.e_l + self.r_m * self.i_e)/self.tau_m
+            dv_dt = (-self.v + self.e_l + self.r_m * self.i_e + i_ampa + i_gaba )/self.tau_m
             self.v += dv_dt * self.dt
         else:
             # here we implement a spiking behavior (mainly just for the look)
@@ -708,19 +770,32 @@ class LIFNeuron(object):
             self.i_e_list.append(self.i_e)
 
 
+# ### Task 8 
+#
+# Your task is now to fit the output of the LIF model to the output of the Hodgkin Huxley model. 
+#
+# You can use the interactive tool below to search for the best fit. 
+# The parameters that you can change from the LIF model are
+#
+# c_m, the specific capacitance of the membrane
+# r_m, the specific resistance of the membrane 
+# together, these two will give you tau_m , the time constant. 
+#
+# refrac_time, the refractory period in ms 
+# e_l, the leak reversal potential
+#
+# When you think that you found a good fit, let me know the parameters. 
+
 # +
 
-def test(c_m = 0.8, r_m = 2.9, refrac_time = 12.5, e_l = -65.5):
+def test(c_m = 0.8, r_m = 2.9, refrac_time = 12.5, e_l = -65.5, v_th = -50):
     
     sim_len = 1000
 
     I_input = np.zeros(sim_len)
     I_input[100:600] = 8
-#     for ii in [100,250,400]:
-#         I_input[ii:ii + 75] = 5
 
-
-    lif_model = LIFNeuron(c_m=c_m, r_m = r_m, refrac_time = refrac_time, e_l = e_l)
+    lif_model = LIFNeuron(c_m=c_m, r_m = r_m, refrac_time = refrac_time, e_l = e_l, v_th = v_th)
     hh_model = HodgkinHuxleyNeuron()
 
     lif_model.run_simulation(sim_len, i_e_array = I_input)
@@ -728,230 +803,103 @@ def test(c_m = 0.8, r_m = 2.9, refrac_time = 12.5, e_l = -65.5):
 
 
     fig, axes = plt.subplots(2)
-    axes[0].plot(hh_model.t_list, hh_model.v_list)
-    axes[0].plot(lif_model.t_list, lif_model.v_list)
+    axes[0].plot(hh_model.t_list, hh_model.v_list, label='Hodgin Huxley')
+    axes[0].plot(lif_model.t_list, lif_model.v_list, label = 'LIF')
     
-    axes[1].plot(hh_model.t_list, hh_model.i_e_list)
-    axes[1].plot(lif_model.t_list, lif_model.i_e_list)
+    axes[1].plot(hh_model.t_list, hh_model.i_e_list, label='Hodgin Huxley')
+    axes[1].plot(lif_model.t_list, lif_model.i_e_list, label = 'LIF')
 
     axes[0].set(
+        xlabel='time in ms',
+        ylabel='Membrane voltage in mV',
         ylim = [-80,50]
     )
     
     axes[1].set(
+        xlabel = 'Time in ms',
+        ylabel='Input current in $\mu F/cm^2$',
+         ylim = [-0.1,10]
+    )
+    
+    axes[0].legend()
+    axes[1].legend()
+
+widgets.interact(test, 
+                 c_m = (0.01, 5,0.01), 
+                 r_m = (0.1,20,0.2), 
+                 refrac_time=(1,20,0.2), 
+                 e_l = (-80,-60,0.2),
+                 v_th = (-60,-40,0.2))
+
+
+# +
+def run_simulation(model, 
+                   time_steps = 100,
+                   ampa_inputs = [],
+                   gaba_inputs = []):
+        '''
+            Function to run the simulation for a fixed number of time steps (time_steps)
+            We can define synaptic events as time_steps in a list.
+            either exitatory (ampa_inputs) or inhibitory (gaba_inputs)
+        '''
         
+        for ii in range(time_steps):
+            
+            # we can check whether our current timestep is in the list of inputs we provide
+            if ii in ampa_inputs:
+                self.ampa_input = True
+            
+            if ii in gaba_inputs:
+                self.gaba_input = True
+            
+            self.timestep()
+            
+            self.v_list.append(self.v)
+            current_time = self.t_list[-1] + self.dt
+            self.t_list.append(current_time) 
+
+def test(c_m = 0.8, r_m = 2.9, refrac_time = 12.5, e_l = -65.5, v_th = -50):
+    
+    sim_len = 1000
+
+    I_input = np.zeros(sim_len)
+    I_input[100:600] = 8
+
+    lif_model = LIFNeuron(c_m=c_m, r_m = r_m, refrac_time = refrac_time, e_l = e_l, v_th = v_th)
+    hh_model = HodgkinHuxleyNeuron()
+
+    lif_model.run_simulation(sim_len, i_e_array = I_input)
+    hh_model.run_simulation(sim_len, i_e_array = I_input)
+
+
+    fig, axes = plt.subplots(2)
+    axes[0].plot(hh_model.t_list, hh_model.v_list, label='Hodgin Huxley')
+    axes[0].plot(lif_model.t_list, lif_model.v_list, label = 'LIF')
+    
+    axes[1].plot(hh_model.t_list, hh_model.i_e_list, label='Hodgin Huxley')
+    axes[1].plot(lif_model.t_list, lif_model.i_e_list, label = 'LIF')
+
+    axes[0].set(
+        xlabel='time in ms',
+        ylabel='Membrane voltage in mV',
+        ylim = [-80,50]
     )
-
-widgets.interact(test, c_m = (0.01, 5,0.01), r_m = (0.1,20,0.2), refrac_time=(1,20,0.5), e_l = (-80,-60,0.5) )
-
-
-# -
-
-def run_simulation(
-    ### simulation parameters ###
-   
-    dt = 0.01,      # time step (ms)
-    T = 55,       # total running time (ms)
     
-    
-    ### model paramters ###
-    C_m = 1.,       # membrane capacitance (micro F/cm**2)
-    
-    # Sodium Channel
-    G_Na = 120.,    # max Na conductance (mS/cm**2)
-    E_Na = 115.,    # Na reversal potential (mV)
-    
-    # Kalium Channel
-    G_K = 40.,      # max K conductance (mS/cm**2)
-    E_K = -12.0,    # K reversal potential (mV)
-    
-    # Leak current    
-    G_L = 0.24,     # max leak onductance (mS/cm**2)
-    E_L = 10.613,   # leak potential (mV)
-    
-    flag = 'spike'
-    ):
-    
-    par_dict = dict(
-    C_m = C_m,
-    G_Na = G_Na,
-    E_Na = E_Na,
-    G_K  = G_K,
-    E_K  = E_K,
-    G_L  = G_L,
-    E_L  = E_L,
+    axes[1].set(
+        xlabel = 'Time in ms',
+        ylabel='Input current in $\mu F/cm^2$',
+         ylim = [-0.1,10]
     )
-    # initialize the simulation parameters
-    V_m = 0 # membrane potential (mV)
-    m_Na = 0 # Na channel activation (dimensionless)
-    h_Na = 0 # Na channel inactivation (dimensionless)
-    n_K = 0 # K channel activation (dimensionless)
-
-    # total membrane current (microA/cm**2) for the time of the simulation
-   
-    I_input = np.array([0] * int(T/dt))
-    if flag == 'spike':
-        I_input[1500:1800] = 10
-    if flag == 'burst':
-        I_input[1500:] = 10
-    if flag == 'refractory':
-        for ii in [1500,2100,2700]:
-         I_input[ii:ii + 300] = 10
-    Time = [ii*dt for ii in range(int(T/dt))]
-
-
-    result_V_m, result_m_Na, result_h_Na, result_n_K = ([] for i in range(4))
-    for t in range(int(100 // dt)):
-        V_m, m_Na, h_Na, n_K = update(v=V_m, m=m_Na, h=h_Na, n=n_K, i=0, dt=dt, par_dict = par_dict)
-    for t in range(len(I_input)):
-        V_m, m_Na, h_Na, n_K = update(v=V_m, m=m_Na, h=h_Na, n=n_K, i=I_input[t], dt=dt, par_dict = par_dict)
-        result_V_m.append(V_m)
-        result_m_Na.append(m_Na)
-        result_h_Na.append(h_Na)
-        result_n_K.append(n_K)
-    return result_V_m, result_m_Na, result_h_Na, result_n_K, I_input, Time
-
-
-# +
-def plot_current(Time, Current):
-    plt.subplots(figsize = [12,5])
-    plt.xlabel('$t$ (ms)')
-    plt.ylabel('$I$ $\mathrm{(\mu A/cm^2)}$')
-    # plt.xlim(-1, 30)
-    plt.ylim(-2, 12)
-    plt.plot(Time, Current)
-    plt.title('Input Current $I$')
     
-def plot_membrane_potential(Time, Voltage):
+    axes[0].legend()
+    axes[1].legend()
 
-    plt.subplots(figsize = [12,5])
-    plt.xlabel('$t$ (ms)')
-    plt.ylabel('$V$ (mV)')
-    plt.ylim(-20, 120)
-    plt.plot(Time, Voltage, color = '#bd0026')
-    title = plt.title('Membrane Potential $V$')
+widgets.interact(test, 
+                 c_m = (0.01, 5,0.01), 
+                 r_m = (0.1,20,0.2), 
+                 refrac_time=(1,20,0.2), 
+                 e_l = (-80,-60,0.2),
+                 v_th = (-60,-40,0.2))
 
-
-# +
-Voltage,m,h,n,I,Time = run_simulation(
-### simulation parameters ###
-   
-    dt = 0.01,      # time step (ms)
-    T = 55,       # total running time (ms)
-    
-    
-    ### model paramters ###
-    C_m = 1.,       # membrane capacitance (micro F/cm**2)
-    
-    # Sodium Channel
-    G_Na = 10,    # max Na conductance (mS/cm**2)
-    E_Na = 115.,    # Na reversal potential (mV)
-    
-    # Kalium Channel
-    G_K = 40.,      # max K conductance (mS/cm**2)
-    E_K = -12.0,    # K reversal potential (mV)
-    
-    # Leak current    
-    G_L = 0.24,     # max leak onductance (mS/cm**2)
-    E_L = 10.613,   # leak potential (mV)
-    
-    flag = 'spike'
-)
-
-plot_membrane_potential(Time = Time, Voltage = Voltage)
-plot_current(Time = Time, Current = I)
-
-# +
-fig, ax = plt.subplots(figsize = [12,5])
-colors = ['#a6bddb','#74a9cf','#2b8cbe','#045a8d']
-for color, G_Na in zip(colors,[20,70, 120, 170]):
-    V_membrane,_,_,_,_,Time = run_simulation(G_Na = G_Na)
-    ax.plot(Time, V_membrane, color = color, label = f"{G_Na}")
-    
-    
-ax.set_xlabel('$t$ (ms)')
-ax.set_ylabel('$V$ (mV)')
-ax.set_ylim(-20, 120)
-title = plt.title('Membrane Potential $V$ for different values of $g_K$')
-ax.legend(title = "G_Na in mS/cm**2" )
-
-# +
-fig, ax = plt.subplots(figsize = [12,5])
-colors = ['#a6bddb','#74a9cf','#2b8cbe','#045a8d']
-for color, G_K in zip(colors,[40,80, 120, 160]):
-    V_membrane,_,_,_,_,Time = run_simulation(G_K = G_K)
-    ax.plot(Time, V_membrane, color = color, label = f"{G_K}")
-    
-    
-ax.set_xlabel('$t$ (ms)')
-ax.set_ylabel('$V$ (mV)')
-ax.set_ylim(-20, 120)
-title = plt.title('Membrane Potential $V$')
-ax.legend(title = "G_K in mS/cm**2" )
-
-# +
-fig, ax = plt.subplots(figsize = [12,5])
-colors = ['#a6bddb','#74a9cf','#2b8cbe','#045a8d']
-for color, E_Na in zip(colors,[20,50, 80, 110]):
-    V_membrane,_,_,_,_,Time = run_simulation(E_Na = E_Na)
-    ax.plot(Time, V_membrane, color = color, label = f"{E_Na}")
-    
-    
-ax.set_xlabel('$t$ (ms)')
-ax.set_ylabel('$V$ (mV)')
-ax.set_ylim(-20, 120)
-title = plt.title('Membrane Potential $V$')
-ax.legend(title = "E_Na in mV" )
-# -
-
-fig, ax = plt.subplots(figsize = [12,5])
-plt.xlabel('$t$ (ms)')
-plt.ylim(-0.1, 1.1)
-plt.plot(Time, m)
-plt.plot(Time, h)
-plt.plot(Time, n)
-plt.legend(['m (Na activation)', 'h (Na inactivation)',
-            'n (K activation)'], bbox_to_anchor=(1, 1), framealpha=1)
-plt.title('Ion Channel Activation')
-
-# ## Refractory Period
-
-# +
-Voltage_refractory,m_refractory,h_refractory,n_refractory,I_refractory,Time_refractory = run_simulation(
-    flag = 'refractory'
-)
-
-plot_membrane_potential(Time = Time_refractory, Voltage = Voltage_refractory)
-plot_current(Time = Time_refractory, Current = I_refractory)
-# -
-
-fig, ax = plt.subplots(figsize = [12,5])
-plt.xlabel('$t$ (ms)')
-plt.ylim(-0.1, 1.1)
-plt.plot(Time_refractory, m_refractory)
-plt.plot(Time_refractory, h_refractory)
-plt.plot(Time_refractory, n_refractory)
-plt.legend(['m (Na activation)', 'h (Na inactivation)',
-            'n (K activation)'], bbox_to_anchor=(1, 1), framealpha=1)
-plt.title('Ion Channel Activation')
-
-# ## Bursting
-
-# +
-Voltage_burst,m_burst,h_burst,n_burst,I_burst,Time_burst = run_simulation(flag = 'burst')
-
-plot_membrane_potential(Time = Time_burst, Voltage = Voltage_burst)
-plot_current(Time = Time_burst, Current = I_burst)
-# -
-
-fig, ax = plt.subplots(figsize = [12,5])
-plt.xlabel('$t$ (ms)')
-plt.ylim(-0.1, 1.1)
-plt.plot(Time_burst, m_burst)
-plt.plot(Time_burst, h_burst)
-plt.plot(Time_burst, n_burst)
-plt.legend(['m (Na activation)', 'h (Na inactivation)',
-            'n (K activation)'], bbox_to_anchor=(1, 1), framealpha=1)
-plt.title('Ion Channel Activation')
 
 
