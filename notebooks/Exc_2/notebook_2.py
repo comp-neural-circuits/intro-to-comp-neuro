@@ -99,7 +99,6 @@ import numpy as np # we will not really use it yet in this notebook
 #     <summary><font color="red"><b>click here to show/hide starting code for this task</b></font></summary>
 #
 # ```python
-# class LIFNeuron(object):
 # class LIFNeuron_AMPA(object):
 #     """A LIF neuron with the possibility to add AMPA inputs 
 #     the methods allow to run the simulation for a certain number of steps while keeping track of the membrane voltage
