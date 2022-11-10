@@ -442,7 +442,7 @@ model_lecture.run_sim_and_show_lecture_plot()
 #
 # What do you observe in the membrane potential even if there is no spike?
 
-# ### [Solution 2](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_2/solutions/0b6d6a1ac53626e00xdee2ae7ca5b425.txt)
+# ### [Solution 2](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_3/solutions/0b6d6a1ac53626e00xdee2ae7ca5b425.txt)
 
 # #### Task 3
 #
@@ -453,7 +453,7 @@ model_lecture.run_sim_and_show_lecture_plot()
 # What happens with the action potential, did you expect that? 
 #
 
-# ### [Solution 3](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_2/solutions/e930103b430326b69fb0b4d6c8c80217.txt)
+# ### [Solution 3](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_3/solutions/e930103b430326b69fb0b4d6c8c80217.txt)
 
 # #### Task 4
 #
@@ -463,7 +463,7 @@ model_lecture.run_sim_and_show_lecture_plot()
 #
 # What happens with the action potential, did you expect that? 
 
-# ### [Solution 4](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_2/solutions/e9301038090326b69fb0b4d6c8c80fb2.txt)
+# ### [Solution 4](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_3/solutions/e9301038090326b69fb0b4d6c8c80fb2.txt)
 
 # ### Task 5
 #
@@ -472,14 +472,14 @@ model_lecture.run_sim_and_show_lecture_plot()
 #
 # Draw your idea (how should the input current and the corresponding voltage trace look like?) on a paper or in digital form before proceeding to the implementation.
 
-# ### [Solution 5](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_2/solutions/e9314538090326b69bbbb4d6c8c80217.txt)
+# ### [Solution 5](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_3/solutions/e9314538090326b69bbbb4d6c8c80217.txt)
 
 # ### Taks 6
 #
 # Implement your idea ( or the idea presented in solution 5) of how to illustrate the refractory period
 #
 
-# ### [Solution 6](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_2/solutions/e9314538090326b69fb0b4d6c8c80217.txt)
+# ### [Solution 6](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_3/solutions/e9314538090326b69fb0b4d6c8c80217.txt)
 
 # ### Task 7 
 #
@@ -909,18 +909,18 @@ def test(c_m = 1.5, r_m = 3, refrac_time = 4, e_l = -70, v_th = -51):
                         gaba_inputs = gaba_inputs)
 
 
-    fig, axes = plt.subplots(2)
-    axes[0].plot(hh_model.t_list, hh_model.v_list, label='Hodgin Huxley')
-    axes[0].plot(lif_model.t_list, lif_model.v_list, label = 'LIF')
+    fig, ax = plt.subplots(1)
+    ax.plot(hh_model.t_list, hh_model.v_list, label='Hodgin Huxley')
+    ax.plot(lif_model.t_list, lif_model.v_list, label = 'LIF')
 
-    axes[0].set(
+    ax.set(
         xlabel='time in ms',
         ylabel='Membrane voltage in mV',
         ylim = [-80,50]
     )
     
     
-    axes[0].legend()
+    ax.legend()
 
 widgets.interact(test, 
                  c_m = (0.01, 5,0.01), 
