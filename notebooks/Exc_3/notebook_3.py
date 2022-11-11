@@ -13,6 +13,8 @@
 #     name: intro-to-comp-neuro
 # ---
 
+# # The Hodgkin Huxley model
+
 # +
 import numpy as np
 import matplotlib.pyplot as plt
@@ -23,7 +25,7 @@ plt.style.use("https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/d
 # %matplotlib inline
 # -
 
-# # The 4 equations of the Hodgkin-Huxley model  
+# ### The 4 equations of the Hodgkin-Huxley model  
 #
 # ($V$: Membrane Potential)
 #
