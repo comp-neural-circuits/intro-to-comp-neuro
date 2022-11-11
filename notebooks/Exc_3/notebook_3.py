@@ -337,6 +337,8 @@ model_lecture.run_sim_and_show_lecture_plot()
 
 # -
 
+# # The Hodgkin Huxley model class
+#
 # There are some methods already included in the class. One you already used above, they are included in the method run_sim_and_show_lecture_plot() : 
 #
 # When you created a model like for example
@@ -442,6 +444,8 @@ model_lecture.run_sim_and_show_lecture_plot()
 #
 # What do you observe in the membrane potential even if there is no spike?
 
+''' add your solution here '''
+
 # ### [Solution 2](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_3/solutions/0b6d6a1ac53626e00xdee2ae7ca5b425.txt)
 
 # #### Task 3
@@ -453,6 +457,8 @@ model_lecture.run_sim_and_show_lecture_plot()
 # What happens with the action potential, did you expect that? 
 #
 
+''' add your solution here '''
+
 # ### [Solution 3](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_3/solutions/e930103b430326b69fb0b4d6c8c80217.txt)
 
 # #### Task 4
@@ -462,6 +468,8 @@ model_lecture.run_sim_and_show_lecture_plot()
 # Create a plot that shows the voltage trace given a steady input current of i_e = 3 $\mu F/cm^2$ for the different maximum conductance values g_k in of 20, 30, 40 & 50. 
 #
 # What happens with the action potential, did you expect that? 
+
+''' add your solution here '''
 
 # ### [Solution 4](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_3/solutions/e9301038090326b69fb0b4d6c8c80fb2.txt)
 
@@ -478,6 +486,9 @@ model_lecture.run_sim_and_show_lecture_plot()
 #
 # Implement your idea ( or the idea presented in solution 5) of how to illustrate the refractory period
 #
+
+''' add your solution here '''
+
 
 # ### [Solution 6](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_3/solutions/e9314538090326b69fb0b4d6c8c80217.txt)
 
@@ -690,8 +701,8 @@ widgets.interact(test,
 # Our new class will basially inherit all the attributes and methods from the class we defined at the beginning. 
 # if we add a method to this child class that has the same name as a method in the parent class, we overwrite that method. 
 #
-# it is not important for now to understand how the inheritance works. 
-# We could have achieved the exact same solution by copying the old class and addig in the lines for the synaptic inputs.
+# it is not necessarily important for now to understand how the inheritance works. 
+# We could have achieved the exact same solution by copying the old class and adding in the lines for the synaptic inputs.
 
 class HodgkinHuxleyNeuron_AmpaGaba(HodgkinHuxleyNeuron):
     """A class to model the Hodgkin Huxley formalism for a spiking neuron
@@ -849,7 +860,7 @@ def run_and_plot(I_e, gaba_input_timestep):
     plt.annotate('GABA input', xy =(x_input, y_input),
                 xytext =(x_input-40, y_input + 20), 
                 arrowprops = dict(arrowstyle='->',facecolor ='#CC1414', edgecolor='#CC1414',
-                                  shrinkA = 0.1))
+                                  shrinkA = 0.1, linewidth = 2.5))
 
 widgets.interact(run_and_plot,I_e = 5, gaba_input_timestep=(700,1150,10))
 
