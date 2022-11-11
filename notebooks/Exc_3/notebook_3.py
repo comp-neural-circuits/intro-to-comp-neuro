@@ -406,13 +406,13 @@ model_lecture.run_sim_and_show_lecture_plot()
 #
 # ```python
 #
+# example_model = HodgkinHuxleyNeuron()
 # sim_len = 600
-#
-# i_e = np.zeros(sim_len) 
+# i_e_array = np.zeros(sim_len) 
 # # making the array the same lenght as the simulation ensures that it behaves like we plan to
-# i_e[100:] = 3
-# self.run_simulation(sim_len)
-# self.plot_voltage_and_gating()
+# i_e_array[100:] = 3
+# example_model.run_simulation(sim_len, i_e_array=i_e_array)
+# example_model.plot_voltage_and_gating()
 #
 # ```
 #
