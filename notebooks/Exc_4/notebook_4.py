@@ -139,9 +139,9 @@ ax.set(
 #
 # [more info on spikes to rates](https://www.youtube.com/watch?v=Ef7_qnLOh70)
 
-# +
-
-def visualize_filtering(pos, filter_shape = 'rectangle', trial_number = 0):
+def get_filter_array(filter_shape):
+    
+    filter_array = None
     
     if filter_shape == 'large rectangle':
         filter_array = np.ones(25)
@@ -170,6 +170,15 @@ def visualize_filtering(pos, filter_shape = 'rectangle', trial_number = 0):
             return result
         filter_array = causal(0.2,np.linspace(0,63,63))
         filter_array /= np.max(filter_array)
+        
+    return filter_array
+
+
+# +
+
+def visualize_filtering(pos, filter_shape = 'rectangle', trial_number = 0):
+    
+    filter_array = get_filter_array(filter_shape = filter_shape)
             
             
         
@@ -222,10 +231,64 @@ widgets.interactive(visualize_filtering,
                     pos = (0,250,1), 
                     filter_shape = ['large rectangle','small rectangle','gaussian, sigma = 8','gaussian, sigma = 25','causal'],
                    trial_number = (0,100,1))
+
+
 # -
 
 # #  Do the same but for averaging across trials
 #
 # this is essentially another interpretation
 
-single_trial = dat['spks'][0,trial_number,:]
+# +
+# neuron 70, 77
+
+def multiple_trials(neuron_id = 70, filter_shape = 'large rectangle'):
+
+    fig, (ax_0, ax_1, ax_2) = plt.subplots(3,1, sharex = True, gridspec_kw={'height_ratios': [3, 1,1]})
+    n_trials = 100
+    all_trials = np.zeros_like(dat['spks'][neuron_id,0,:])
+    for trial_number in range(0,n_trials):
+        single_trial = dat['spks'][neuron_id,trial_number,:]
+        _, spike_times = transform_to_event_input(single_trial)
+        ax_0.eventplot(spike_times, lineoffsets=trial_number)
+        all_trials += single_trial
+        
+    ax_0.axvline(x = 500, c ='#99000d', linewidth = 1 , linestyle = '--')
+
+    ax_0.set(
+        xlim = (0,2500),
+        ylabel = 'Trial Number',
+    )
+    
+    X = np.linspace(0,2490,250)
+    ax_1.bar(X,all_trials, width=10)
+    ax_1.set(
+        ylabel = 'PSTH',
+    )
+    
+    filter_array = get_filter_array(filter_shape = filter_shape)
+    
+    shift_ = 80
+    shifted_array = np.hstack([np.zeros(shift_),all_trials, np.zeros(shift_)])
+    
+    filtered_array = np.zeros_like(shifted_array)
+    for ii in range(shift_,250+shift_):
+        filtered = len(filter_array) * np.mean(shifted_array[ii-len(filter_array)//2:ii+len(filter_array)//2+1] * filter_array/np.sum(filter_array))
+        filtered_array[ii] = filtered
+    
+    
+    ax_2.plot(X,filtered_array[shift_:-shift_])
+    ax_2.set(
+        xlabel = 'Time in ms',
+        ylabel = 'Smooth PSTH',
+        
+    )
+
+    
+    
+widgets.interactive(multiple_trials, 
+                    neuron_id = (0,100,1),
+                   filter_shape = ['large rectangle','small rectangle','gaussian, sigma = 8','gaussian, sigma = 25','causal'])
+# -
+
+
