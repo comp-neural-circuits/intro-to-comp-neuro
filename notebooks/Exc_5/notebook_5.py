@@ -36,8 +36,9 @@ class LIFNeuron(object):
     and plot the results of the run
     """
     def __init__(self, 
-                 c_m = 1, r_m = 10, v_reset = -70, refrac_time = 10, v_th = -50, e_l = -75, i_e = 0, dt = 0.05,
+                 c_m = 2, r_m = 10, v_reset = -80, refrac_time = 10, v_th = -54, e_l = -75, i_e = 0, dt = 0.05,
                  g_ampa = 0, g_gaba = 0,
+                 allow_spiking = True,
                 ):
         '''This function is executed when we create an object from that class'''
         super(LIFNeuron, self).__init__()
@@ -67,6 +68,7 @@ class LIFNeuron(object):
         self.i_e_list = [self.i_e]
         
         self.spike_times = []
+        self.allow_spiking = allow_spiking
         
         
         ### Initiate synaptic paramters
@@ -124,7 +126,7 @@ class LIFNeuron(object):
 
 
             ### Time evolution of the membrane potential
-            if self.v <= self.v_th:
+            if self.v <= self.v_th or not self.allow_spiking:
                 dv_dt = (-self.v + self.e_l + self.r_m * self.i_e + self.r_m*i_ampa + self.r_m*i_gaba )/self.tau_m
                 self.v += dv_dt * self.dt
             else:
@@ -187,7 +189,7 @@ class LIFNeuron(object):
 
 # +
 def transform_to_event_input(binned_spikes, bin_size=0.1):
-    bin_offset = 5
+    bin_offset = bin_size/2.
     n_bins = len(binned_spikes)
     bin_times = np.linspace(bin_offset,
                             n_bins*bin_size-(bin_size-bin_offset),
@@ -215,7 +217,6 @@ def create_poisson_process(time_steps, rate,dt):
 
     return events
 
-
 def run_and_plot_simulation_for_inputs(time_steps = 10000,
                               rate_excitatory_input = 100,
                               rate_inhibitory_input = 100,
@@ -228,7 +229,7 @@ def run_and_plot_simulation_for_inputs(time_steps = 10000,
     
     ampa_inputs = (poisson_excitatory_input/dt).astype(int)
     gaba_inputs = (poisson_inhibitory_input/dt).astype(int)
-    neuron = LIFNeuron(g_ampa = 0.15, g_gaba = 0.1, dt=dt)
+    neuron = LIFNeuron(g_ampa = 0.25, g_gaba = 0.25, dt=dt,  refrac_time = 0, allow_spiking=False)
     neuron.run_simulation(time_steps, 
                         ampa_inputs = ampa_inputs,
                        gaba_inputs = gaba_inputs,
@@ -243,20 +244,51 @@ def run_and_plot_simulation_for_inputs(time_steps = 10000,
         ax.set_yticks([1, 3])
         ax.set_yticklabels(['Excitation', 'Inhibition'])
 
-        ax_2.plot(neuron.t_list,neuron.v_list,linewidth=2.5)
+        ax_2.plot(neuron.t_list,neuron.v_list,linewidth=0.8)
         ax_2.set_xlabel('Time in ms')
         ax_2.set_ylabel('Membrane Voltage in mV')
+        ax_2.axhline(neuron.v_th, c='r', linestyle='--')
     
-    return neuron.spike_times
+    return neuron.spike_times, poisson_excitatory_input, poisson_inhibitory_input
 
-spike_times = run_and_plot_simulation_for_inputs(time_steps = 10000,
-                              rate_excitatory_input = 100,
-                              rate_inhibitory_input = 100,
-                            show_plot = False)
+spike_times, excitatory_spike_times, _ = run_and_plot_simulation_for_inputs(
+                              time_steps = 10_000,
+                              rate_excitatory_input = 200,
+                              rate_inhibitory_input = 0,
+                            show_plot = True)
 
-ISI = np.array(spike_times)[1:] - np.array(spike_times)[:-1]
+ISI = np.diff(np.array(spike_times))
+ISI_excitatory = np.diff(np.array(excitatory_spike_times))
+
+print (np.std(ISI)**2/np.mean(ISI))
+print (np.std(ISI_excitatory)**2/np.mean(ISI_excitatory))
+
+print (np.std(ISI)/np.mean(ISI))
+print (np.std(ISI_excitatory)/np.mean(ISI_excitatory))
+
+fig, (ax1, ax2) = plt.subplots(2, sharex = True)
+ax1.hist(ISI, bins=np.linspace(0,40,21));
+ax1.set(
+    xlabel = 'ISI in ms',
+    ylabel = 'Counts')
+
+ax2.hist(ISI_excitatory, bins=np.linspace(0,40,21));
+ax2.set(
+    xlabel = 'ISI in ms',
+    ylabel = 'Counts')
+
+
+# -
+
+
+
+# +
+process = create_poisson_process(1_000_000, 200 ,0.1)
+ISI = np.diff(process)
 fig, ax = plt.subplots()
-ax.hist(ISI, bins=10)
+ax.hist(ISI, bins=20)
+
+print(np.std(ISI)/np.mean(ISI))
 
 
 # +
