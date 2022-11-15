@@ -23,6 +23,7 @@ import requests
 import numpy as np
 import matplotlib.pyplot as plt
 import ipywidgets as widgets
+import scipy
 
 # %matplotlib inline
 
@@ -289,6 +290,38 @@ def multiple_trials(neuron_id = 70, filter_shape = 'large rectangle'):
 widgets.interactive(multiple_trials, 
                     neuron_id = (0,100,1),
                    filter_shape = ['large rectangle','small rectangle','gaussian, sigma = 8','gaussian, sigma = 25','causal'])
+
+
+# -
+
+# $\Delta t$
+
+# +
+def poisson(n,n_expect):
+    return (n_expect)**n/scipy.special.factorial(n) * np.exp(-n_expect)
+
+fig, ax = plt.subplots()
+
+
+for ii, color in zip([1,6,14],['#66c2a5','#fc8d62','#8da0cb']):
+    if ii == 1:
+        X = np.hstack([np.linspace(0,24)[:8],np.linspace(0,24)[8::2]])
+    else:
+        X = np.linspace(0,24)[::2]
+    ax.plot(X,poisson(X,n_expect=ii), 
+            color = 'k', marker = 'o', markersize=9, 
+            markeredgecolor = 'k', markeredgewidth=1.2,
+            markerfacecolor = color, label = r'$\langle n \rangle = $' + f'{ii}')
+
+ax.set_xlabel('$n$', fontsize=18)
+ax.set_ylabel('$P_T[n]$', fontsize=16)
+ax.tick_params(axis='both', which='major', labelsize=14)
+ax.legend(prop={'size': 20})
+plt.savefig('Poisson Distributions', dpi=300, format=None, metadata=None,
+        bbox_inches=None, pad_inches=0.1,
+        facecolor='auto', edgecolor='auto',
+        backend=None,
+       )
 # -
 
 
