@@ -140,21 +140,36 @@ ax.set(
 #
 # [more info on spikes to rates](https://www.youtube.com/watch?v=Ef7_qnLOh70)
 
-def get_filter_array(filter_shape):
+def get_filter_array(
+        filter_shape = 'rectangle', 
+        plot_filter_shape = False,
+        return_filter_names = False,):
+    ''' this function returns the filter array of a given shape'''
     
-    filter_array = None
+    ''' 
+        when adding a new filter, be sure to update the list "all_filter_names" and add a new 
+        if condition with the new filter name.
+    '''
     
-    if filter_shape == 'large rectangle':
+    
+    all_filter_names = ['rectangle','small rectangle', 'gaussian, sigma = 20', 'gaussian, sigma = 8','causal']
+    if return_filter_names:
+        # we implement this to make the interactive select option easiert to maintain
+        return all_filter_names
+    
+    filter_array = np.array([])
+    
+    if filter_shape == 'rectangle':
         filter_array = np.ones(25)
         
     if filter_shape == 'small rectangle':
         filter_array = np.ones(11)
     
-    if filter_shape == 'gaussian, sigma = 25':
+    if filter_shape == 'gaussian, sigma = 20':
         def gaussian(x, mu, sig):
             return np.exp(-np.power(x - mu, 2.) / (2 * np.power(sig, 2.)))
         
-        filter_array = gaussian(np.linspace(0,159,159), 79.5, 25)
+        filter_array = gaussian(np.linspace(0,159,159), 79.5, 20)
 
         
     if filter_shape == 'gaussian, sigma = 8':
@@ -172,6 +187,18 @@ def get_filter_array(filter_shape):
         filter_array = causal(0.2,np.linspace(0,63,63))
         filter_array /= np.max(filter_array)
         
+    if filter_array.size == 0:
+        print ('ERRRO: The name you provided for "filter_shape" does not match any of your if conditions')
+        raise ValueError
+        
+        
+        
+    if plot_filter_shape:
+        fig, ax = plt.subplots()
+        ax.plot(np.linspace(-10,0,10),np.zeros(10), c='#feb24c')
+        ax.plot(np.linspace(0,len(filter_array),len(filter_array)),filter_array, c='#cb181d', label='your filter')
+        ax.plot(np.linspace(len(filter_array),len(filter_array)+10,10),np.zeros(10), c='#feb24c')
+        ax.legend()
     return filter_array
 
 
@@ -230,11 +257,59 @@ def visualize_filtering(pos, filter_shape = 'rectangle', trial_number = 0):
 
 widgets.interactive(visualize_filtering, 
                     pos = (0,250,1), 
-                    filter_shape = ['large rectangle','small rectangle','gaussian, sigma = 8','gaussian, sigma = 25','causal'],
+                    filter_shape = get_filter_array(return_filter_names = True),
                    trial_number = (0,100,1))
-
-
 # -
+
+# ### Task X
+#
+# Above you see how a filter of a rectangle translates the spike train into a filtered, smooth version. You can come up with your own filters. 
+# Think of other filters that might lead to useful insights. 
+#
+# you can implement the filters by changing the function two blocks above
+# 'get_filter_array'
+#
+# to define a filter you need to come up with the name for the filter.
+#
+# 1) add this name to the list 'all_filter_names'
+#
+# 2) add an if condition below the if condition that is already there and make the condition to match your new name
+# ```python
+# if filter_shape == 'your new name':
+#         # do something
+#         
+# ```
+#
+# 3) now in this condition, you need to define what your filter looks like. You need to create a numpy array that is not longer than 160 elements.
+# for example
+# ```python
+# np.ones(10) 
+# ```
+# an array of length and all entries have the value 1. 
+#
+# you can be very specific in your creation. For example
+# ```python
+# filter_array = np.array([1,4,2,7,8,19,20])
+# ```
+# creates an array of the list that is inside
+#
+# or you can use mathematical functions of numpy. For example:
+# ```python
+# filter_array = np.sin(np.linspace(0,10,10))
+# ```
+# uses the mathematical function sinus on x values that range from 0 to 10 in 10 steps
+#
+# You can always check how your new filter looks by calling:
+# ```python
+# _ = get_filter_array(filter_shape = 'your new name', 
+#                  plot_filter_shape = True)
+# ```
+#
+# Once you are happy with your filter, you can run the block above again, to use your filter on the spike train.
+
+np.sin(np.linspace(0,10,10))
+np.linspace(0,10,10)
+
 
 # #  Do the same but for averaging across trials
 #
@@ -289,39 +364,9 @@ def multiple_trials(neuron_id = 70, filter_shape = 'large rectangle'):
     
 widgets.interactive(multiple_trials, 
                     neuron_id = (0,100,1),
-                   filter_shape = ['large rectangle','small rectangle','gaussian, sigma = 8','gaussian, sigma = 25','causal'])
-
-
+                   filter_shape = get_filter_array(return_filter_names = True))
 # -
 
-# $\Delta t$
-
-# +
-def poisson(n,n_expect):
-    return (n_expect)**n/scipy.special.factorial(n) * np.exp(-n_expect)
-
-fig, ax = plt.subplots()
-
-
-for ii, color in zip([1,6,14],['#66c2a5','#fc8d62','#8da0cb']):
-    if ii == 1:
-        X = np.hstack([np.linspace(0,24)[:8],np.linspace(0,24)[8::2]])
-    else:
-        X = np.linspace(0,24)[::2]
-    ax.plot(X,poisson(X,n_expect=ii), 
-            color = 'k', marker = 'o', markersize=9, 
-            markeredgecolor = 'k', markeredgewidth=1.2,
-            markerfacecolor = color, label = r'$\langle n \rangle = $' + f'{ii}')
-
-ax.set_xlabel('$n$', fontsize=18)
-ax.set_ylabel('$P_T[n]$', fontsize=16)
-ax.tick_params(axis='both', which='major', labelsize=14)
-ax.legend(prop={'size': 20})
-plt.savefig('Poisson Distributions', dpi=300, format=None, metadata=None,
-        bbox_inches=None, pad_inches=0.1,
-        facecolor='auto', edgecolor='auto',
-        backend=None,
-       )
-# -
+#
 
 
