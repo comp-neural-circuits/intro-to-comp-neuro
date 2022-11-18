@@ -1,6 +1,16 @@
 ### Solution 1
 
-These are some possible filters
+#### You should really first try to come up with your own filters
+
+
+#### Did you try to come up with your own filters?
+
+
+#### Ok, if you came up with at least one other filter you may continue
+
+
+
+####These are some possible filters
 
 ```python
 if filter_shape == 'small rectangle':
