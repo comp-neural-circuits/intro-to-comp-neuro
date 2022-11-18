@@ -641,3 +641,111 @@ ax.set_xlabel('$n$', fontsize=18)
 ax.set_ylabel('$P_T[n]$', fontsize=16)
 ax.tick_params(axis='both', which='major', labelsize=14)
 ax.legend(prop={'size': 20})
+# -
+
+# ### Install brian 2
+# We need to install the library first before we can use it
+
+# +
+try:
+    import brian2
+except ImportError:
+    # !pip install brian2
+    
+# %matplotlib inline
+from brian2 import *
+import matplotlib.gridspec as gridspec
+
+prefs.codegen.target = 'numpy'
+# -
+
+from brian2 import *
+
+# +
+start_scope()
+
+n_neurons = 1000
+
+input_excitation = PoissonGroup(n_neurons, rates=100*Hz)
+c_m = 200*pF
+tau_e = 5*ms
+tau_i = 8*ms
+E_i = -80*mV
+E_e = 0*mV
+E_l = -70*mV
+g_l = 10*nS
+v_threshold = -55 *mV
+v_reset = -75*mV
+eqs = '''
+dv/dt = (i_e + i_i+ i_l)/c_m : volt
+i_e = g_e * (E_e - v) : amp
+i_i = g_i * (E_i - v) : amp
+i_l = g_l * (E_l - v) : amp
+dg_e/dt = -g_e / tau_e : siemens
+dg_i/dt = -g_i / tau_i : siemens
+'''
+neurons_exc = NeuronGroup(n_neurons*0.8, eqs, threshold='v>v_threshold', reset='v=v_reset', method='exponential_euler')
+neurons_inh = NeuronGroup(n_neurons*0.2, eqs, threshold='v>v_threshold', reset='v=v_reset', method='exponential_euler')
+neurons_exc.v = -80*mV
+neurons_inh.v = -80*mV
+
+excitatory_synapses = Synapses(input_excitation,neurons_exc, 'w : siemens', on_pre = 'g_e += w', name = 'excitatory_connections')
+excitatory_synapses.connect(condition = 'i==j')
+excitatory_synapses.w = 4.5*nS
+
+inhibitory_synapses = Synapses(input_excitation,neurons_inh, 'w : siemens', on_pre = 'g_e += w', name = 'inhibitory_connections')
+inhibitory_synapses.connect(condition = 'i==j')
+inhibitory_synapses.w = 4.5*nS
+
+e_e = Synapses(neurons_exc,neurons_exc, 'w : siemens', on_pre = 'g_e += w', name = 'rec_e_e')
+e_e.connect(p=0.15)
+e_e.w = 0.05*nS
+
+i_e = Synapses(neurons_exc,neurons_inh, 'w : siemens', on_pre = 'g_e += w', name = 'rec_i_e')
+i_e.connect(p=0.15)
+i_e.w = 0.05*nS
+
+e_i = Synapses(neurons_inh,neurons_exc, 'w : siemens', on_pre = 'g_i += w', name = 'rec_e_i')
+e_i.connect(p=0.35)
+e_i.w = 0.05*nS
+
+i_i = Synapses(neurons_inh,neurons_inh, 'w : siemens', on_pre = 'g_i += w', name = 'rec_i_i')
+i_i.connect(p=0.05)
+i_i.w = 0.05*nS
+
+# Create a matrix to store the weights and fill it with NaN
+# W = np.full((len(neurons), len(neurons)), np.nan)
+# Insert the values from the Synapses object
+# W[recurrent_synapses.i[:], recurrent_synapses.j[:]] = recurrent_synapses.w[:]
+
+# print (W)
+# fig, ax = plt.subplots()
+# ax.imshow(W)
+
+specific_excitation = PoissonGroup(n_neurons*0.1, rates=100*Hz)
+specific_syn = Synapses(specific_excitation,neurons_exc, 'w : siemens', on_pre = 'g_e += w', name = 'specific_connections')
+specific_syn.connect(condition = 'i==j')
+specific_syn.w = 4.5*nS
+
+
+M_e = SpikeMonitor(neurons_exc)
+M_i = SpikeMonitor(neurons_inh)
+
+
+
+# @network_operation(dt=50*ms)
+# def change_rates():
+#     G.rates = rand()*500*Hz
+
+run(200*ms)
+
+fig, ax = plt.subplots()
+ax.plot(M_e.t/ms, M_e.i, '.', c='b')
+ax.plot(M_i.t/ms, M_i.i+n_neurons*0.8, '.', c='r')
+ax.set(
+    xlabel = 'Time in ms',
+    ylabel = 'Neuron')
+
+# -
+
+
