@@ -1,0 +1,20 @@
+### Solution Taks 3
+
+```python
+def entropy(pmf):
+  '''
+  Given a discrete distribution, return the Shannon entropy in bits.
+  This is a measure of information in the distribution.
+  '''
+  # reduce to non-zero entries to avoid an error from log2(0)
+  pmf = pmf[pmf > 0]
+
+  # implement the equation for Shannon entropy (in bits)
+  h = -np.sum(pmf * np.log2(pmf))
+
+  # return the absolute value (avoids getting a -0 result)
+  return np.abs(h)
+```
+
+The entropy of the deterministic PMF is zero. We can gain no information if we take a measurement, since the result is already known before we make the measurement.
+
