@@ -546,8 +546,8 @@ print(f"{entropy(pmf):.2f} bits")
 
 # +
 n_bins = 50
-mean_isi = 0.025
-isi_range = (0, 0.25)
+mean_isi = 250
+isi_range = (0, 2500)
 
 bins = np.linspace(*isi_range, n_bins + 1)
 mean_idx = np.searchsorted(bins, mean_isi)
@@ -572,13 +572,14 @@ dists =  [# (subplot title, pmf, ylim)
           ("Exponential", pmf_exp, (0, 1.05))]
 
 for ax, (label, pmf_, ylim) in zip(axes, dists):
+  
   pmf_ = np.insert(pmf_, 0, pmf_[0])
   ax.plot(bins, pmf_, drawstyle="steps")
   ax.fill_between(bins, pmf_, step="pre", alpha=0.4)
   ax.set_title(label)
-  ax.set_xlabel("Inter-spike interval (s)")
+  ax.set_xlabel("Inter-spike interval (ms)")
   ax.set_ylabel("Probability mass")
-  ax.set_xlim((0,0.2));
+  ax.set_xlim((0,2000));
   ax.set_ylim(ylim);
 # -
 
