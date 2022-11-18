@@ -1,7 +1,0 @@
-### Solution 4
-
-For 50 points, the largest entropy is achieved when every point is equally surprising - when we reach the uniform distribution. The entropy of the uniform distribution is $\log_2 50\approx 5.64$. If we construct _any_ discrete distribution $X$ over 50 points (or bins) and calculate an entropy of $H_2(X)>\log_2 50$, something must be wrong with our implementation of the discrete entropy computation.
-
-```python
-pmf = np.ones(n_bins) / n_bins 
-```

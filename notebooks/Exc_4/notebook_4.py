@@ -149,7 +149,7 @@ ax.set(
     title = 'Spike raster',
     xlim = (0,2500),
     xlabel = 'Time in ms',
-    ylabel = 'Neuron'
+    ylabel = 'Trials'
 );
 
 
@@ -320,7 +320,7 @@ widgets.interactive(visualize_filtering,
 # What do you think is a useful filter?
 # Does the whole process makes sense? What did you create?
 
-# ### [Solution 1](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_2/solutions/e93ef538094966b69fb04ff6c8c80217.txt)
+# ### [Solution 1](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_4/solutions/e93ef538094966b69fb04ff6c8c80217.txt)
 #
 #
 #
@@ -464,7 +464,7 @@ def entropy(pmf):
 print(f"{entropy(pmf):.2f} bits")
 # -
 
-# ### [Solution Taks 3](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_2/solutions/55fb97641ef3f37a13eed8e5a19f663a.txt)
+# ### [Solution Taks 3](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_4/solutions/55fb97641ef3f37a13eed8e5a19f663a.txt)
 #
 #
 #
@@ -525,7 +525,7 @@ ax.set(
 print(f"{entropy(pmf):.2f} bits")
 # -
 
-# ### [Solution 4](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_2/solutions/52e697641ef3f37a5faed8e5a19f663a.txt)
+# ### [Solution 4](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_4/solutions/52e697641ef3f37a5faed8e5a19f663a.txt)
 #
 #
 
