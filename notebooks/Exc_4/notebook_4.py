@@ -36,7 +36,7 @@ plt.style.use("https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/d
 #
 # In the experiment, mice earned water rewards by turning a wheel to indicate which of two visual gratings had higher contrast, or by not turning if no stimulus was presented
 # <div>
-# <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_4/static/task_steinmetz.png" width="750"/>
+# <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_4/static/task_steinmetz.png" width="350"/>
 # </div>
 #
 # We first load the data by executing the cell below. (This can take some time)
@@ -123,7 +123,8 @@ print ('array shape', dat['spks'].shape)
 
 single_trial = dat['spks'][0,0,:]
 
-print ('binned single trial: ', single_trial)
+print ('''example of how the binned single trial looks like, 
+       each 1 represents a spike for that particular neuron: \n''', single_trial)
 
 def transform_to_event_input(binned_spikes):
     bin_size = 10
@@ -157,11 +158,16 @@ ax.set(
 #
 #
 
+# ### Translate the spike trains into firing rates
+#
+# We can now smooth each spike train, by applying a filter to that spike train. Execute the two cells below, so you can try out what it looks like.  
+
+# +
 def get_filter_array(
         filter_shape = 'rectangle', 
         plot_filter_shape = False,
         return_filter_names = False,):
-    ''' this function returns the filter array of a given shape'''
+    ''' this function returns the filter array of a given shape (filter_shape) that needs to be a string'''
     
     ''' 
         when adding a new filter, be sure to update the list "all_filter_names" and add a new 
@@ -187,12 +193,19 @@ def get_filter_array(
         
         
     if plot_filter_shape:
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=(8,4))
         ax.plot(np.linspace(-10,0,10),np.zeros(10), c='#feb24c')
         ax.plot(np.linspace(0,len(filter_array),len(filter_array)),filter_array, c='#cb181d', label='your filter')
         ax.plot(np.linspace(len(filter_array),len(filter_array)+10,10),np.zeros(10), c='#feb24c')
+        ax.set(
+            title = f'Filter: {filter_shape}',
+            xlabel = 'bins',
+            ylabel = 'weight')
         ax.legend()
     return filter_array
+
+_ = get_filter_array(filter_shape = 'rectangle', 
+                 plot_filter_shape = True)
 
 
 # +
@@ -256,7 +269,7 @@ widgets.interactive(visualize_filtering,
 
 # -
 
-# ### Task X
+# ### Task 1
 #
 # Above you see how a filter of a rectangle translates the spike train into a filtered, smooth version. You can come up with your own filters. 
 # Think of other filters that might lead to useful insights. 
@@ -307,52 +320,15 @@ widgets.interactive(visualize_filtering,
 # What do you think is a useful filter?
 # Does the whole process makes sense? What did you create?
 
-# ### Solution X
-#
-# These are some possible filters
-#
-# ```python
-# if filter_shape == 'small rectangle':
-#         filter_array = np.ones(11)
-#     
-#     if filter_shape == 'gaussian, sigma = 20':
-#         def gaussian(x, mu, sig):
-#             return np.exp(-np.power(x - mu, 2.) / (2 * np.power(sig, 2.)))
-#         
-#         filter_array = gaussian(np.linspace(0,159,159), 79.5, 20)
-#
-#         
-#     if filter_shape == 'gaussian, sigma = 8':
-#         def gaussian(x, mu, sig):
-#             return np.exp(-np.power(x - mu, 2.) / (2 * np.power(sig, 2.)))
-#         
-#         filter_array = gaussian(np.linspace(0,63,63), 31.5, 8)
-#     
-#     
-#     if filter_shape == 'causal':
-#         def causal(alpha, x):
-#             result = alpha**2*x*np.exp(-alpha*x)
-#             result[result <0] = 0
-#             return result
-#         filter_array = causal(0.2,np.linspace(0,63,63))
-#         filter_array /= np.max(filter_array)
-# ```
-#
-# #### Filter explanation
-#
-# 'small rectangle' is the same as rectangle, but you will get a higher temporal resolution.
-# the 'gaussian' filters offer two different gaussian filter, different only by the standard deviation, again offering different levels of temporal resolution. 
-# 'causal' is inspired by the fact that neurons, that will receive the spike train, need to integrate it. Therefore they should not be affected by spikes in the future, but only by spikes that can 'cause' some change in their membrane potential.
-#
-# $w(\tau) = \left[\alpha^2 \tau \exp(-\alpha \tau)\right]_+$
+# ### [Solution 1](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_2/solutions/e93ef538094966b69fb04ff6c8c80217.txt)
 #
 #
-# Whichever filter we select, we create an artifical signal here. The firing rate that we calculate does not exist. This is different when we move to a PSTH (in the next exercise)
+#
 
 # #  Calculating the PSTH (Peri-stimulus histogram)
 #
 #
-# ### Task X 
+# ### Task 2
 #
 # Now you can investigate the trial averaged response of a single neuron. 
 
@@ -414,7 +390,7 @@ widgets.interactive(multiple_trials,
 # ---
 # # Section 2: Optimization and Information
 #
-# (This is in part taken from the [neuromatch academy](https://compneuro.neuromatch.io/tutorials/W1D1_ModelTypes/student/W1D1_Tutorial3.html) )
+# (This is in part taken from the [neuromatch academy](https://compneuro.neuromatch.io/tutorials/W1D1_ModelTypes/student/W1D1_Tutorial3.html) , an amazing resource for neuroscience content)
 #
 # Neurons can only fire so often in a fixed period of time, as the act of emitting a spike consumes energy that is depleted and must eventually be replenished. To communicate effectively for downstream computation, the neuron would need to make good use of its limited spiking capability. This becomes an optimization problem: 
 #
@@ -461,16 +437,19 @@ ax.set(
 
 # If we were to draw a sample from this distribution, we know exactly what we would get every time. Distributions where all the mass is concentrated on a single event are known as *deterministic*.
 #
-# ### Task X - How much entropy is contained in a deterministic distribution? 
+# ### Task 3 - How much entropy is contained in a deterministic distribution? 
 #
 # implement the entropy function (see equation above) to calculate the entropy of PMFs in bits.
 
 # +
 def entropy(pmf):
-  """Given a discrete distribution, return the Shannon entropy in bits.
-
+  '''
+  Given a discrete distribution, return the Shannon entropy in bits.
   This is a measure of information in the distribution.
-  """
+  '''
+
+  return 0 ## you need to remove this line
+  
   # reduce to non-zero entries to avoid an error from log2(0)
   pmf = ...
 
@@ -485,25 +464,9 @@ def entropy(pmf):
 print(f"{entropy(pmf):.2f} bits")
 # -
 
-# ### Solution Taks X
+# ### [Solution Taks 3](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_2/solutions/55fb97641ef3f37a13eed8e5a19f663a.txt)
 #
-# ```python
-# def entropy(pmf):
-#   """Given a discrete distribution, return the Shannon entropy in bits.
 #
-#   This is a measure of information in the distribution.
-#   """
-#   # reduce to non-zero entries to avoid an error from log2(0)
-#   pmf = pmf[pmf > 0]
-#
-#   # implement the equation for Shannon entropy (in bits)
-#   h = -np.sum(pmf * np.log2(pmf))
-#
-#   # return the absolute value (avoids getting a -0 result)
-#   return np.abs(h)
-# ```
-#
-# The entropy of the deterministic PMF is zero. We can gain no information if we take a measurement, since the result is already known before we make the measurement.
 #
 #
 
@@ -536,7 +499,7 @@ print(f"{entropy(pmf):.2f} bits")
 #
 # Likewise, if we make one of the peaks taller (i.e. its point holds more of the probability mass) and the other one shorter, the entropy will decrease because of the increased certainty that the sample will fall on one point and not the other: :  −(0.2log20.2+0.8log20.8)≈0.72
 #
-# ### Task X
+# ### Task 4
 #
 # Try changing the definition of the number and weighting of peaks, and see how the entropy varies.
 #
@@ -562,15 +525,11 @@ ax.set(
 print(f"{entropy(pmf):.2f} bits")
 # -
 
-# ### Solution X
+# ### [Solution 4](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_2/solutions/52e697641ef3f37a5faed8e5a19f663a.txt)
 #
-# For 50 points, the largest entropy is achieved when every point is equally surprising - when we reach the uniform distribution. The entropy of the uniform distribution is $\log_2 50\approx 5.64$. If we construct _any_ discrete distribution $X$ over 50 points (or bins) and calculate an entropy of $H_2(X)>\log_2 50$, something must be wrong with our implementation of the discrete entropy computation.
 #
-# ```python
-# pmf = np.ones(n_bins) / n_bins 
-# ```
 
-# ### Task X
+# ### Task 5
 #
 # Now let's think about spike coding in neurons. Assuming that the information is encoded in the interspike-intervals, we can now ask how much information different types of neurons contain. 
 #
@@ -608,9 +567,9 @@ pmf_exp /= np.sum(pmf_exp)
 fig, axes = plt.subplots(1,3, figsize=(18, 5))
 
 dists =  [# (subplot title, pmf, ylim)
-          ("(1) Deterministic", pmf_single, (0, 1.05)),
-          ("(1) Uniform", pmf_uniform, (0, 1.05)),
-          ("(1) Exponential", pmf_exp, (0, 1.05))]
+          ("Deterministic", pmf_single, (0, 1.05)),
+          ("Uniform", pmf_uniform, (0, 1.05)),
+          ("Exponential", pmf_exp, (0, 1.05))]
 
 for ax, (label, pmf_, ylim) in zip(axes, dists):
   pmf_ = np.insert(pmf_, 0, pmf_[0])
@@ -632,10 +591,12 @@ print(
 
 
 # Under the constraint of a fixed number of spikes, the exponential distribution is actually the better choice then the uniform distribution, since it contains highly surprising elements (few very long ISIs) 
-
-# Now we look at real neurons from the exampe in the beginning again. Therefore we need to create a histogram of the ISIs of these neurons. We can do this either in the passive condition (no stimulus shown - 'spks_passive') or in the active condition 'spks'.
 #
-# We can gather all ISIs across the different trials. Then we need to normalize the histogram, in order to get a PMF.
+# But how does this work in combination with the statement we had above about the uniform distribution having the highest entropy?
+
+# We can now look at real neurons from the exampe in the beginning again. Therefore we need to create a histogram of the ISIs of these neurons. We can do this either in the passive condition (no stimulus shown - 'spks_passive') or in the active condition 'spks'. (you can change it in the code below)
+#
+# We can gather all ISIs across the different trials. Then, we need to normalize the histogram in order to get a PMF.
 # This we can then use again to calculate the Information that the spikes contain.
 
 # +

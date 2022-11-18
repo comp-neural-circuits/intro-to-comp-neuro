@@ -1,0 +1,41 @@
+### Solution 1
+
+These are some possible filters
+
+```python
+if filter_shape == 'small rectangle':
+        filter_array = np.ones(11)
+    
+    if filter_shape == 'gaussian, sigma = 20':
+        def gaussian(x, mu, sig):
+            return np.exp(-np.power(x - mu, 2.) / (2 * np.power(sig, 2.)))
+        
+        filter_array = gaussian(np.linspace(0,159,159), 79.5, 20)
+
+        
+    if filter_shape == 'gaussian, sigma = 8':
+        def gaussian(x, mu, sig):
+            return np.exp(-np.power(x - mu, 2.) / (2 * np.power(sig, 2.)))
+        
+        filter_array = gaussian(np.linspace(0,63,63), 31.5, 8)
+    
+    
+    if filter_shape == 'causal':
+        def causal(alpha, x):
+            result = alpha**2*x*np.exp(-alpha*x)
+            result[result <0] = 0
+            return result
+        filter_array = causal(0.2,np.linspace(0,63,63))
+        filter_array /= np.max(filter_array)
+```
+
+#### Filter explanation
+
+'small rectangle' is the same as rectangle, but you will get a higher temporal resolution.
+the 'gaussian' filters offer two different gaussian filter, different only by the standard deviation, again offering different levels of temporal resolution. 
+'causal' is inspired by the fact that neurons, that will receive the spike train, need to integrate it. Therefore they should not be affected by spikes in the future, but only by spikes that can 'cause' some change in their membrane potential.
+
+$w(\tau) = \left[\alpha^2 \tau \exp(-\alpha \tau)\right]_+$
+
+
+Whichever filter we select, we create an artifical signal here. The firing rate that we calculate does not exist. This is different when we move to a PSTH (in the next exercise)
