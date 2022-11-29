@@ -167,8 +167,12 @@ def generate_STDP_scenario(
     
     return pre_spike_times, post_spike_times
     
+# -
 
-def illustrate_STDP(scenario_name='default', show_plot = True):
+# ### Task X
+
+# +
+def illustrate_STDP_over_long_runs(show_plot = True):
     """
 
     Args:
@@ -193,8 +197,8 @@ def illustrate_STDP(scenario_name='default', show_plot = True):
     
     pre_spike_times, post_spike_times = generate_STDP_scenario(scenario_name=scenario_name, dt=dt)
         
-    print (pre_spike_times, post_spike_times)
-    sim_time = np.max(np.hstack([pre_spike_times,post_spike_times])) + np.max([tau_plus,tau_minus])*5
+    sim_time = np.max(np.hstack([pre_spike_times,post_spike_times])) + np.max([tau_plus,tau_minus])*3
+    # we choose the sim time so that we capture most of the decay of the P and M traces after the last spike
     
     time_steps = int(np.floor(sim_time/dt))
     
@@ -242,11 +246,11 @@ def illustrate_STDP(scenario_name='default', show_plot = True):
         ax3.plot(t, w, 'k', label='STP synapse')
         ax3.set(
             ylabel = 'w in nS',
-            ylim = [0,np.max(w*1.1)],
+            ylim = np.max(w) * np.array([-0.1,1.1]),
         )
 
 
-        ax4.plot(t, M, '#E31A1C', label='R')
+        ax4.plot(t, M, '#E31A1C', label='M')
         ax4.set(
 #             ylim = (-0.1,1.1),
             ylabel = r'$M$ (a.u)',
@@ -267,7 +271,7 @@ def illustrate_STDP(scenario_name='default', show_plot = True):
                 for spkt in spike_times:
                     ax.axvline(x=spkt, color = cc, linestyle = '--',linewidth=0.5)
             
-        plt.tight_layout()
+    plt.tight_layout()
 
 
 
@@ -275,7 +279,108 @@ widgets.interactive(illustrate_STDP,
                     scenario_name = generate_STDP_scenario(return_list=True))
 
 
+# +
+def illustrate_STDP_long_run(
+                    tau_plus = 20,
+                    tau_minus = 20,
+                    A_plus = 0.2,
+                    A_minus = -0.2,
+    ):
+    """
+
+    Args:
+    scenario_name : name of the pre- and post-spike train scenario
+    """
+    
+    dt = 0.1
+    
+    w_max = 2
+    w_start = 1
+    
+    time_steps = 10_000
+    
+    sim_time = time_steps*dt
+    
+    w_array = np.array([])
+    
+    for ii in range(30):
+        _, pre_spike_times = transform_to_event_input(
+                    binned_spikes = create_poisson_process(time_steps = time_steps, rate=60,dt=dt), bin_size=dt)
+
+        _, post_spike_times = transform_to_event_input(
+                    binned_spikes = create_poisson_process(time_steps = time_steps, rate=60,dt=dt), bin_size=dt)
+
+
+        def transform_spike_times_to_spike_trains(spike_times):
+            spike_train = np.zeros(time_steps)
+            spike_train[(spike_times/dt).astype(int)] = 1
+            return spike_train
+
+        pre_spike_train = transform_spike_times_to_spike_trains(pre_spike_times)
+        post_spike_train = transform_spike_times_to_spike_trains(post_spike_times)
+
+
+        t, w, P, M = plastic_synapse_pairwise(
+                        A_plus = A_plus, 
+                        A_minus = A_minus, 
+                        tau_plus = tau_plus, 
+                        tau_minus = tau_minus, 
+                        w_start = w_start, 
+                        w_max = w_max,
+                        pre_spike_train=pre_spike_train, 
+                        post_spike_train=post_spike_train,
+                        dt = dt)
+        if w_array.size == 0:
+            w_array = w
+        else:
+            w_array = np.vstack([w_array,w])
+            
+    
+    fig, (ax1, ax2) = plt.subplots(1,2,figsize=(12, 3), 
+                                        gridspec_kw={'width_ratios': [1, 4]})
+    
+    x_minus = np.linspace(-np.max([tau_minus,tau_plus])*4,0,1000)
+    x_plus = -1*x_minus[::-1]
+    
+    ax1.plot(x_minus, A_minus*np.exp(x_minus/tau_minus), color='#E31A1C') 
+    ax1.plot(x_plus, A_plus*np.exp(-x_plus/tau_plus), color='#238B45') 
+    
+    ax1.set(
+        title = 'Learning Windows',
+        xlabel = r'$\Delta t$ in ms',
+        ylabel = 'weight change in a.u.'
+    )
+
+    print (w_array.shape)
+
+    ax2.plot(t, w_array.T, 'k', alpha = 0.2, linewidth = 0.5)
+    ax2.plot(t,np.mean(w_array, axis =0),'k')
+    ax2.set(
+        ylabel = 'w in nS',
+        ylim = w_max * np.array([-0.1,1.1]),
+    )
+
+    plt.tight_layout()
+
+
+
 # -
+
+illustrate_STDP_long_run(tau_plus = 20,
+                    tau_minus = 20,
+                    A_plus = 0.2,
+                    A_minus = -0.2)
+
+illustrate_STDP_long_run(tau_plus = 20,
+                    tau_minus = 20,
+                    A_plus = 0.2,
+                    A_minus = -0.4)
+
+illustrate_STDP_long_run(tau_plus = 20,
+                    tau_minus = 40,
+                    A_plus = 0.2,
+                    A_minus = -0.2)
+
 
 # # Short Term Plasticity (STP)
 #
