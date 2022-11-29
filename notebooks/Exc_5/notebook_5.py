@@ -23,7 +23,9 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import ipywidgets as widgets
 import scipy
+from scipy import special
 import time
+
 
 # %matplotlib inline
 
@@ -67,7 +69,7 @@ def transform_to_event_input(binned_spikes, bin_size=0.1):
 
 # +
 def poisson(n,n_expect):
-    return (n_expect)**n/scipy.special.factorial(n) * np.exp(-n_expect)
+    return (n_expect)**n/special.factorial(n) * np.exp(-n_expect)
 
 fig, ax = plt.subplots(figsize = (8,4))
 
@@ -428,7 +430,7 @@ neuron, all_excitatory_inputs, all_inhibitory_inputs = run_and_plot_simulation_f
                               n_excitatory_inputs = 5,
                               rate_inhibitory_input = 40,
                               n_inhibitory_inputs = 5,
-                            show_plot = True)
+                            show_plot = False)
 
 # -
 # ## mean and fluctuation driven regimes
