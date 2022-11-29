@@ -187,8 +187,13 @@ def get_filter_array(
         
         
     if filter_array.size == 0:
-        print ('ERRRO: The name you provided for "filter_shape" does not match any of your if conditions')
-        raise ValueError
+        raise ValueError(f'''ERROR: The name you provided for "filter_shape" {filter_shape} does not match any of your if conditions.\n
+               all possible conditions should be given as if-conditions and put in the list 'all_filter_names'.\n
+               Current names in that list are {all_filter_names}''')
+        
+    if filter_array.size %2 == 0:
+        raise ValueError(f'''FILTER LENGTH ERROR: Due to the implementation your filter needs to have an uneven length
+                your filter has lenght {filter_array.size}.''')
         
         
         
