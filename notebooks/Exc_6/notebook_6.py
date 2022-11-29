@@ -292,6 +292,7 @@ def illustrate_STDP_long_run(
     scenario_name : name of the pre- and post-spike train scenario
     """
     
+    
     dt = 0.1
     
     w_max = 2
@@ -350,6 +351,16 @@ def illustrate_STDP_long_run(
         xlabel = r'$\Delta t$ in ms',
         ylabel = 'weight change in a.u.'
     )
+    
+    
+    tau_plus_default = 20
+    tau_minus_default = 20
+    A_plus_default = 0.2
+    A_minus_default = -0.2
+    
+    ax1.plot(x_minus, A_minus_default*np.exp(x_minus/tau_minus_default), color='#E31A1C', alpha=0.3) 
+    ax1.plot(x_plus, A_plus_default*np.exp(-x_plus/tau_plus_default), color='#238B45', alpha=0.3) 
+    
 
     print (w_array.shape)
 
@@ -381,6 +392,38 @@ illustrate_STDP_long_run(tau_plus = 20,
                     A_plus = 0.2,
                     A_minus = -0.2)
 
+illustrate_STDP_long_run(tau_plus = 20,
+                    tau_minus = 40,
+                    A_plus = 0.4,
+                    A_minus = -0.2)
+
+
+# ### Think X
+#
+# In the shown scenarios, we see that a depression dominant rule (the area under the red curve is bigger than the area under the green curve) the average weight dynamics show a depression. 
+# However, in the lecture we showed a similar example and stated that the depression is only happening as long as the postsynaptic spikes are happening in a regular fashion. Once they fire Poisson-like, the effect should vanish. Now we see that two Poisson spike trains (in both, pre and postsynaptic neurons) still shows depression. 
+#
+# What is the essential difference?
+#
+# ### Solution X
+#
+# In the scenario from the lecture, the pre-synaptic neurons influence the post-synaptic neuron with their spikes. In our scenario, the spike trains are independent. 
+# Therefore, the correlation between the input and the output spike trains always remains low. In the scenario from the lecture, the pre- and post-synaptic spike trains become more correlated when we enter the fluctuation driven regime. 
+#
+# For STDP, the correlations can play a crucial row. In an extrem case, you can think of two neurons that are extremely highly correlated, one **always** spikes shortly after the other, even though both spike trains follow a Poisson distribution. The effect on the learning rule is therefore, that there is only potentiation, no matter how large the depression window would be. 
+#
+# Coming back to the example, we can now look at the average correlation structure of the spike trains ([adapted from Song et al., 2000](https://doi.org/10.1038/78829)):
+# <div>
+# <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_6/static/stdp_song_miller_abbott_cited.png" width="750"/>
+# </div>
+#
+# We see that already before the learning, there is a small peak for pre-post correlations. This makes sense since it is more likely that the post-synaptic neuron fires, if a pre-synaptic neuron has fired before. 
+#
+# However, after the learning this peak increases drastically. Now the neuron is in the mean driven regime, which means it 'listens' much more to its presynaptic partners. Hence, the average correlation is stronger. 
+# To calculate the average weight change, one can calculate the convolution of the learning rule with the correlation structure, if the integral over this convolution is positive/negative, the average weight change is positive/negative as well.
+#
+#
+#
 
 # # Short Term Plasticity (STP)
 #
