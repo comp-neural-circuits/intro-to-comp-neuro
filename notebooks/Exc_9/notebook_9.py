@@ -13,6 +13,8 @@
 #     name: intro-to-comp-neuro
 # ---
 
+# # Artificial networks
+
 # %matplotlib inline
 from pylab import *
 from sklearn.datasets import fetch_openml

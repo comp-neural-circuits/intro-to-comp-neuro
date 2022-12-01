@@ -63,9 +63,17 @@ def transform_to_event_input(binned_spikes, bin_size=0.1):
 # # Spike-Time Dependent Plasticity (STDP)
 #
 #
+# We now look at the implementation of STDP. 
+# Below you find one possibility for the implementation. 
+#
+# Please go through the code and see whether it makes sense to you. 
+# We follow the idea introduced in the lecture:
+#
+# <div>
+# <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_6/static/lecture_slide_stdp_implementation.png" width="750"/>
+# </div>
 #
 
-# +
 def plastic_synapse_pairwise(
                     pre_spike_train, 
                     post_spike_train,
@@ -120,7 +128,6 @@ def plastic_synapse_pairwise(
         P[it + 1] = P[it] + dP
         
         # Compute dM
-        # same as for u but R goes back to 1, not to 0
         dM = -(M[it] / tau_minus) * dt  + A_minus * post_spike_train[it + 1]
         M[it + 1] = M[it] + dM
         
@@ -136,7 +143,14 @@ def plastic_synapse_pairwise(
         t[it + 1] = t[it] + dt
 
     return t, w, P, M
+    
 
+
+
+# ### Task 1
+#
+# We now investigate the plasticity rule in action. Therfore, you can run the function _illustrate_STDP_.
+# in the function _generate_STDP_scenario_ you can add your own scenarios to the STDP rule, in a similar way that you could use to come up with your own filters in the previous exercise.
 
 def generate_STDP_scenario(
     scenario_name = 'default', 
@@ -166,13 +180,10 @@ def generate_STDP_scenario(
 
     
     return pre_spike_times, post_spike_times
-    
-# -
 
-# ### Task X
 
 # +
-def illustrate_STDP_over_long_runs(show_plot = True):
+def illustrate_STDP(scenario_name = 'default', show_plot = True):
     """
 
     Args:
@@ -360,9 +371,7 @@ def illustrate_STDP_long_run(
     
     ax1.plot(x_minus, A_minus_default*np.exp(x_minus/tau_minus_default), color='#E31A1C', alpha=0.3) 
     ax1.plot(x_plus, A_plus_default*np.exp(-x_plus/tau_plus_default), color='#238B45', alpha=0.3) 
-    
 
-    print (w_array.shape)
 
     ax2.plot(t, w_array.T, 'k', alpha = 0.2, linewidth = 0.5)
     ax2.plot(t,np.mean(w_array, axis =0),'k')
@@ -398,32 +407,27 @@ illustrate_STDP_long_run(tau_plus = 20,
                     A_minus = -0.2)
 
 
-# ### Think X
+# ### Task 2 (Think!)
 #
 # In the shown scenarios, we see that a depression dominant rule (the area under the red curve is bigger than the area under the green curve) the average weight dynamics show a depression. 
 # However, in the lecture we showed a similar example and stated that the depression is only happening as long as the postsynaptic spikes are happening in a regular fashion. Once they fire Poisson-like, the effect should vanish. Now we see that two Poisson spike trains (in both, pre and postsynaptic neurons) still shows depression. 
 #
 # What is the essential difference?
 #
-# ### Solution X
+
+# ### [Solution 2](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_4/solutions/55fb97641e2bb37a13eed8e5a19f663a.txt)
+
+# ### Task 3
 #
-# In the scenario from the lecture, the pre-synaptic neurons influence the post-synaptic neuron with their spikes. In our scenario, the spike trains are independent. 
-# Therefore, the correlation between the input and the output spike trains always remains low. In the scenario from the lecture, the pre- and post-synaptic spike trains become more correlated when we enter the fluctuation driven regime. 
+# If you have time, can you implement synaptic plasticity for our LIF model class from the previous excercise to recreate the result from Song et al., 2000 that is presented in the solution to task 2?
 #
-# For STDP, the correlations can play a crucial row. In an extrem case, you can think of two neurons that are extremely highly correlated, one **always** spikes shortly after the other, even though both spike trains follow a Poisson distribution. The effect on the learning rule is therefore, that there is only potentiation, no matter how large the depression window would be. 
+# Proposed steps are:
 #
-# Coming back to the example, we can now look at the average correlation structure of the spike trains ([adapted from Song et al., 2000](https://doi.org/10.1038/78829)):
-# <div>
-# <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_6/static/stdp_song_miller_abbott_cited.png" width="750"/>
-# </div>
+# 1) You need to implement synaptic plasticity to the LIF model class from the previous exercise. 
 #
-# We see that already before the learning, there is a small peak for pre-post correlations. This makes sense since it is more likely that the post-synaptic neuron fires, if a pre-synaptic neuron has fired before. 
+# 2) You should choose the parameters from the last exercise that get you started in the mean driven regime.
 #
-# However, after the learning this peak increases drastically. Now the neuron is in the mean driven regime, which means it 'listens' much more to its presynaptic partners. Hence, the average correlation is stronger. 
-# To calculate the average weight change, one can calculate the convolution of the learning rule with the correlation structure, if the integral over this convolution is positive/negative, the average weight change is positive/negative as well.
-#
-#
-#
+# 3) You simulate the synaptic weight change (only for the excitatory neurons) (1000 excitatory & 200 inhibitory inputs)
 
 # # Short Term Plasticity (STP)
 #
@@ -446,7 +450,7 @@ illustrate_STDP_long_run(tau_plus = 20,
 # $R$ describes the remaining pool of resources. The coupling between the two (look at how R is upated each spike: $R\leftarrow u\,R$) describes the fact that if there is a higher release probability $u$ a higher fraction of the available resources is used per spike. 
 # Keep this idea in mind when working on the following task
 
-# ### Task X
+# ### Task 4
 #
 # We want to explore how the paramters of the Tsodyks-Markram Model. 
 # First, look at the implementation of the _dynamic_synapse_ function. Does it makes sense to you? It closely follows the equation shown above.
@@ -580,14 +584,13 @@ def dynamic_synapse(g_max, tau_syn, U0, tau_d, tau_f, pre_spike_train, dt):
 
     return t, u, R, g
 
-_ = widgets.interact(my_illus_STD, 
+_ = widgets.interact(illustrate_STD, 
                      Poisson_instead_of_regular=(0, 1, 1),
                      rate=(5., 100.1, 5.),
                      U0 = (0,1,0.1),
                      tau_d = (10,200,10),
                      tau_f = (10,1000,10),                     
                      )
-
 
 # -
 
