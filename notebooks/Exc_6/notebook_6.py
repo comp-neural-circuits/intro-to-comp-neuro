@@ -143,7 +143,7 @@ def plastic_synapse_pairwise(
         t[it + 1] = t[it] + dt
 
     return t, w, P, M
-    
+
 
 
 
@@ -415,11 +415,11 @@ illustrate_STDP_long_run(tau_plus = 20,
 # What is the essential difference?
 #
 
-# ### [Solution 2](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_4/solutions/55fb97641e2bb37a13eed8e5a19f663a.txt)
+# ### [Solution 2](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_6/solutions/55fb97641e2bb37a13eed8e5a19f663a.txt)
 
-# ### Task 3
+# ### Task 3 (if you have time left after the notebook)
 #
-# If you have time, can you implement synaptic plasticity for our LIF model class from the previous excercise to recreate the result from Song et al., 2000 that is presented in the solution to task 2?
+# Can you implement synaptic plasticity for our LIF model class from the previous excercise to recreate the result from Song et al., 2000 that is presented in the solution to task 2?
 #
 # Proposed steps are:
 #
