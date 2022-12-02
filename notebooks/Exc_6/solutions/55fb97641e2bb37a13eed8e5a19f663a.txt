@@ -12,5 +12,5 @@ Coming back to the example, we can now look at the average correlation structure
 
 We see that already before the learning, there is a small peak for pre-post correlations. This makes sense since it is more likely that the post-synaptic neuron fires, if a pre-synaptic neuron has fired before. 
 
-However, after the learning this peak increases drastically. Now the neuron is in the mean driven regime, which means it 'listens' much more to its presynaptic partners. Hence, the average correlation is stronger. 
+However, after the learning this peak increases drastically. Now the neuron is in the fluctuation driven regime, which means it 'listens' much more to its presynaptic partners. Hence, the average correlation is stronger. 
 To calculate the average weight change, one can calculate the convolution of the learning rule with the correlation structure, if the integral over this convolution is positive/negative, the average weight change is positive/negative as well.
