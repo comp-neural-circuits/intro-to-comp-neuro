@@ -8,9 +8,9 @@
 #       format_version: '1.5'
 #       jupytext_version: 1.14.1
 #   kernelspec:
-#     display_name: intro-to-comp-neuro
+#     display_name: Python 3 (ipykernel)
 #     language: python
-#     name: intro-to-comp-neuro
+#     name: python3
 # ---
 
 # # The Hodgkin Huxley model
@@ -81,11 +81,11 @@ class HodgkinHuxleyNeuron(object):
         self.dt = dt # simulation timestep in ms    
 
         # maximum conductances
-        self.g_na = g_na #g_na 
+        self.g_na = g_na #g_na
         self.g_k = g_k # g_k
         self.g_l = g_l # g_l
         
-        # reveral potentials
+        # reversal potentials
         self.e_na = e_na # e_na
         self.e_k  = e_k # e_k
         self.e_l  = e_l # e_l
@@ -452,9 +452,9 @@ model_lecture.run_sim_and_show_lecture_plot()
 
 # #### Task 3
 #
-# We now want to investigate the effect of different maximum conudctance strenghts for the Na channel (g_na)
+# We now want to investigate the effect of different maximum conudctance strenghts for the Na channel (`g_na`)
 #
-# Create a plot that shows the voltage trace given a steady input current of i_e = 3 $\mu F/cm^2$ for the different maximum conductance values g_na in of 80, 100, 120 & 140. 
+# Create a plot that shows the voltage trace given a steady input current of `i_e` = 3 $\mu F/cm^2$ for the different maximum conductance values `g_na` in 80, 100, 120 & 140. 
 #
 # What happens with the action potential, did you expect that? 
 #
@@ -465,9 +465,9 @@ model_lecture.run_sim_and_show_lecture_plot()
 
 # #### Task 4
 #
-# We now want to investigate the effect of different maximum conudctance strenghts for the K channel (g_k)
+# We now want to investigate the effect of different maximum conudctance strenghts for the K channel (`g_k`)
 #
-# Create a plot that shows the voltage trace given a steady input current of i_e = 3 $\mu F/cm^2$ for the different maximum conductance values g_k in of 20, 30, 40 & 50. 
+# Create a plot that shows the voltage trace given a steady input current of `i_e` = 3 $\mu F/cm^2$ for the different maximum conductance values `g_k` in 20, 30, 40 & 50. 
 #
 # What happens with the action potential, did you expect that? 
 
@@ -497,14 +497,37 @@ model_lecture.run_sim_and_show_lecture_plot()
 # ### Task 7 
 #
 # We now come back to our LIF model. 
-# belwo you seethe class we developed in the last session (slightly adapted, so that it can now also take on more complex input patterns with an input array). 
+# below you see the class we developed in the last session (slightly adapted, so that it can now also take on more complex input patterns with an input array).
+# ****
+# As a reminder, the LIF model below is defined by the following differential equations:
 #
-# run the cell below to create the class and make sure that you understand the code (again).
-# There are two slight changes:
+# \begin{align}
+# \tau_m \frac{dV}{dt} &= - V(t) + E_{L} + R_m \left( I_e(t) -I_{ampa}(t) - I_{gaba}(t)\right) &\text{if }\quad V(t) \leq V_{th} \\ 
+# \\ 
+# V(t) &= V_{reset} &\text{otherwise}
+# \end{align}
 #
-# 1) there is an actual spike implemented (the membrane potential is set to 40 mV for one time step when the threshold is crossed
+# With:
+# \begin{align}
+# \tau_m & = R_m \; C_m \\
+# I_{ampa}(t) &=  g_{ampa}\,P_{s\,ampa}(t) \; (E_{ampa}-V(t))\\
+# I_{gaba}(t) &= g_{gaba}\,P_{s\,gaba}(t) \; (E_{gaba}-V(t))\\
+# \end{align}
 #
-# 2) there is a refractory period after each spike, within which the membrane potential is kept constant
+#
+# Where  $g_{ampa}$ is the input strength, $E_{ampa}$ is the reversal potential. The postsynaptic currents $P_{s\,ampa}(t)$ and $P_{s\,gaba}(t)$ are set to 1 if a signal is received, and decay in time exponentially according to:
+#
+# \begin{align}
+#  \frac{dP_{s\,ampa}}{dt} &=  - \frac{P_{s\,ampa}}{\tau_{ampa}} \\
+#  \frac{dP_{s\,gaba}}{dt} &=  - \frac{P_{s\,gaba}}{\tau_{gaba}}
+# \end{align}
+#
+# Last but not least:
+# 1) There is an actual spike implemented (the membrane potential is set to 40 mV for one time step when the threshold is crossed).
+# 2) There is a refractory period after each spike, within which the membrane potential is kept constant at  $V_{reset}$. The refractory time is regulated by the variable `refrac_time`.
+# *****
+#
+# Run the cell below to create the class and make sure that you understand the code.
 
 class LIFNeuron(object):
     """A LIF neuron with the possibility to add AMPA inputs 
@@ -637,16 +660,15 @@ class LIFNeuron(object):
 # Your task is now to fit the output of the LIF model to the output of the Hodgkin Huxley model. 
 #
 # You can use the interactive tool below to search for the best fit. 
-# The parameters that you can change from the LIF model are
+# The parameters that you can change from the LIF model are:
 #
-# c_m, the specific capacitance of the membrane
-# r_m, the specific resistance of the membrane 
-# together, these two will give you tau_m , the time constant. 
+#   - `c_m` ($C_m$ in the eq.), the specific capacitance of the membrane
+#   - `r_m`($R_m$ in the eq.) , the specific resistance of the membrane 
+# together, these two will give you `tau_m` ($\tau_m$ in the eq.) , the time constant. 
+#   - `refrac_time`, the refractory period in ms 
+#   - `e_l` ($E_L$ in the eq.), the leak reversal potential
 #
-# refrac_time, the refractory period in ms 
-# e_l, the leak reversal potential
-#
-# When you think that you found a good fit, let me know the parameters. 
+# When you think that you found a good fit, let me know the parameters.
 
 # +
 
@@ -828,7 +850,7 @@ class HodgkinHuxleyNeuron_AmpaGaba(HodgkinHuxleyNeuron):
 # run the cell below. This is the same widget we already had for the LIF model, now for the HH model.
 
 # +
-def run_and_plot(I_e, gaba_input_timestep):
+def run_and_plot(gaba_input_timestep):
     neuron = HodgkinHuxleyNeuron_AmpaGaba(g_ampa = 0.08, g_gaba = 0.6)
     ampa_inputs = [1000, 1050, 1100]   
     gaba_inputs = [gaba_input_timestep]
@@ -864,7 +886,7 @@ def run_and_plot(I_e, gaba_input_timestep):
                 arrowprops = dict(arrowstyle='->',facecolor ='#CC1414', edgecolor='#CC1414',
                                   shrinkA = 0.1, linewidth = 2.5))
 
-widgets.interact(run_and_plot,I_e = 5, gaba_input_timestep=(700,1150,10))
+widgets.interact(run_and_plot,gaba_input_timestep=(700,1150,10))
 
 
 # -
