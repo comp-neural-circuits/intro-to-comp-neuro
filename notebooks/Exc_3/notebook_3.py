@@ -8,9 +8,9 @@
 #       format_version: '1.5'
 #       jupytext_version: 1.14.1
 #   kernelspec:
-#     display_name: intro-to-comp-neuro
+#     display_name: Python 3 (ipykernel)
 #     language: python
-#     name: intro-to-comp-neuro
+#     name: python3
 # ---
 
 # # The Hodgkin Huxley model
@@ -81,11 +81,11 @@ class HodgkinHuxleyNeuron(object):
         self.dt = dt # simulation timestep in ms    
 
         # maximum conductances
-        self.g_na = g_na #g_na 
+        self.g_na = g_na #g_na
         self.g_k = g_k # g_k
         self.g_l = g_l # g_l
         
-        # reveral potentials
+        # reversal potentials
         self.e_na = e_na # e_na
         self.e_k  = e_k # e_k
         self.e_l  = e_l # e_l
