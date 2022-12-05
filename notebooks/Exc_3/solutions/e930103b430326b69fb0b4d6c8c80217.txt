@@ -43,6 +43,6 @@ ax.legend(title = r"$g_{Na}$ in $\frac{mS}{cm^2}$" )
 
 You can see two main effects on the shape of the spike:
 
-1) It shifts to the right with smaller g_na. This happens because we need to reach higher voltage values to enter the self-excciting loop of the Na-channel (and this takes more time). If the maximum conductance is too small, we actually see no spike at all.
+1) It shifts to the right with smaller g_na. This happens because we need to reach higher voltage values to enter the self-exciting loop of the Na-channel (and this takes more time). If the maximum conductance is too small, we actually see no spike at all.
 
 2) It becomes smaller in amplitude with smaller g_na. The maximum current we can induce is smaller if g_max is smaller which means that g_K will be more dominant when the spike happens. 
