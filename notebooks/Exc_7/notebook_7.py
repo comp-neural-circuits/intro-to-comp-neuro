@@ -53,7 +53,6 @@ circular_colors = [[0.658308, 0.469939, 0.049413],
 # Settings for the figures
 plt.style.use(plt.style.available[20])
 plt.style.use("https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/plots_style.txt")
-
 # -
 
 # # Overview of the different plasticity rules
@@ -261,7 +260,7 @@ def investigate_plasticity_rules_simple(
         ax1.plot(all_time, all_theta, color = 'r', linestyle = '--', linewidth = 0.8, label = 'postsynaptic threshold')
         ax1.legend()
     ax1.set(
-        ylabel = 'Postsynaptic activity')
+        ylabel = 'Postsynaptic\nactivity')
     ax2.plot(all_time,all_w)
     ax2.axhline(y=upper_bound, c='r', label = 'upper bound', linestyle ='--', linewidth=0.8)
     ax2.legend()
@@ -282,7 +281,7 @@ def investigate_plasticity_rules_simple(
         ax3.axhline(theta, color = 'r', linestyle = '--', linewidth = 0.8, label = 'presynaptic threshold')
         ax3.legend()
     ax3.set(
-        ylabel = 'Presynaptic activity',
+        ylabel = 'Presynaptic\nactivity',
         ylim = [0,5],
         xlim = [-1, 2*(len(r_pre)-1)+1])
       
@@ -338,7 +337,7 @@ def create_line_for_angle(n_shift, ax):
         return con
 def calc_x_shift(n_shift):
         
-    return 0.12+n_shift*0.053
+    return 0.14+n_shift*0.0512
 
 def create_angle_illustration(ax):
     
@@ -364,15 +363,6 @@ def gaussian(x, mu, sig):
     norm = np.sum(gaussian)
     
     return gaussian
-
-# +
-X = np.linspace(0,15,16)
-fig, ax = plt.subplots()
-ax.plot(X, gaussian(X,mu=1,sig=2))
-create_angle_illustration(ax)
-
-# Add the ConnectionPatch object to the plot
-# ax.add_artist(con)
 
 # +
 
@@ -503,12 +493,9 @@ widgets.interactive(illustrate_results, time_step = (2,len(all_time)-1,1))
 
 
 
-
-# +
-        
-def calc_x_shift(n_shift):
-        
-    return 0.14+n_shift*0.0512
 # -
+
+
+
 
 
