@@ -366,7 +366,7 @@ model_lecture.run_sim_and_show_lecture_plot()
 #
 # The second one:
 # ```python
-# example_model.plot_voltage_and_gating()
+# example_model.plot_voltage_with_input_current()
 # ```
 # will show you the voltage trace combined with the input current that has been induced over the simulation. 
 # <div>
@@ -963,9 +963,3 @@ widgets.interact(test,
                  refrac_time=(1,20,0.2), 
                  e_l = (-80,-60,0.2),
                  v_th = (-60,-40,0.2))
-
-
-
-# -
-
-
