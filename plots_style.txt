@@ -5,7 +5,7 @@ scatter.edgecolors: None
 axes.grid : True
 axes.titleweight : bold 
 axes.labelweight : bold
-axes.labelsize': 8.8
+axes.labelsize: 8.8
 axes.labelpad : 5.0
 grid.linewidth : 0.25
 axes.spines.right : False
