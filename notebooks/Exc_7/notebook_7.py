@@ -53,6 +53,10 @@ circular_colors = [[0.658308, 0.469939, 0.049413],
 # Settings for the figures
 plt.style.use(plt.style.available[20])
 plt.style.use("https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/plots_style.txt")
+
+import matplotlib as mpl
+mpl.rcParams
+
 # -
 
 # # Overview of the different plasticity rules
@@ -364,136 +368,119 @@ def gaussian(x, mu, sig):
     
     return gaussian
 
+
 # +
+class investigateComplexPatterns(object):
 
-n_pre = 16
-r_pre = np.zeros(n_pre)
-r_post = np.zeros(1)
-w = np.ones(n_pre)*0.5
-tau = 20
-tau_w = 1000
-tau_theta = 40
-dt = 0.5
-time_steps = 4000
+    def run_simulation(self,
+        plasticity_rule,seed=10):
 
+        
+        np.random.seed(seed)
+        n_pre = 16
+        upper_bound = 5
+        theta_start = 0
+        tau_theta = 1
+        r_target = 8
 
+        tau_w = 1000
+        dt = 0.1
+        time_steps = 6000
 
-X = np.linspace(0,n_pre-1,n_pre)
+        r_pre = np.ones(n_pre)
+        r_pre = r_pre[:n_pre]
+        w = np.ones_like(r_pre)
+        r_post = np.array([0.])
 
-
-mu = np.random.choice(n_pre)
-
-all_pre = r_pre[:]
-all_post = r_post[:]
-all_time = [0]
-all_angles = [mu]
-all_w = np.array([w])
-all_theta = [0]
-
-theta = 0
-
-for ii in range(time_steps):
-    
-    if np.random.rand() > 0.995:
+        X = np.linspace(0,n_pre-1,n_pre)
         mu = np.random.choice(n_pre)
-        
-    
-    input_pattern = gaussian(x=X, mu=mu,sig=2) + 0.0
-    r_pre, r_post = evolve_pre_and_post(r_pre, r_post, w, input_pattern)
-        
-    r_pre = input_pattern
-#     dw = hebbian(r0=r_pre, r1 = r_post, tau=tau_w, dt=dt)
-    
-#     dw = hebbian_threshold(r0=r_pre, r1 = r_post, theta = 1.8, tau=tau_w, dt=dt)
-#     dw = hebbian_subtractive_normalization(r0=r_pre, r1 = r_post, tau=tau_w, dt=dt)
-    
-    dw, _ = hebbian_multiplicative_norm(r0=r_pre, r1 = r_post, w = w, tau=tau_w, dt=dt)
-    
-#     dw, dtheta = bcm(r0=r_pre, r1 = r_post, theta=theta, tau=tau_w, tau_theta=tau_theta, r_target=8, dt=dt)
-    
-    theta += dtheta
-    
-    w += dw.flatten()
-    
-   
-    
-    w[w<0] = 0
-    w[w>5] = 5
 
-     
-    
-    
-    if ii%15 == 0:
-        all_pre = np.vstack([all_pre, r_pre])
-        all_post = np.vstack([all_post, r_post])
-        all_time.append(ii*dt)
-        all_w = np.vstack([all_w,w])
-        all_angles.append(mu)
-        all_theta.append(theta)
+        self.all_pre = r_pre[:]
+        self.all_post = r_post[:]
+        self.all_time = [0]
+        self.all_w = np.array([w])
+        self.all_angles = [mu]
 
-    
-def illustrate_results(time_step):
-    
-
-    fig, (ax1,ax2,ax3) = plt.subplots(3,1, gridspec_kw={'height_ratios': [1, 3,3]})
-    
-    
-    ax1.plot(all_time[:time_step],all_post[:time_step])
-    ax1.set(
-        xlim = [0,all_time[-1]],
-        ylabel = 'Output rate')
-    
-#     ax4 = ax1.twinx()
-#     ax4.plot(all_time[:time_step],all_theta[:time_step],'r')
-    
-    for cc, w in zip(circular_colors,all_w[:time_step,:].T):
-        ax2.plot(all_time[:time_step],w, c=cc)
-    
-    ax2.set(
-        xlim = [0,all_time[-1]],
-        xlabel = 'Time in ms',
-        ylabel = 'Input weights')
-    
-#     ax1.set_ylim([-0.05*np.max(all_w),np.max(all_w)])
-    
-    
-    for ii, (pre,cc) in enumerate(zip(all_pre[time_step],circular_colors)):
-        ax3.bar([ii],pre, edgecolor = cc, linewidth = 2, facecolor='#f0f0f0', width=0.5)
-    ax3.set(
-        ylabel = 'Input Rate',
-        ylim = [0,np.max(all_pre)*1.1])
-    
-    ax3.axvline(all_angles[time_step], linestyle = '--', c='r', label = 'stimulus')
-    ax3.legend()
-    create_angle_illustration(ax3)
-    
-    plt.tight_layout()
-    
-#     for ii in range(time_step):
-#         a = [all_time[ii-1],0.95]
-#         b = [all_time[ii],0.95]
-
-#         con = ConnectionPatch(
-#             a, 
-#             b, 
-#             'figure fraction',color=circular_colors[all_angles[ii]],linewidth=3)
-#         ax1.add_artist(con)
-        
-    
-    
-    
-    
-print (len(all_time))
-
-
-    
-
-    
-widgets.interactive(illustrate_results, time_step = (2,len(all_time)-1,1))
+        theta = theta_start
+        self.all_theta = [theta]
 
 
 
+
+
+        for ii in range(time_steps):
+
+            if np.random.rand() > 0.995:
+                mu = np.random.choice(n_pre)
+
+
+            input_pattern = gaussian(x=X, mu=mu,sig=2) + 0.0
+            r_pre, r_post = evolve_pre_and_post(r_pre, r_post, w, input_pattern)
+
+            dw, dtheta = plasticity_rule(r0=r_pre, r1 = r_post, theta=theta, w=w, tau=tau_w, tau_theta=tau_theta, r_target=r_target, dt=dt)
+
+            theta += dtheta
+
+            w += dw.flatten()
+
+
+
+            w[w<0] = 0
+            w[w>upper_bound] = upper_bound
+
+
+
+
+            if ii%15 == 0:
+                self.all_pre = np.vstack([self.all_pre, r_pre])
+                self.all_post = np.vstack([self.all_post, r_post])
+                self.all_time.append(ii*dt)
+                self.all_w = np.vstack([self.all_w,w])
+                self.all_angles.append(mu)
+                self.all_theta.append(theta)
+
+
+    def illustrate_results(self, time_step):
+
+
+        fig, (ax1,ax2,ax3) = plt.subplots(3,1, gridspec_kw={'height_ratios': [1, 3,3]})
+
+
+        ax1.plot(self.all_time[:time_step],self.all_post[:time_step])
+        ax1.set(
+            xlim = [0,all_time[-1]],
+            ylabel = 'Output rate')
+
+
+        for cc, w in zip(circular_colors,self.all_w[:time_step,:].T):
+            ax2.plot(self.all_time[:time_step],w, c=cc)
+
+        ax2.set(
+            xlim = [0,self.all_time[-1]],
+            xlabel = 'Time in ms',
+            ylabel = 'Input weights')
+
+
+        for ii, (pre,cc) in enumerate(zip(self.all_pre[time_step],circular_colors)):
+            ax3.bar([ii],pre, edgecolor = cc, linewidth = 2, facecolor='#f0f0f0', width=0.5)
+        ax3.set(
+            ylabel = 'Input Rate',
+            ylim = [0,np.max(self.all_pre)*1.1])
+
+        ax3.axvline(self.all_angles[time_step], linestyle = '--', c='r', label = 'stimulus')
+        ax3.legend()
+        create_angle_illustration(ax3)
+
+        plt.tight_layout()
+
+    
+    
+example = investigateComplexPatterns()
 # -
+widgets.interactive(example.run_simulation, plasticity_rule = all_plasticity_functions)
+
+widgets.interactive(example.illustrate_results, time_step = (2,len(example.all_time)-1,5))
+
 
 
 
