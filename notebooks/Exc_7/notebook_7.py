@@ -305,7 +305,7 @@ def investigate_plasticity_rules_simple(
     ax_img.axis('off')
     plt.tight_layout()
     
-    
+# -
 
 widgets.interactive(investigate_plasticity_rules_simple, 
                     plasticity_rule = all_plasticity_functions,
@@ -373,13 +373,15 @@ def gaussian(x, mu, sig):
 class investigateComplexPatterns(object):
 
     def run_simulation(self,
-        plasticity_rule,seed=10):
+        plasticity_rule,seed=10,theta_start = 0.4):
+        
+        self.plasticity_rule = plasticity_rule
 
         
         np.random.seed(seed)
         n_pre = 16
         upper_bound = 5
-        theta_start = 0
+        
         tau_theta = 1
         r_target = 8
 
@@ -439,7 +441,6 @@ class investigateComplexPatterns(object):
                 self.all_angles.append(mu)
                 self.all_theta.append(theta)
 
-
     def illustrate_results(self, time_step):
 
 
@@ -447,8 +448,11 @@ class investigateComplexPatterns(object):
 
 
         ax1.plot(self.all_time[:time_step],self.all_post[:time_step])
+        if self.plasticity_rule == bcm or self.plasticity_rule == hebbian_threshold_post:
+            ax1.plot(self.all_time[:time_step], self.all_theta[:time_step], color = 'r', linestyle = '--', linewidth = 0.8, label = 'postsynaptic threshold')
+            ax1.legend()
         ax1.set(
-            xlim = [0,all_time[-1]],
+            xlim = [0,self.all_time[-1]],
             ylabel = 'Output rate')
 
 
@@ -467,7 +471,9 @@ class investigateComplexPatterns(object):
             ylabel = 'Input Rate',
             ylim = [0,np.max(self.all_pre)*1.1])
 
-        ax3.axvline(self.all_angles[time_step], linestyle = '--', c='r', label = 'stimulus')
+        ax3.axvline(self.all_angles[time_step], linestyle = '--', c='k', label = 'stimulus')
+        if self.plasticity_rule == hebbian_threshold_pre:
+            ax3.axhline(self.all_theta[-1], color = 'r', linestyle = '--', linewidth = 0.8, label = 'presynaptic threshold')
         ax3.legend()
         create_angle_illustration(ax3)
 
@@ -477,9 +483,14 @@ class investigateComplexPatterns(object):
     
 example = investigateComplexPatterns()
 # -
-widgets.interactive(example.run_simulation, plasticity_rule = all_plasticity_functions)
+widgets.interactive(
+    example.run_simulation, 
+    plasticity_rule = all_plasticity_functions,
+    theta_start = (0.1,20,0.1))
 
-widgets.interactive(example.illustrate_results, time_step = (2,len(example.all_time)-1,5))
+widgets.interactive(
+    example.illustrate_results, 
+    time_step = (2,len(example.all_time)-1,5))
 
 
 
