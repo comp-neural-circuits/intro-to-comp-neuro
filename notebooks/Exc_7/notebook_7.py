@@ -375,8 +375,6 @@ def gaussian(x, mu, sig):
 # 1) we have 16 inputs. We can think of them as neurons that are tuned to specific orientations (i.e. if one orientation is presented, the corresponding neuron will respond the most) 
 #
 # 2) The inputs vary now over time, such that the activity of the presynaptic neuron also changes over time.
-#
-# I would be great if the postsynaptic neuron could learn the weights, so that it listens only to a couple of neurons and therefore itself would be tuned to a specific orientation (or mixture of orientations) presented. Can you achieve this?
 
 # +
 def run_simulation(
@@ -417,13 +415,7 @@ def run_simulation(
 
     theta = theta_start
     all_theta = [theta]
-
-
-
     starting_w = np.copy(w)
-
-
-
 
 
     for ii in range(time_steps):
@@ -512,6 +504,10 @@ def run_simulation(
     
 
 # -
+# ### Task 2
+#
+# I would be great if the postsynaptic neuron could learn the weights, so that it listens only to a couple of neurons and therefore itself would be tuned to a specific orientation (or mixture of orientations) presented. Can you achieve this?
+
 widgets.interactive(
     run_simulation, 
     plasticity_rule = all_plasticity_functions,
