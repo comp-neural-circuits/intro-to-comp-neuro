@@ -93,22 +93,6 @@ plt.style.use("https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/d
 #     \tau_{\theta} \dot{\theta}  =& - θ + \frac{\bar{v}^{2}}{\rho}
 # \end{align}
 
-
-
-
-# +
-x = np.array([1,2,3])
-y = np.array([0,1,2])
-
-print (np.dot(x[:,None],y[None,:]))
-r0 = x.reshape(1,-1)
-r1 = y.reshape(-1, 1)
-print (r0)
-print (np.dot(r1,r0))
-
-
-# -
-
 def evolve_post(r_pre, r_post, w, dt, tau=20):
        
     dr_post = dt*(-r_post + np.sum(r_pre*w))/tau
