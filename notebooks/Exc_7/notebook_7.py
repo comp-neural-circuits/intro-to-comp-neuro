@@ -362,7 +362,12 @@ def gaussian(x, mu, sig):
 
 # +
 def run_simulation(
-    plasticity_rule,seed=10,theta_start = 0.4, weight_bias=False, gaussian_inputs=True, time_step=-1):
+    plasticity_rule,seed=10,
+    theta_start = 0.4, 
+    weight_bias=False, 
+    gaussian_inputs=True, 
+    time_step=-1,
+    r_target = 8):
 
     plasticity_rule = plasticity_rule
 
@@ -372,7 +377,6 @@ def run_simulation(
     upper_bound = 5
 
     tau_theta = 1
-    r_target = 8
 
     tau_w = 700
     dt = 0.1
@@ -496,6 +500,7 @@ widgets.interactive(
     run_simulation, 
     plasticity_rule = all_plasticity_functions,
     theta_start = (0.1,20,0.1),
-    time_step = (-1,200,20))
+    time_step = (-1,200,20),
+    r_target = (0,10,0.5),)
 
 
