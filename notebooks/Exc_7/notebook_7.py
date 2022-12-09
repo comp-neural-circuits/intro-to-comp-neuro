@@ -150,12 +150,12 @@ def hebbian_multiplicative_norm(r0, r1, w, tau, dt=0.5, **params):
     dw = (dt/tau) * (dw1 - dw2)
     return dw, 0
 
-# def bcm(r0, r1, theta, tau, tau_theta, r_target, dt=0.5, **params):
+def bcm(r0, r1, theta, tau, tau_theta, r_target, dt=0.5, **params):
     
-#     dw = (dt/tau) * np.dot(r1[:,None]*(r1[:,None]-theta), r0[None,:]) 
-#     dtheta = (dt/tau_theta) * (-theta + r1[:,None]*r1[:,None]/r_target)
+    dw = (dt/tau) * np.dot(r1[:,None]*(r1[:,None]-theta), r0[None,:]) 
+    dtheta = (dt/tau_theta) * (-theta + r1[:,None]*r1[:,None]/r_target)
 
-#     return dw, dtheta[0,0]
+    return dw, dtheta[0,0]
 
 all_plasticity_functions = [
     ('Hebbian',hebbian), 
@@ -163,7 +163,7 @@ all_plasticity_functions = [
     ('Hebbian Threshold Post',hebbian_threshold_post), 
     ('Hebbian Subtractive Normalization',hebbian_subtractive_normalization),
     ('Hebbian Multiplicative Norm',hebbian_multiplicative_norm), 
-#     ('BCM',bcm)
+    ('BCM',bcm)
     ]
 # +
 # simple setup to understand the plasticity rules 
