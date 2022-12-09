@@ -30,6 +30,14 @@ import scipy
 plt.style.use(plt.style.available[20])
 plt.style.use("https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/plots_style.txt")
 
+try:
+    import brian2
+except ImportError:
+    # !pip install brian2
+    
+from brian2 import *
+prefs.codegen.target = 'numpy'
+
 # -
 
 # \begin{equation}
@@ -229,89 +237,139 @@ ax.set_yticklabels([0,0.5,1],fontsize=14)
 ax.set_xlabel('time in ms', fontsize=16)
 ax.set_ylabel('firing rate $r$', fontsize=16)
 
+
 # +
-I_E = 0
-I_I = 0
+class EI_network(object):
+    """
+    This class can create E-I networks, run simulations and visualize the results
+    """
+    def __init__(self, 
+                    w_EE = 9,
+                    w_EI = 4,
+                    w_II = 13,
+                    w_IE = 11,
 
-w_EE = 9
-w_EI = 4
-w_II = 13
-w_IE = 11
+                    tau_E = 20,
+                    tau_I = 10,
 
-tau_E = 20
-tau_I = 10
+                    alpha_E = 1.2,
+                    theta_E = 2.8,
 
-alpha_E = 1.2
-theta_E = 2.8
+                    alpha_I = 1.0,
+                    theta_I = 4.0,
 
-alpha_I = 1.0
-theta_I = 4.0
+                    dt = 1
+    ):
+        '''This function is executed when we create an object from that class'''
+        super(EI_network, self).__init__()
+         
+        self.w_EE = w_EE 
+        self.w_EI = w_EI 
+        self.w_II = w_II 
+        self.w_IE = w_IE 
 
-dt = 1
+        self.tau_E = tau_E 
+        self.tau_I = tau_I 
+
+        self.alpha_E = alpha_E 
+        self.theta_E = theta_E 
+        self.alpha_I = alpha_I 
+        self.theta_I = theta_I 
+        self.dt = dt   
     
-def run_E_I_simulation(r_E_0, r_I_0, timesteps=220):    
     
-    r_E_list = [r_E_0]
-    r_I_list = [r_I_0]
-    t_list = [0]
-    for ii in range(timesteps):
-        t_list.append(t_list[-1]+dt)
+        self.r_E_list = []
+        self.r_I_list = []
+        self.t_list = []
 
-        r_E = r_E_list[-1]
-        r_I = r_I_list[-1]
+    
+    def dr_dt(self, r_E, r_I, I_E, I_I):
 
-        input_current_E = w_EE*r_E- w_EI*r_I+I_E
+        input_current_E = self.w_EE * r_E - self.w_EI * r_I + I_E 
+        drE_dt = dt * (- r_E + nonlinearity_f(input_current_E, alpha=self.alpha_E, theta=self.theta_E))/self.tau_E
 
-        dr_E_dt = dt*(-r_E + nonlinearity_f(input_current_E,alpha=alpha_E,theta=theta_E))/tau_E
-        r_E_list.append(r_E + dr_E_dt)
+        input_current_I = self.w_IE * r_E - self.w_II * r_I + I_I 
+        drI_dt = dt * (- r_I + nonlinearity_f(input_current_I, alpha=self.alpha_I, theta=self.theta_I))/self.tau_I
 
-        input_current_I = w_IE*r_E - w_II*r_I+I_I
+        return drE_dt, drI_dt
+    
+    def run_simulation(self, r_E0, r_I0, I_E = 0, I_I = 0, timesteps=201):    
 
-        dr_I_dt = dt*(-r_I + nonlinearity_f(input_current_I,alpha=alpha_I,theta=theta_I))/tau_I
-        r_I_list.append(r_I + dr_I_dt)
+        if len(self.t_list) == 0:
+            self.t_list.append(0)
+            self.r_E_list.append(r_E0)
+            self.r_I_list.append(r_I0)
+
+       
+        
+        for ii in range(timesteps):
+            
+            r_E = self.r_E_list[-1]
+            r_I = self.r_I_list[-1]
+            
+            dr_E_dt, dr_I_dt = self.dr_dt(r_E, r_I, I_E, I_I)
+            
+            # store in lists
+            self.r_E_list.append(r_E + dr_E_dt)
+            self.r_I_list.append(r_I + dr_I_dt)
+            self.t_list.append(self.t_list[-1]+dt)
+
+
+    def show_sim_results_current_v_time_lecture_plot(self, ax = None, linestyle='-'):
+        
+        if ax == None:
+            fig, ax = plt.subplots()
+            x_ticks = [0,100,200]
+            y_ticks = [0,0.5,1]
+            ax.set_xticks(x_ticks)
+            ax.set_xticklabels(x_ticks,fontsize=14)
+            ax.set_yticks(y_ticks)
+            ax.set_yticklabels(y_ticks,fontsize=14)
+            ax.set_xlabel('time in ms', fontsize=16)
+            ax.set_ylabel('firing rate $r$', fontsize=16)
+            ax.set(
+                ylim = [-0.1,1.1])
+
+        
+
+        ax.plot(self.t_list, self.r_E_list, color='#2171B5', linewidth = 1.5, linestyle = linestyle)
+        ax.plot(self.t_list, self.r_I_list, color='#CB181D', linewidth = 1.5, linestyle = linestyle)
         
         
-    return t_list, r_E_list, r_I_list
+        return ax
+        
+        
+    def show_sim_results_phase_plane(self, ax = None, color = '#984ea3' ):
+        
+        if ax == None:
+            fig, ax = plt.subplots()
+            x_ticks = [0,0.5, 1]
+            y_ticks = [0,0.25,0.5]
+            ax.set_xticks(x_ticks)
+            ax.set_xticklabels(x_ticks,fontsize=14)
+            ax.set_yticks(y_ticks)
+            ax.set_yticklabels(y_ticks,fontsize=14)
+            ax.set_xlabel('Excitatory rate $r_E$', fontsize=16)
+            ax.set_ylabel('Inhibitory rate $r_I$', fontsize=16)
+
+        ax.plot(self.r_E_list, self.r_I_list, linewidth = 1.2, color = color)
+        
+        
+        return ax
 
 
-fig, ax = plt.subplots()
-fig_2, ax_2 = plt.subplots()
-
-t_list, r_E_list, r_I_list = run_E_I_simulation(r_E_0 = 0.32, r_I_0 = 0.3)
-
-ax.plot(t_list, r_E_list, color='#2171B5', linewidth = 1.5)
-ax.plot(t_list, r_I_list, color='#CB181D', linewidth = 1.5)
-ax_2.plot(r_E_list, r_I_list, linewidth = 1.2, color = '#984ea3')
-
-t_list, r_E_list, r_I_list = run_E_I_simulation(r_E_0 = 0.33, r_I_0 = 0.3)
-
-ax.plot(t_list, r_E_list, color='#2171B5', linewidth = 1.5, linestyle = '--')
-ax.plot(t_list, r_I_list, color='#CB181D', linewidth = 1.5, linestyle = '--')
-ax_2.plot(r_E_list, r_I_list, linewidth = 1.2, color = '#ff7f00')
 
 
-x_ticks = [0,100, 200]
-y_ticks = [0,0.5,1]
-ax.set_xticks(x_ticks)
-ax.set_xticklabels(x_ticks,fontsize=14)
-ax.set_yticks(y_ticks)
-ax.set_yticklabels(y_ticks,fontsize=14)
-ax.set_xlabel('time in ms', fontsize=16)
-ax.set_ylabel('firing rate $r$', fontsize=16)
-ax.set(
-    ylim = [-0.1,1.1])
+# +
+lecture_network_1 = EI_network()
+lecture_network_1.run_simulation(r_E0 = 0.32, r_I0 = 0.3)
+ax1 = lecture_network_1.show_sim_results_current_v_time_lecture_plot(linestyle = '-')
+ax2 = lecture_network_1.show_sim_results_phase_plane( color = '#984ea3')
 
-
-x_ticks = [0,0.5, 1]
-y_ticks = [0,0.25,0.5]
-ax_2.set_xticks(x_ticks)
-ax_2.set_xticklabels(x_ticks,fontsize=14)
-ax_2.set_yticks(y_ticks)
-ax_2.set_yticklabels(y_ticks,fontsize=14)
-ax_2.set_xlabel('Excitatory rate $r_E$', fontsize=16)
-ax_2.set_ylabel('Inhibitory rate $r_I$', fontsize=16)
-
-
+lecture_network_2 = EI_network()
+lecture_network_2.run_simulation(r_E0 = 0.33, r_I0 = 0.3)
+lecture_network_2.show_sim_results_current_v_time_lecture_plot(ax = ax1, linestyle = '--')
+lecture_network_2.show_sim_results_phase_plane(ax = ax2, color = '#ff7f00')
 
 
 # +
@@ -674,6 +732,148 @@ ax_2.set_xlabel('time in ms', fontsize=16)
 ax_2.set_ylabel('firing rate $r$', fontsize=16)
 ax_2.set(
     ylim = [-0.1,1.1])
+# +
+start_scope() # this opens our environment
+
+n_neurons = 100
+
+
+
+c_m = 10*nF
+r_m = 1*Mohm
+tau_m = c_m*r_m
+tau_e = 5.26*ms
+tau_i = 8*ms
+E_i = -80*mV
+E_e = 0*mV
+E_l = -75*mV
+v_threshold = -54 *mV
+v_reset = -75*mV
+g_l = 1/r_m
+
+eqs = '''
+dv/dt = (i_e + i_i+ i_l)/c_m : volt
+i_e = g_e * (E_e - v) : amp
+i_i = g_i * (E_i - v) : amp
+i_l = g_l * (E_l - v) : amp
+dg_e/dt = -g_e / tau_e : siemens
+dg_i/dt = -g_i / tau_i : siemens
+'''
+
+input_excitation = PoissonGroup(n_neurons, rates=100*Hz, dt=0.1*ms)
+
+neurons_exc = NeuronGroup(n_neurons*0.8, eqs, threshold='v>v_threshold', reset='v=v_reset', method='exponential_euler')
+neurons_inh = NeuronGroup(n_neurons*0.2, eqs, threshold='v>v_threshold', reset='v=v_reset', method='exponential_euler')
+neurons_exc.v = -65*mV
+neurons_inh.v = -65*mV
+
+excitatory_synapses = Synapses(input_excitation,neurons_exc, 'w : siemens', on_pre = 'g_e += w', name = 'excitatory_connections')
+excitatory_synapses.connect(condition = 'i==j')
+excitatory_synapses.w = 450*nS
+
+inhibitory_synapses = Synapses(input_excitation,neurons_inh, 'w : siemens', on_pre = 'g_e += w', name = 'inhibitory_connections')
+inhibitory_synapses.connect(condition = 'i==j')
+inhibitory_synapses.w = 450*nS
+
+e_e = Synapses(neurons_exc,neurons_exc, 'w : siemens', on_pre = 'g_e += w', name = 'rec_e_e')
+e_e.connect(p=0.15)
+e_e.w = 30*nS
+
+i_e = Synapses(neurons_exc,neurons_inh, 'w : siemens', on_pre = 'g_e += w', name = 'rec_i_e')
+i_e.connect(p=0.15)
+i_e.w = 50*nS
+
+e_i = Synapses(neurons_inh,neurons_exc, 'w : siemens', on_pre = 'g_i += w', name = 'rec_e_i')
+e_i.connect(p=0.35)
+e_i.w = 60*nS
+
+i_i = Synapses(neurons_inh,neurons_inh, 'w : siemens', on_pre = 'g_i += w', name = 'rec_i_i')
+i_i.connect(p=0.05)
+i_i.w = 20*nS
+
+
+W = np.full((n_neurons +2, n_neurons + 2), np.nan) # we always add + 2 to allow color annotations in plot
+# Insert the values from the Synapses object
+W[e_e.i[:], e_e.j[:]] = e_e.w[:]/nS
+W[i_e.i[:], i_e.j[:]+len(neurons_exc)] = i_e.w[:]/nS
+W[e_i.i[:]+len(neurons_exc),e_i.j[:]] = e_i.w[:]/nS
+W[i_i.i[:]+len(neurons_exc),i_i.j[:]+len(neurons_exc)] = i_i.w/nS
+
+
+fig, ax = plt.subplots()
+im = ax.imshow(W, origin='lower', cmap='binary', vmin=0)
+ax.plot([-1,-1],[-1,len(neurons_exc)], color = '#3690c0',linewidth=4)
+ax.plot([-1,-1],[len(neurons_exc),n_neurons], color = '#d7301f',linewidth=4)
+ax.plot([-1,len(neurons_exc)],[-1,-1], color = '#3690c0',linewidth=4)
+ax.plot([len(neurons_exc),n_neurons],[-1,-1], color = '#d7301f',linewidth=4)
+divider = make_axes_locatable(ax)
+ax.set(
+    xlim = (-2,n_neurons),
+    ylim = (-2,n_neurons),
+    xlabel = 'presynaptic neuron',
+    ylabel = 'postsynaptic neuron')
+cax = divider.append_axes('right', size='5%', pad=0.05)
+cax.grid(False)
+fig.colorbar(im, cax=cax, orientation='vertical', label='Synaptic weight in nS')
+
+plt.savefig('connectivity_matrix.pdf', dpi=300, format=None, metadata=None,
+        bbox_inches=None, pad_inches=0.1,
+        facecolor='auto', edgecolor='auto',
+        backend=None,
+       )
+
+
+specific_excitation = PoissonGroup(n_neurons*0.1, rates=0*Hz)
+specific_syn = Synapses(specific_excitation,neurons_exc, 'w : siemens', on_pre = 'g_e += w', name = 'specific_connections')
+specific_syn.connect(condition = 'i==j')
+specific_syn.w = 4.5*nS
+
+
+M_e = SpikeMonitor(neurons_exc)
+M_i = SpikeMonitor(neurons_inh)
+voltage_exc = StateMonitor(neurons_exc, 'v', record=True)
+rate_exc = PopulationRateMonitor(neurons_exc)
+rate_inh = PopulationRateMonitor(neurons_inh)
+
+
+
+run(2000*ms)
+
+fig, (ax1,ax2,ax3) = plt.subplots(3, sharex=True)
+ax1.plot(M_e.t/ms, M_e.i, '.', c='#2b8cbe')
+ax1.plot(M_i.t/ms, M_i.i+n_neurons*0.8, '.', c='#de2d26')
+ax1.set(
+    ylabel = 'Neuron')
+ax2.plot(voltage_exc.t/ms, np.mean((voltage_exc.v/mV),axis=0))
+ax3.plot(rate_inh)
+ax3.set(
+    xlabel = 'Time in ms')
+
+
 # -
 
 
+# \begin{align}
+# \tau_E \frac{dr_E}{dt} &= -r_E + F_E(w_{EE}r_E -w_{EI}r_I + I_E) \\
+# \tau_I \frac{dr_I}{dt} &= -r_I + F_I(w_{IE}r_E -w_{II}r_I + I_I) \qquad (1)
+# \end{align}
+
+# +
+
+def dr_dt(
+    dt,
+    tauE = 20, tauI = 10):
+    
+    x = wEE * rE - wEI * rI + IE 
+    drE_dt = dt * (- rE + nonlinearity_f(x, alpha, theta))/tauE
+
+    x = wIE * rE - wII * rI + II 
+    drI_dt = dt * (- rI + nonlinearity_f(x, alpha, theta))/tauI
+    
+    return drE_dt, drI_dt
+
+
+# run the simulation for the rate model
+for ii in range(time_steps):
+    
+    
