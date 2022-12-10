@@ -89,29 +89,46 @@ def interactive_f(alpha=0.2, theta=40):
     
 widgets.interactive(interactive_f, alpha = (0.01,1,0.01), theta=(0,60,10))
 
+
 # +
-r_0 = 0.3
-I_ext = 20
+def run_input_to_nonlinearity(r_0 = 0.3, I_ext = 20, alpha=0.5,theta=10):
+    
+    t_list = [0]
+    r_list = [r_0]
+    
+    dt = 0.1
+    tau = 20
+    for ii in range(1500):
+        t_list.append(t_list[-1]+dt)
+        r_list.append(r_list[-1] + dt*(-r_list[-1]+nonlinearity_f(I_ext,alpha=alpha,theta=theta))/tau)
+        
+    return t_list, r_list
 
-fig, ax = plt.subplots()
+def show_input_to_nonlinearity(
+    t_list, 
+    r_list,
+    color = 'k',
+    ax = None):
+    if ax == None:
+        fig, ax = plt.subplots()
 
-nonlinearity_f
+    ax.plot(t_list, r_list, color=color)
+    ax.set_xticks([0,75,150])
+    ax.set_xticklabels([0,75,150],fontsize=14)
+    ax.set_yticks([0,0.5,1])
+    ax.set_yticklabels([0,0.5,1],fontsize=14)
+    ax.set_xlabel('time in ms', fontsize=16)
+    ax.set_ylabel('firing rate $r$', fontsize=16)
+    
+    return ax
 
-r_list = [r_0]
-t_list = [0]
-dt = 0.1
-tau = 20
-for ii in range(1500):
-    t_list.append(t_list[-1]+dt)
-    r_list.append(r_list[-1] + dt*(-r_list[-1]+nonlinearity_f(I_ext,alpha=0.5,theta=10))/tau)
 
-ax.plot(t_list, r_list, color='k')
-ax.set_xticks([0,75,150])
-ax.set_xticklabels([0,75,150],fontsize=14)
-ax.set_yticks([0,0.5,1])
-ax.set_yticklabels([0,0.5,1],fontsize=14)
-ax.set_xlabel('time in ms', fontsize=16)
-ax.set_ylabel('firing rate $r$', fontsize=16)
+# +
+def interctive_input_to_nonlinearity(r_0 = 0.3, I_ext = 20):
+    t_list, r_list = run_input_to_nonlinearity(r_0 = r_0, I_ext = I_ext)
+    show_input_to_nonlinearity(t_list, r_list)
+    
+widgets.interactive(interctive_input_to_nonlinearity, r_0 = (0,1,0.05), I_ext = (0,40,1))
 
 
 # -
@@ -126,116 +143,105 @@ ax.set_ylabel('firing rate $r$', fontsize=16)
 # \tau_I \frac{dr_I}{dt} &= -r_I + F_I(w_{IE}r_E -w_{II}r_I + I_I) \qquad (1)
 # \end{align}
 
-# +
-def compute_drdt(r, I_ext, w, alpha, theta, tau, **other_pars):
-  """Given parameters, compute dr/dt as a function of r.
+class RecurrentNetwork(object):
+    """
+    This class can create a recurrent network, run simulations and visualize the results
+    """
+    def __init__(self, 
+                    w = 5,
+                    alpha = 4,
+                    theta = 13,
+                    tau = 11,
+                    dt = 1
+    ):
+        '''This function is executed when we create an object from that class'''
+        super(RecurrentNetwork, self).__init__()
+        
+        self.w = w
+        self.alpha = alpha
+        self.theta = theta
+        self.tau = tau
+        self.dt = dt
 
-  Args:
-    r (1D array) : Average firing rate of the excitatory population
-    I_ext, w, a, theta, tau (numbers): Simulation parameters to use
-    other_pars : Other simulation parameters are unused by this function
+        self.t_list = []
+        self.r_list = []
+        
 
-  Returns
-    drdt function for each value of r
-  """
-  # Calculate drdt
-  drdt = (-r + nonlinearity_f(w * r + I_ext, alpha, theta)) / tau
-
-  return drdt
+    def compute_drdt(self, r, I_ext):
+        # Calculate drdt
+        drdt = (-r + nonlinearity_f(self.w * r + I_ext, self.alpha, self.theta)) / self.tau
+        return drdt
 
 
-# Define a vector of r values and the simulation parameters
-r = np.linspace(0, 1, 1000)
+    def run_simulation(self, r_0 = 0.3, I_ext = 20, time_steps = 1500):
 
-# Compute dr/dt
-drdt = compute_drdt(r, I_ext = 0.5, w = 5, alpha = 1.2, theta = 2.8, tau = 20)
+        self.t_list = [0]
+        self.r_list = [r_0]
+
+        for ii in range(time_steps):
+            drdt = self.compute_drdt(r = self.r_list[-1], I_ext = I_ext)
+            self.r_list.append(self.r_list[-1] + self.dt*drdt)
+            self.t_list.append(self.t_list[-1]+self.dt)
+
+
+    def show_simulation_result(
+        self,
+        color = 'k',
+        linewidth = 2,
+        ax = None):
+        if ax == None:
+            fig, ax = plt.subplots()
+
+        ax.plot(self.t_list, self.r_list, color=color, linewidth=linewidth)
+        ax.set_xticks([0,75,150])
+        ax.set_xticklabels([0,75,150],fontsize=14)
+        ax.set_yticks([0,0.5,1])
+        ax.set_yticklabels([0,0.5,1],fontsize=14)
+        ax.set_xlabel('time in ms', fontsize=16)
+        ax.set_ylabel('firing rate $r$', fontsize=16)
+
+        return ax
+    
+    def show_phase_plane(self,
+                        I_ext = 0.5):
+        
+        # Define a vector of r values and the simulation parameters
+        r = np.linspace(0, 1, 1000)
+
+        # Compute dr/dt
+        drdt = compute_drdt(r, I_ext = I_ext, w = self.w, alpha = self.alpha, theta = self.theta, tau = self.tau)
+
+        fig, ax = plt.subplots()
+        ax.plot(r, drdt)
+        ax.plot([0,1],[0,0],linestyle = '--', color = 'k')
+
+        x_ticks = [0,0.5,1]
+        y_ticks = [-0.003, 0, 0.003]
+        ax.set_xticks(x_ticks)
+        ax.set_xticklabels(x_ticks,fontsize=14)
+        ax.set_yticks(y_ticks)
+        ax.set_yticklabels(y_ticks,fontsize=14)
+        ax.set_xlabel('$r$', fontsize=16, fontweight='bold')
+        ax.set_ylabel(r'$\frac{dr}{dt}$', fontsize=22, rotation=0, fontweight='bold')
+    
+
+example = RecurrentNetwork(w = 5, alpha = 1.2, theta = 2.8, tau = 20)
+example.show_phase_plane()
+
+example = RecurrentNetwork(w = 5, alpha = 1.2, theta = 2.8, tau = 20)
+example.run_simulation(r_0 = 0.3, I_ext = 0.5, time_steps = 150)
+ax = example.show_simulation_result(color = '#984ea3',ax = None)
+example.run_simulation(r_0 = 0.6, I_ext = 0.5, time_steps = 150)
+example.show_simulation_result(color = '#ff7f00',ax = ax )
 
 fig, ax = plt.subplots()
-ax.plot(r, drdt)
-ax.plot([0,1],[0,0],linestyle = '--', color = 'k')
-
-x_ticks = [0,0.5,1]
-y_ticks = [-0.003, 0, 0.003]
-ax.set_xticks(x_ticks)
-ax.set_xticklabels(x_ticks,fontsize=14)
-ax.set_yticks(y_ticks)
-ax.set_yticklabels(y_ticks,fontsize=14)
-ax.set_xlabel('$r$', fontsize=16, fontweight='bold')
-ax.set_ylabel(r'$\frac{dr}{dt}$', fontsize=22, rotation=0, fontweight='bold')
-
-# +
-
-
-fig, ax = plt.subplots()
-
-
-
-r_0 = 0.2
-I_ext = 0.5
-w=5
-r_list = [r_0]
-t_list = [0]
-dt = 0.1
-tau = 20
-for ii in range(1500):
-    t_list.append(t_list[-1]+dt)
-    r_list.append(r_list[-1] + dt*(-r_list[-1] + nonlinearity_f(w*r_list[-1]+I_ext,alpha=1.2,theta=2.8))/tau)
-
-ax.plot(t_list, r_list, color='#984ea3')
-
-r_0 = 0.6
-r_list = [r_0]
-t_list = [0]
-for ii in range(1500):
-    t_list.append(t_list[-1]+dt)
-    r_list.append(r_list[-1] + dt*(-r_list[-1] + nonlinearity_f(w*r_list[-1]+I_ext,alpha=1.2,theta=2.8))/tau)
-
-ax.plot(t_list, r_list, color='#ff7f00')
-
-
-
-ax.set_xticks([0,75,150])
-ax.set_xticklabels([0,75,150],fontsize=14)
-ax.set_yticks([0,0.5,1])
-ax.set_yticklabels([0,0.5,1],fontsize=14)
-ax.set_xlabel('time in ms', fontsize=16)
-ax.set_ylabel('firing rate $r$', fontsize=16)
-
-# +
-fig, ax = plt.subplots()
-
-
-
+example = RecurrentNetwork(w = 5, alpha = 1.2, theta = 2.8, tau = 20)
 for r_0 in [0, 0.1, 0.2, 0.3, 0.4, 0.44]:
-    I_ext = 0.5
-    w=5
-    r_list = [r_0]
-    t_list = [0]
-    dt = 0.1
-    tau = 20
-    for ii in range(2200):
-        t_list.append(t_list[-1]+dt)
-        r_list.append(r_list[-1] + dt*(-r_list[-1] + nonlinearity_f(w*r_list[-1]+I_ext,alpha=1.2,theta=2.8))/tau)
-
-    ax.plot(t_list, r_list, color='#984ea3', linewidth = 0.8)
-
+    example.run_simulation(r_0 = r_0, I_ext = 0.5, time_steps = 150)
+    example.show_simulation_result(color = '#984ea3', linewidth = 0.8,ax = ax)
 for r_0 in [0.45, 0.5, 0.6, 0.7, 0.8, 0.9, 1]:
-    r_list = [r_0]
-    t_list = [0]
-    for ii in range(2200):
-        t_list.append(t_list[-1]+dt)
-        r_list.append(r_list[-1] + dt*(-r_list[-1] + nonlinearity_f(w*r_list[-1]+I_ext,alpha=1.2,theta=2.8))/tau)
-
-    ax.plot(t_list, r_list, color='#ff7f00', linewidth = 0.8)
-
-
-
-ax.set_xticks([0,100, 200])
-ax.set_xticklabels([0,100,200],fontsize=14)
-ax.set_yticks([0,0.5,1])
-ax.set_yticklabels([0,0.5,1],fontsize=14)
-ax.set_xlabel('time in ms', fontsize=16)
-ax.set_ylabel('firing rate $r$', fontsize=16)
+    example.run_simulation(r_0 = r_0, I_ext = 0.5, time_steps = 150)
+    example.show_simulation_result(color = '#ff7f00', linewidth = 0.8,ax = ax)
 
 
 # +
@@ -258,7 +264,7 @@ class EI_network(object):
                     alpha_I = 1.0,
                     theta_I = 4.0,
 
-                    dt = 1
+                    dt = 1 
     ):
         '''This function is executed when we create an object from that class'''
         super(EI_network, self).__init__()
@@ -286,26 +292,24 @@ class EI_network(object):
     def dr_dt(self, r_E, r_I, I_E, I_I):
 
         input_current_E = self.w_EE * r_E - self.w_EI * r_I + I_E 
-        drE_dt = dt * (- r_E + nonlinearity_f(input_current_E, alpha=self.alpha_E, theta=self.theta_E))/self.tau_E
+        drE_dt = self.dt * (- r_E + nonlinearity_f(input_current_E, alpha=self.alpha_E, theta=self.theta_E))/self.tau_E
 
         input_current_I = self.w_IE * r_E - self.w_II * r_I + I_I 
-        drI_dt = dt * (- r_I + nonlinearity_f(input_current_I, alpha=self.alpha_I, theta=self.theta_I))/self.tau_I
+        drI_dt = self.dt * (- r_I + nonlinearity_f(input_current_I, alpha=self.alpha_I, theta=self.theta_I))/self.tau_I
 
         return drE_dt, drI_dt
     
     def run_simulation(self, r_E0, r_I0, I_E = 0, I_I = 0, timesteps=201):    
 
-        if len(self.t_list) == 0:
-            self.t_list.append(0)
-            self.r_E_list.append(r_E0)
-            self.r_I_list.append(r_I0)
-
-       
+        self.t_list = [0]
+        self.r_E_list = [r_E0]
+        self.r_I_list = [r_I0]       
         
         for ii in range(timesteps):
             
             r_E = self.r_E_list[-1]
             r_I = self.r_I_list[-1]
+        
             
             dr_E_dt, dr_I_dt = self.dr_dt(r_E, r_I, I_E, I_I)
             
@@ -319,16 +323,16 @@ class EI_network(object):
         
         if ax == None:
             fig, ax = plt.subplots()
-            x_ticks = [0,100,200]
-            y_ticks = [0,0.5,1]
-            ax.set_xticks(x_ticks)
-            ax.set_xticklabels(x_ticks,fontsize=14)
-            ax.set_yticks(y_ticks)
-            ax.set_yticklabels(y_ticks,fontsize=14)
-            ax.set_xlabel('time in ms', fontsize=16)
-            ax.set_ylabel('firing rate $r$', fontsize=16)
-            ax.set(
-                ylim = [-0.1,1.1])
+        x_ticks = [0,100,200]
+        y_ticks = [0,0.5,1]
+        ax.set_xticks(x_ticks)
+        ax.set_xticklabels(x_ticks,fontsize=14)
+        ax.set_yticks(y_ticks)
+        ax.set_yticklabels(y_ticks,fontsize=14)
+        ax.set_xlabel('time in ms', fontsize=16)
+        ax.set_ylabel('firing rate $r$', fontsize=16)
+        ax.set(
+            ylim = [-0.1,1.1])
 
         
 
@@ -339,20 +343,20 @@ class EI_network(object):
         return ax
         
         
-    def show_sim_results_phase_plane(self, ax = None, color = '#984ea3' ):
+    def show_sim_results_phase_plane(self, ax = None, color = '#984ea3', linestyle='-' ):
         
         if ax == None:
             fig, ax = plt.subplots()
-            x_ticks = [0,0.5, 1]
-            y_ticks = [0,0.25,0.5]
-            ax.set_xticks(x_ticks)
-            ax.set_xticklabels(x_ticks,fontsize=14)
-            ax.set_yticks(y_ticks)
-            ax.set_yticklabels(y_ticks,fontsize=14)
-            ax.set_xlabel('Excitatory rate $r_E$', fontsize=16)
-            ax.set_ylabel('Inhibitory rate $r_I$', fontsize=16)
+        x_ticks = [0,0.5, 1]
+        y_ticks = [0,0.25,0.5]
+        ax.set_xticks(x_ticks)
+        ax.set_xticklabels(x_ticks,fontsize=14)
+        ax.set_yticks(y_ticks)
+        ax.set_yticklabels(y_ticks,fontsize=14)
+        ax.set_xlabel('Excitatory rate $r_E$', fontsize=16)
+        ax.set_ylabel('Inhibitory rate $r_I$', fontsize=16)
 
-        ax.plot(self.r_E_list, self.r_I_list, linewidth = 1.2, color = color)
+        ax.plot(self.r_E_list, self.r_I_list, linewidth = 1.2, color = color, linestyle = linestyle)
         
         
         return ax
@@ -361,377 +365,157 @@ class EI_network(object):
 
 
 # +
-lecture_network_1 = EI_network()
-lecture_network_1.run_simulation(r_E0 = 0.32, r_I0 = 0.3)
-ax1 = lecture_network_1.show_sim_results_current_v_time_lecture_plot(linestyle = '-')
-ax2 = lecture_network_1.show_sim_results_phase_plane( color = '#984ea3')
+fig, (ax1,ax2) = plt.subplots(1,2, figsize = (12,6))
 
-lecture_network_2 = EI_network()
-lecture_network_2.run_simulation(r_E0 = 0.33, r_I0 = 0.3)
-lecture_network_2.show_sim_results_current_v_time_lecture_plot(ax = ax1, linestyle = '--')
-lecture_network_2.show_sim_results_phase_plane(ax = ax2, color = '#ff7f00')
+lecture_network = EI_network()
+lecture_network.run_simulation(r_E0 = 0.32, r_I0 = 0.3)
+lecture_network.show_sim_results_current_v_time_lecture_plot(linestyle = '-', ax = ax1)
+lecture_network.show_sim_results_phase_plane( color = '#984ea3', ax = ax2)
+
+
+lecture_network.run_simulation(r_E0 = 0.33, r_I0 = 0.3)
+lecture_network.show_sim_results_current_v_time_lecture_plot(ax = ax1, linestyle = '--')
+lecture_network.show_sim_results_phase_plane(ax = ax2, color = '#ff7f00');
 
 
 # +
-# to_remove solution
 def F_inv(x, a, theta):
-  """
-  Args:
-    x         : the population input
-    a         : the gain of the function
-    theta     : the threshold of the function
+    # Calculate Finverse (ln(x) can be calculated as np.log(x))
+    F_inverse = -1/a * np.log((x + (1 + np.exp(a * theta))**-1)**-1 - 1) + theta
 
-  Returns:
-    F_inverse : value of the inverse function
-  """
+    return F_inverse
 
-  # Calculate Finverse (ln(x) can be calculated as np.log(x))
-  F_inverse = -1/a * np.log((x + (1 + np.exp(a * theta))**-1)**-1 - 1) + theta
+class EI_network_extended(EI_network):
+    """
+    This class can create E-I networks, run simulations and visualize the results
+    """
+    def __init__(self, **params):
+        '''This function is executed when we create an object from that class'''
+        super(EI_network_extended, self).__init__(**params)
+        
+        
+    def get_E_nullcline(self, r_E, I_E):
+        # calculate rI for E nullclines on rI
+        r_I = 1 / self.w_EI * (self.w_EE * r_E - F_inv(r_E, self.alpha_E, self.theta_E) + I_E)
 
-  return F_inverse
-
-
-x = np.linspace(1e-6, 1, 100)
-# plot_FI_inverse(x, a=1, theta=3)
-
-# to_remove solution
-def get_E_nullcline(rE, a_E, theta_E, wEE, wEI, I_ext_E, **other_pars):
-  """
-  Solve for rI along the rE from drE/dt = 0.
-
-  Args:
-    rE    : response of excitatory population
-    a_E, theta_E, wEE, wEI, I_ext_E : Wilson-Cowan excitatory parameters
-    Other parameters are ignored
-
-  Returns:
-    rI    : values of inhibitory population along the nullcline on the rE
-  """
-  # calculate rI for E nullclines on rI
-  rI = 1 / wEI * (wEE * rE - F_inv(rE, a_E, theta_E) + I_ext_E)
-
-  return rI
+        return r_I
 
 
-def get_I_nullcline(rI, a_I, theta_I, wIE, wII, I_ext_I, **other_pars):
-  """
-  Solve for E along the rI from dI/dt = 0.
+    def get_I_nullcline(self, r_I, I_I):
+        # calculate rE for I nullclines on rI
+        r_E = 1 / self.w_IE * (self.w_II * r_I + F_inv(r_I, self.alpha_I, self.theta_I) - I_I)
 
-  Args:
-    rI    : response of inhibitory population
-    a_I, theta_I, wIE, wII, I_ext_I : Wilson-Cowan inhibitory parameters
-    Other parameters are ignored
+        return r_E
+    
+    def show_nullclines_in_phase_plane(self, I_E = 0, I_I = 0, ax = None):
+        
+        if ax == None:
+            fig, ax = plt.subplots()
+            
+        # Set parameters
+        Exc_null_rE = np.linspace(-0.01, 0.96, 100)
+        Inh_null_rI = np.linspace(-.01, 0.8, 100)
+        
+        # Compute nullclines
+        Exc_null_rI = self.get_E_nullcline(Exc_null_rE, I_E)
+        Inh_null_rE = self.get_I_nullcline(Inh_null_rI, I_I)
 
-  Returns:
-    rE    : values of the excitatory population along the nullcline on the rI
-  """
-  # calculate rE for I nullclines on rI
-  rE = 1 / wIE * (wII * rI + F_inv(rI, a_I, theta_I) - I_ext_I)
-
-  return rE
-
-
-# Set parameters
-Exc_null_rE = np.linspace(-0.01, 0.96, 100)
-Inh_null_rI = np.linspace(-.01, 0.8, 100)
-
-# Compute nullclines
-Exc_null_rI = get_E_nullcline(Exc_null_rE, a_E = alpha_E, theta_E = theta_E, wEE = w_EE, wEI=w_EI, I_ext_E=I_E)
-Inh_null_rE = get_I_nullcline(Inh_null_rI, a_I = alpha_I, theta_I = theta_I, wII = w_II, wIE=w_IE, I_ext_I=I_I)
-
-fig, ax = plt.subplots()
-
-ax.plot(Exc_null_rE,Exc_null_rI, color='#2171B5', linewidth = 1.5, label = 'E-nullcline')
-ax.plot(Inh_null_rE,Inh_null_rI, color='#CB181D', linewidth = 1.5, label = 'I-nullcline')
-x_ticks = [0,0.5, 1]
-y_ticks = [0,0.5,1]
-ax.set_xticks(x_ticks)
-ax.set_xticklabels(x_ticks,fontsize=14)
-ax.set_yticks(y_ticks)
-ax.set_yticklabels(y_ticks,fontsize=14)
-ax.set_xlabel('Excitatory rate $r_E$', fontsize=16)
-ax.set_ylabel('Inhibitory rate $r_I$', fontsize=16)
-ax.set_xlim([np.min(Inh_null_rE)*1.3,1])
+        ax.plot(Exc_null_rE,Exc_null_rI, color='#2171B5', linewidth = 1.5, label = 'E-nullcline')
+        ax.plot(Inh_null_rE,Inh_null_rI, color='#CB181D', linewidth = 1.5, label = 'I-nullcline')
+        x_ticks = [0,0.5, 1]
+        y_ticks = [0,0.5,1]
+        ax.set_xticks(x_ticks)
+        ax.set_xticklabels(x_ticks,fontsize=14)
+        ax.set_yticks(y_ticks)
+        ax.set_yticklabels(y_ticks,fontsize=14)
+        ax.set_xlabel('Excitatory rate $r_E$', fontsize=16)
+        ax.set_ylabel('Inhibitory rate $r_I$', fontsize=16)
+        ax.set_xlim([np.min(Inh_null_rE)*1.3,1])
+        
+        return ax
+        
 
 
-def EIderivs(rE, rI,
-             tau_E, a_E, theta_E, wEE, wEI, I_ext_E,
-             tau_I, a_I, theta_I, wIE, wII, I_ext_I,
-             **other_pars):
-  """Time derivatives for E/I variables (dE/dt, dI/dt)."""
+    def show_vectors_in_phase_plane(self, ax, I_E = 0, I_I = 0):
+        
 
-  # Compute the derivative of rE
-  drEdt = (-rE + nonlinearity_f(wEE * rE - wEI * rI + I_ext_E, a_E, theta_E)) / tau_E
-
-  # Compute the derivative of rI
-  drIdt = (-rI + nonlinearity_f(wIE * rE - wII * rI + I_ext_I, a_I, theta_I)) / tau_I
-
-  return drEdt, drIdt
+        EI_grid = np.linspace(-0.2, 1., 20)
+        r_E, r_I = np.meshgrid(EI_grid, EI_grid)
+        drEdt, drIdt = self.dr_dt(r_E, r_I, I_E = I_E, I_I = I_I)
+        n_skip = 2
+        ax.quiver(r_E[::n_skip, ::n_skip], r_I[::n_skip, ::n_skip],
+                 drEdt[::n_skip, ::n_skip], drIdt[::n_skip, ::n_skip],
+                 angles='xy', scale_units='xy', scale=1, facecolor='k', width = 0.003)
 
 
-EI_grid = np.linspace(-0.2, 1., 20)
-rE, rI = np.meshgrid(EI_grid, EI_grid)
-drEdt, drIdt = EIderivs(rE, rI, tau_E = tau_E, a_E = alpha_E, theta_E = theta_E, wEE = w_EE, wEI = w_EI, I_ext_E = I_E,
-                                tau_I = tau_I, a_I = alpha_I, theta_I = theta_I, wIE = w_IE, wII = w_II, I_ext_I = I_I)
-n_skip = 2
-plt.quiver(rE[::n_skip, ::n_skip], rI[::n_skip, ::n_skip],
-         drEdt[::n_skip, ::n_skip], drIdt[::n_skip, ::n_skip],
-         angles='xy', scale_units='xy', scale=1, facecolor='k', width = 0.003)
 
+# -
+
+
+example = EI_network_extended()
+ax = example.show_nullclines_in_phase_plane()
+example.show_vectors_in_phase_plane(ax=ax)
 
 # +
+fig, (ax1,ax2) = plt.subplots(1,2, figsize = (12,6))
 
-# Set parameters
-Exc_null_rE = np.linspace(-0.01, 0.96, 100)
-Inh_null_rI = np.linspace(-.01, 0.8, 100)
+lecture_network = EI_network_extended()
+lecture_network.run_simulation(r_E0 = 0.32, r_I0 = 0.3)
+lecture_network.show_sim_results_current_v_time_lecture_plot(linestyle = '-', ax = ax1)
+lecture_network.show_sim_results_phase_plane( color = '#984ea3', ax = ax2)
 
-# Compute nullclines
-Exc_null_rI = get_E_nullcline(Exc_null_rE, a_E = alpha_E, theta_E = theta_E, wEE = w_EE, wEI=w_EI, I_ext_E=I_E)
-Inh_null_rE = get_I_nullcline(Inh_null_rI, a_I = alpha_I, theta_I = theta_I, wII = w_II, wIE=w_IE, I_ext_I=I_I)
+lecture_network.run_simulation(r_E0 = 0.33, r_I0 = 0.3)
+lecture_network.show_sim_results_current_v_time_lecture_plot(ax = ax1, linestyle = '--')
+lecture_network.show_sim_results_phase_plane(ax = ax2, color = '#ff7f00');
 
-fig, ax = plt.subplots()
-
-
-x_ticks = [0,0.5, 1]
-y_ticks = [0,0.5,1]
-ax.set_xticks(x_ticks)
-ax.set_xticklabels(x_ticks,fontsize=14)
-ax.set_yticks(y_ticks)
-ax.set_yticklabels(y_ticks,fontsize=14)
-ax.set_xlabel('Excitatory rate $r_E$', fontsize=16)
-ax.set_ylabel('Inhibitory rate $r_I$', fontsize=16)
-ax.set_xlim([np.min(Inh_null_rE)*1.3,1])
-
-EI_grid = np.linspace(-0.2, 1., 20)
-rE, rI = np.meshgrid(EI_grid, EI_grid)
-drEdt, drIdt = EIderivs(rE, rI, tau_E = tau_E, a_E = alpha_E, theta_E = theta_E, wEE = w_EE, wEI = w_EI, I_ext_E = I_E,
-                                tau_I = tau_I, a_I = alpha_I, theta_I = theta_I, wIE = w_IE, wII = w_II, I_ext_I = I_I)
-n_skip = 2
-plt.quiver(rE[::n_skip, ::n_skip], rI[::n_skip, ::n_skip],
-         drEdt[::n_skip, ::n_skip], drIdt[::n_skip, ::n_skip],
-         angles='xy', scale_units='xy', scale=1, facecolor='k', width = 0.003, alpha = 0.3)
-
-ax.plot(Exc_null_rE,Exc_null_rI, color='#2171B5', linewidth = 1.5, label = 'E-nullcline', alpha = 0.3)
-ax.plot(Inh_null_rE,Inh_null_rI, color='#CB181D', linewidth = 1.5, label = 'I-nullcline', alpha = 0.3)
-
-
-t_list, r_E_list, r_I_list = run_E_I_simulation(r_E_0 = 0.32, r_I_0 = 0.3)
-
-ax.plot(r_E_list, r_I_list, linewidth = 2.2, color = '#984ea3')
-
-t_list, r_E_list, r_I_list = run_E_I_simulation(r_E_0 = 0.33, r_I_0 = 0.3)
-
-ax.plot(r_E_list, r_I_list, linewidth = 2.2, color = '#ff7f00')
-
+lecture_network.show_nullclines_in_phase_plane(ax=ax2)
+lecture_network.show_vectors_in_phase_plane(ax=ax2)
 
 # +
-def make(w_EE = 9, w_EI = 4, w_II = 13, w_IE = 11,tau_E = 20, tau_I = 20,
-        alpha_E = 1.2,
-    theta_E = 2.8, I_E = 0,
-    I_I = 0):
+fig, (ax1,ax2) = plt.subplots(1,2, figsize = (12,6))
 
-    
-    
+lecture_network = EI_network_extended(
+    w_EE = 9 ,
+    w_EI = 6,
+    w_II = 7,
+    w_IE = 14,
+    tau_E = 10, 
+    tau_I = 14)
 
-
-
-    
-
-    alpha_I = 1.0
-    theta_I = 4.0
-
-    # Set parameters
-    Exc_null_rE = np.linspace(-0.01, 0.96, 100)
-    Inh_null_rI = np.linspace(-.01, 1, 100)
-
-    # Compute nullclines
-    Exc_null_rI = get_E_nullcline(Exc_null_rE, a_E = alpha_E, theta_E = theta_E, wEE = w_EE, wEI=w_EI, I_ext_E=I_E)
-    Inh_null_rE = get_I_nullcline(Inh_null_rI, a_I = alpha_I, theta_I = theta_I, wII = w_II, wIE=w_IE, I_ext_I=I_I)
-
-    fig, ax = plt.subplots()
-
-    ax.plot(Exc_null_rE,Exc_null_rI, color='#2171B5', linewidth = 1.5, label = 'E-nullcline')
-    ax.plot(Inh_null_rE,Inh_null_rI, color='#CB181D', linewidth = 1.5, label = 'I-nullcline')
-    x_ticks = [0,0.5, 1]
-    y_ticks = [0,0.5,1]
-    ax.set_xticks(x_ticks)
-    ax.set_xticklabels(x_ticks,fontsize=14)
-    ax.set_yticks(y_ticks)
-    ax.set_yticklabels(y_ticks,fontsize=14)
-    ax.set_xlabel('Excitatory rate $r_E$', fontsize=16)
-    ax.set_ylabel('Inhibitory rate $r_I$', fontsize=16)
-#     ax.set_xlim([np.min(Inh_null_rE)*1.3,1])
-    EI_grid = np.linspace(-0.2, 1., 20)
-    rE, rI = np.meshgrid(EI_grid, EI_grid)
-    drEdt, drIdt = EIderivs(rE, rI, tau_E = tau_E, a_E = alpha_E, theta_E = theta_E, wEE = w_EE, wEI = w_EI, I_ext_E = I_E,
-                                    tau_I = tau_I, a_I = alpha_I, theta_I = theta_I, wIE = w_IE, wII = w_II, I_ext_I = I_I)
-    n_skip = 2
-    plt.quiver(rE[::n_skip, ::n_skip], rI[::n_skip, ::n_skip],
-             drEdt[::n_skip, ::n_skip], drIdt[::n_skip, ::n_skip],
-             angles='xy', scale_units='xy', scale=1, facecolor='k', width = 0.003)
-
-widgets.interactive(make)
-
-# +
-w_EE = 9 
-w_EI = 6
-w_II = 7
-w_IE = 14
-tau_E = 10 
-tau_I = 10
-alpha_E = 1.2
-theta_E = 2.8
-I_E = 1
+I_E = 0.8
 I_I = 0
+lecture_network.run_simulation(r_E0 = 0.8, r_I0 = 0.7, I_E = I_E, I_I = I_I, timesteps = 400)
+lecture_network.show_sim_results_current_v_time_lecture_plot(linestyle = '-', ax = ax1)
+lecture_network.show_sim_results_phase_plane( color = '#548235', ax = ax2)
 
-
-# Set parameters
-Exc_null_rE = np.linspace(-0.01, 0.96, 100)
-Inh_null_rI = np.linspace(-.01, 0.8, 100)
-
-# Compute nullclines
-Exc_null_rI = get_E_nullcline(Exc_null_rE, a_E = alpha_E, theta_E = theta_E, wEE = w_EE, wEI=w_EI, I_ext_E=I_E)
-Inh_null_rE = get_I_nullcline(Inh_null_rI, a_I = alpha_I, theta_I = theta_I, wII = w_II, wIE=w_IE, I_ext_I=I_I)
-
-fig, ax = plt.subplots()
-
-
-x_ticks = [0,0.5, 1]
-y_ticks = [0,0.5,1]
-ax.set_xticks(x_ticks)
-ax.set_xticklabels(x_ticks,fontsize=14)
-ax.set_yticks(y_ticks)
-ax.set_yticklabels(y_ticks,fontsize=14)
-ax.set_xlabel('Excitatory rate $r_E$', fontsize=16)
-ax.set_ylabel('Inhibitory rate $r_I$', fontsize=16)
-ax.set_xlim([np.min(Inh_null_rE)*1.3,1])
-
-EI_grid = np.linspace(-0.2, 1., 20)
-rE, rI = np.meshgrid(EI_grid, EI_grid)
-drEdt, drIdt = EIderivs(rE, rI, tau_E = tau_E, a_E = alpha_E, theta_E = theta_E, wEE = w_EE, wEI = w_EI, I_ext_E = I_E,
-                                tau_I = tau_I, a_I = alpha_I, theta_I = theta_I, wIE = w_IE, wII = w_II, I_ext_I = I_I)
-n_skip = 2
-plt.quiver(rE[::n_skip, ::n_skip], rI[::n_skip, ::n_skip],
-         drEdt[::n_skip, ::n_skip], drIdt[::n_skip, ::n_skip],
-         angles='xy', scale_units='xy', scale=1, facecolor='k', width = 0.003, alpha = 0.3)
-
-ax.plot(Exc_null_rE,Exc_null_rI, color='#2171B5', linewidth = 1.5, label = 'E-nullcline', alpha = 0.3)
-ax.plot(Inh_null_rE,Inh_null_rI, color='#CB181D', linewidth = 1.5, label = 'I-nullcline', alpha = 0.3)
-
-
-t_list, r_E_list, r_I_list = run_E_I_simulation(r_E_0 = 0.8, r_I_0 = 0.7)
-
-ax.plot(r_E_list, r_I_list, linewidth = 2.2, color = '#548235')
-
-
-fig, ax = plt.subplots()
-
-ax.plot(t_list, r_E_list, color='#2171B5', linewidth = 1.5)
-ax.plot(t_list, r_I_list, color='#CB181D', linewidth = 1.5)
-
-
-
-
-x_ticks = [0,100, 200]
-y_ticks = [0,0.5,1]
-ax.set_xticks(x_ticks)
-ax.set_xticklabels(x_ticks,fontsize=14)
-ax.set_yticks(y_ticks)
-ax.set_yticklabels(y_ticks,fontsize=14)
-ax.set_xlabel('time in ms', fontsize=16)
-ax.set_ylabel('firing rate $r$', fontsize=16)
-ax.set(
-    ylim = [-0.1,1.1])
-
+lecture_network.show_nullclines_in_phase_plane(ax=ax2,I_E = I_E, I_I = I_I)
+lecture_network.show_vectors_in_phase_plane(ax=ax2, I_E = I_E, I_I = I_I)
 
 # +
-# 'tau_E': 1.0, 'a_E': 1.2, 'theta_E': 2.8, 
-# 'tau_I': 2.0, 'a_I': 1.0, 'theta_I': 4.0, 
-# 'wEE': 6.4, 'wEI': 4.8, 'wIE': 6.0, 
-# 'wII': 1.2, 'I_ext_E': 0.8, 'I_ext_I': 0.0, 
-# 'T': 100.0, 'dt': 0.1, 'rE_init': 0.25, 'rI_init': 0.25
-                
-w_EE = 6.4 
-w_EI = 4.8
-w_II = 1.2
-w_IE = 6
-tau_E = 10 
-tau_I = 20
-alpha_E = 1.2
-theta_E = 2.8
-alpha_I = 1
-theta_I = 4.0
+fig, (ax1,ax2) = plt.subplots(1,2, figsize = (12,6))
+
+lecture_network = EI_network_extended(
+    w_EE = 6.4 ,
+    w_EI = 4.8,
+    w_II = 1.2,
+    w_IE = 6,
+    tau_E = 10,
+    tau_I = 20)
+
 I_E = 0.8
 I_I = 0
 
+lecture_network.run_simulation(r_E0 = 0.8, r_I0 = 0.7, I_E = I_E, I_I = I_I, timesteps = 600)
+lecture_network.show_sim_results_current_v_time_lecture_plot(linestyle = '-', ax = ax1)
+lecture_network.show_sim_results_phase_plane( color = '#548235', ax = ax2)
 
-# Set parameters
-Exc_null_rE = np.linspace(-0.01, 0.96, 100)
-Inh_null_rI = np.linspace(-.01, 0.8, 100)
+lecture_network.run_simulation(r_E0 = 0.5, r_I0 = 0.25, I_E = I_E, I_I = I_I, timesteps = 600)
+lecture_network.show_sim_results_current_v_time_lecture_plot(linestyle = '--', ax = ax1)
+lecture_network.show_sim_results_phase_plane( color = '#548235', ax = ax2, linestyle='--')
 
-# Compute nullclines
-Exc_null_rI = get_E_nullcline(Exc_null_rE, a_E = alpha_E, theta_E = theta_E, wEE = w_EE, wEI=w_EI, I_ext_E=I_E)
-Inh_null_rE = get_I_nullcline(Inh_null_rI, a_I = alpha_I, theta_I = theta_I, wII = w_II, wIE=w_IE, I_ext_I=I_I)
+lecture_network.show_nullclines_in_phase_plane(ax=ax2,I_E = I_E, I_I = I_I)
+lecture_network.show_vectors_in_phase_plane(ax=ax2, I_E = I_E, I_I = I_I)
 
-fig, ax = plt.subplots()
-
-
-x_ticks = [0,0.5, 1]
-y_ticks = [0,0.5,1]
-ax.set_xticks(x_ticks)
-ax.set_xticklabels(x_ticks,fontsize=14)
-ax.set_yticks(y_ticks)
-ax.set_yticklabels(y_ticks,fontsize=14)
-ax.set_xlabel('Excitatory rate $r_E$', fontsize=16)
-ax.set_ylabel('Inhibitory rate $r_I$', fontsize=16)
-ax.set_xlim([np.min(Inh_null_rE)*1.3,1])
-
-EI_grid = np.linspace(-0.2, 1., 20)
-rE, rI = np.meshgrid(EI_grid, EI_grid)
-drEdt, drIdt = EIderivs(rE, rI, tau_E = tau_E, a_E = alpha_E, theta_E = theta_E, wEE = w_EE, wEI = w_EI, I_ext_E = I_E,
-                                tau_I = tau_I, a_I = alpha_I, theta_I = theta_I, wIE = w_IE, wII = w_II, I_ext_I = I_I)
-n_skip = 2
-plt.quiver(rE[::n_skip, ::n_skip], rI[::n_skip, ::n_skip],
-         drEdt[::n_skip, ::n_skip], drIdt[::n_skip, ::n_skip],
-         angles='xy', scale_units='xy', scale=1, facecolor='k', width = 0.003, alpha = 0.3)
-
-ax.plot(Exc_null_rE,Exc_null_rI, color='#2171B5', linewidth = 1.5, label = 'E-nullcline', alpha = 0.3)
-ax.plot(Inh_null_rE,Inh_null_rI, color='#CB181D', linewidth = 1.5, label = 'I-nullcline', alpha = 0.3)
-
-
-t_list, r_E_list, r_I_list = run_E_I_simulation(r_E_0 = 0.8, r_I_0 = 0.75, timesteps = 500)
-
-ax.plot(r_E_list, r_I_list, linewidth = 2.2, color = '#548235')
-
-
-fig, ax_2 = plt.subplots()
-
-ax_2.plot(t_list, r_E_list, color='#2171B5', linewidth = 1.5)
-ax_2.plot(t_list, r_I_list, color='#CB181D', linewidth = 1.5)
-
-
-t_list, r_E_list, r_I_list = run_E_I_simulation(r_E_0 = 0.5, r_I_0 = 0.25, timesteps = 500)
-
-ax.plot(r_E_list, r_I_list, linewidth = 2.2, color = '#548235', linestyle = '--')
-
-
-
-ax_2.plot(t_list, r_E_list, color='#2171B5', linewidth = 1.5, linestyle = '--')
-ax_2.plot(t_list, r_I_list, color='#CB181D', linewidth = 1.5, linestyle = '--')
-
-
-
-
-x_ticks = [0,100, 200]
-y_ticks = [0,0.5,1]
-ax_2.set_xticks(x_ticks)
-ax_2.set_xticklabels(x_ticks,fontsize=14)
-ax_2.set_yticks(y_ticks)
-ax_2.set_yticklabels(y_ticks,fontsize=14)
-ax_2.set_xlabel('time in ms', fontsize=16)
-ax_2.set_ylabel('firing rate $r$', fontsize=16)
-ax_2.set(
-    ylim = [-0.1,1.1])
 # +
 start_scope() # this opens our environment
 
@@ -857,23 +641,3 @@ ax3.set(
 # \tau_E \frac{dr_E}{dt} &= -r_E + F_E(w_{EE}r_E -w_{EI}r_I + I_E) \\
 # \tau_I \frac{dr_I}{dt} &= -r_I + F_I(w_{IE}r_E -w_{II}r_I + I_I) \qquad (1)
 # \end{align}
-
-# +
-
-def dr_dt(
-    dt,
-    tauE = 20, tauI = 10):
-    
-    x = wEE * rE - wEI * rI + IE 
-    drE_dt = dt * (- rE + nonlinearity_f(x, alpha, theta))/tauE
-
-    x = wIE * rE - wII * rI + II 
-    drI_dt = dt * (- rI + nonlinearity_f(x, alpha, theta))/tauI
-    
-    return drE_dt, drI_dt
-
-
-# run the simulation for the rate model
-for ii in range(time_steps):
-    
-    
