@@ -5,8 +5,23 @@ scatter.edgecolors: None
 axes.grid : True
 axes.titleweight : bold 
 axes.labelweight : bold
+axes.labelsize: 8.8
 axes.labelpad : 5.0
 grid.linewidth : 0.25
 axes.spines.right : False
 axes.spines.top : False
 axes.prop_cycle: cycler('color', ['0570b0', '33a02c', 'e31a1c', 'ff7f00', '6a3d9a', 'a6cee3', 'b2df8a', 'fb9a99', 'fdbf6f', 'cab2d6'])
+axes.titlesize: 9.6
+figure.dpi: 100.0
+figure.subplot.bottom: 0.11
+legend.fontsize: 8.0
+lines.markersize: 5.6
+patch.linewidth: 0.24
+xtick.labelsize: 8.0
+xtick.major.pad: 5.6
+xtick.major.width: 0.8
+xtick.minor.width: 0.4
+ytick.labelsize: 8.0
+ytick.major.pad: 5.6
+ytick.major.width: 0.8
+ytick.minor.width: 0.4
