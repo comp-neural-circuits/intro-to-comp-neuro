@@ -123,24 +123,20 @@ single_trial = dat['spks'][0,0,:]
 
 print ('''example of how the binned single trial looks like, 
        each 1 represents a spike for that particular neuron: \n''', single_trial)
-
-def transform_to_event_input(binned_spikes):
-    bin_size = 10
-    bin_offset = 5
+    
+def transform_to_event_input(binned_spikes,bin_size=10):
+    bin_offset = bin_size/2
     n_bins = len(binned_spikes)
     bin_times = np.linspace(bin_offset,
                             n_bins*bin_size-(bin_size-bin_offset),
                             n_bins)
-    spike_times = binned_spikes * bin_times
-    spike_times = spike_times[spike_times != 0]
+    spike_times = bin_times[binned_spikes != 0]
     return bin_times, spike_times
-
-    
     
 fig, ax = plt.subplots()
 
 for ii in range(0,60):
-    _, spike_times = transform_to_event_input(dat['spks'][14,ii,:])
+    _, spike_times = transform_to_event_input2(dat['spks'][14,ii,:])
     ax.eventplot(spike_times, lineoffsets=ii)
 
 ax.set(
@@ -216,9 +212,6 @@ _ = get_filter_array(filter_shape = 'rectangle',
 def visualize_filtering(pos, filter_shape = 'rectangle', trial_number = 0):
     
     filter_array = get_filter_array(filter_shape = filter_shape)
-            
-            
-        
         
     single_trial = dat['spks'][0,trial_number,:]
     
@@ -411,21 +404,20 @@ plt.style.use(plt.style.available[20])
 plt.style.use("https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/plots_style.txt")
 
 
-# defining a function we use later that was already introduced 
-# in the last lecture 
-def transform_to_event_input(binned_spikes, bin_size=0.1):
+# defining a function we use later that was already defined in the previous part
+
+def transform_to_event_input(binned_spikes,bin_size=10):
     ''' transform binned_spike [spike train arrays, like np.array([0,0,0,1,0,0,1,0,1]) ]
         given the size of the bin bin_size 
         to arrays that cotain the spike times (and are easy to plot with the matplotlib event_plot function )'''
-    
-    bin_offset = bin_size/2.
+    bin_offset = bin_size/2
     n_bins = len(binned_spikes)
     bin_times = np.linspace(bin_offset,
                             n_bins*bin_size-(bin_size-bin_offset),
                             n_bins)
-    spike_times = binned_spikes * bin_times
-    spike_times = spike_times[spike_times != 0]
+    spike_times = bin_times[binned_spikes != 0]
     return bin_times, spike_times
+
 
 
 # -
@@ -1006,7 +998,7 @@ plt.savefig('ISI_fluct_driven.pdf', dpi=300, format=None, metadata=None,
 
 
 # -
-# ### brian 2
+# ### Brian 2
 #
 # Already our small example above showed that simulations with the class we set up takes a long time. It would not be useful to run simulations of large networks with a class like this. 
 # There are a couple of libraries out there, that help in simulating large neural networks. 
@@ -1533,6 +1525,3 @@ ax.plot(M_i.t/ms, M_i.i+n_neurons*0.8, '.', c='#de2d26')
 ax.set(
     xlabel = 'Time in ms',
     ylabel = 'Neuron')
-
-# -
-
