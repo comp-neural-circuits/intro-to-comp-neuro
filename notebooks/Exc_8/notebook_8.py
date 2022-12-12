@@ -203,15 +203,17 @@ class RecurrentNetwork(object):
         return ax
     
     def show_phase_plane(self,
-                        I_ext = 0.5):
+                        I_ext = 0.5,
+                        ax = None):
         
         # Define a vector of r values and the simulation parameters
         r = np.linspace(0, 1, 1000)
 
         # Compute dr/dt
-        drdt = compute_drdt(r, I_ext = I_ext, w = self.w, alpha = self.alpha, theta = self.theta, tau = self.tau)
-
-        fig, ax = plt.subplots()
+        drdt = self.compute_drdt(r, I_ext = I_ext)
+    
+        if ax == None:
+            fig, ax = plt.subplots()
         ax.plot(r, drdt)
         ax.plot([0,1],[0,0],linestyle = '--', color = 'k')
 
@@ -223,7 +225,7 @@ class RecurrentNetwork(object):
         ax.set_yticklabels(y_ticks,fontsize=14)
         ax.set_xlabel('$r$', fontsize=16, fontweight='bold')
         ax.set_ylabel(r'$\frac{dr}{dt}$', fontsize=22, rotation=0, fontweight='bold')
-    
+
 
 example = RecurrentNetwork(w = 5, alpha = 1.2, theta = 2.8, tau = 20)
 example.show_phase_plane()
@@ -234,15 +236,32 @@ ax = example.show_simulation_result(color = '#984ea3',ax = None)
 example.run_simulation(r_0 = 0.6, I_ext = 0.5, time_steps = 150)
 example.show_simulation_result(color = '#ff7f00',ax = ax )
 
-fig, ax = plt.subplots()
-example = RecurrentNetwork(w = 5, alpha = 1.2, theta = 2.8, tau = 20)
-for r_0 in [0, 0.1, 0.2, 0.3, 0.4, 0.44]:
-    example.run_simulation(r_0 = r_0, I_ext = 0.5, time_steps = 150)
-    example.show_simulation_result(color = '#984ea3', linewidth = 0.8,ax = ax)
-for r_0 in [0.45, 0.5, 0.6, 0.7, 0.8, 0.9, 1]:
-    example.run_simulation(r_0 = r_0, I_ext = 0.5, time_steps = 150)
-    example.show_simulation_result(color = '#ff7f00', linewidth = 0.8,ax = ax)
 
+# +
+def mulitple_starting_conditions(w = 5, alpha = 1.2, theta = 2.8, tau = 20, I_ext = 0.5):
+    fig, (ax1, ax2) = plt.subplots(1,2, figsize = (12,6))
+    example = RecurrentNetwork(w = w, alpha = alpha, theta = theta, tau = tau)
+    example.run_simulation(r_0 = np.array([0, 0.1, 0.2, 0.3, 0.4, 0.44]), I_ext = I_ext, time_steps = 150)
+    example.show_simulation_result(color = '#984ea3', linewidth = 0.8,ax = ax2)
+    example.run_simulation(r_0 = np.array([0.45, 0.5, 0.6, 0.7, 0.8, 0.9, 1]), I_ext = I_ext, time_steps = 150)
+    example.show_simulation_result(color = '#ff7f00', linewidth = 0.8,ax = ax2)
+    
+    example.show_phase_plane(ax=ax1, I_ext = I_ext)
+    
+    
+
+widgets.interactive(mulitple_starting_conditions,
+                    w = (0.1,10,0.1),
+                   alpha = (0.5,2.5,0.1),
+                   theta = (0.5, 4,0.1),
+                   tau = (1,30,1))
+
+# for r_0 in [0, 0.1, 0.2, 0.3, 0.4, 0.44]:
+#     example.run_simulation(r_0 = r_0, I_ext = 0.5, time_steps = 150)
+#     example.show_simulation_result(color = '#984ea3', linewidth = 0.8,ax = ax)
+# for r_0 in [0.45, 0.5, 0.6, 0.7, 0.8, 0.9, 1]:
+#     example.run_simulation(r_0 = r_0, I_ext = 0.5, time_steps = 150)
+#     example.show_simulation_result(color = '#ff7f00', linewidth = 0.8,ax = ax)
 
 # +
 class EI_network(object):
