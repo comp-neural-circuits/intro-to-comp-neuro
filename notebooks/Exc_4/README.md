@@ -1,1 +1,1 @@
-# Hodgkin-Huxley Model
+# Information processing
