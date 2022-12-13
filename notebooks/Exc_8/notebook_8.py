@@ -40,29 +40,43 @@ prefs.codegen.target = 'numpy'
 
 # -
 
+# # This notebook
+#
+# This notebook follows the lecture quite closely. We want to understand how to investigate 2D rate models. Therefore we 
+#
+# 1) Investigate an example non-linearity, the sigmoidal Function. 
+#
+# 2) Look at a simple, Feedforward dynamical system and how it evolves. 
+#
+# 3) Investigate the phase plane and fixed points of a recurrent system in one dimenision. 
+#
+# 4) Do the same in two dimensions.
+#
+# 5) Make the comparison of a spiking network and a rate based network
+
+# ## 1) An example non-linearity: The sigmoidal function
+#
+# We take the following curve as an example: 
+#
 # \begin{equation}
 # F(x;\alpha,\theta) = \left(1+\text{e}^{-\frac{x-\theta}{\alpha}}\right)^{-1} - \left(1+\text{e}^{\frac{\theta}{\alpha}}\right)^{-1}
 # \end{equation}
+#
+# The last part ensures that the value at 0 is always 0, independent of the parameters. 
+# Below you find the implementation for the non-linearity and an interactive widget for you to explore how the curve behaves with respect to its parameters $\theta$ (the threshold) and $\alpha$ (the gain).
+#
+# ### Task 1
+#
+# Please explore how the parameters influence the curve
 
 # +
 def nonlinearity_f(x, alpha, theta):    
     return (1 + np.exp(-alpha*(x - theta)))**-1 - (1 + np.exp(alpha*theta))**-1
 
-fig, ax = plt.subplots(figsize = (4,4))
-X = np.linspace(0,10,1000)
-ax.plot(X, nonlinearity_f(X, alpha=1.2, theta=2.8), color = '#2171B5')
-ax.plot(X, nonlinearity_f(X, alpha=1.0, theta=4.0), c='#CB181D')
-ax.set(
-    title = 'F-I curve',
-    xlabel = 'Input current $I$',
-    ylabel = 'Output firing rate $F$',
-);
-
-
 def interactive_f(alpha=0.2, theta=40):
     
     x_max = 80
-    fig, ax = plt.subplots(figsize = (14,8))
+    fig, ax = plt.subplots()
     X = np.linspace(-0.1,x_max,100)
     ax.plot(X, nonlinearity_f(X, alpha=alpha, theta=theta), color='#6baed6', linewidth = 3)
     
@@ -90,48 +104,22 @@ def interactive_f(alpha=0.2, theta=40):
 widgets.interactive(interactive_f, alpha = (0.01,1,0.01), theta=(0,60,10))
 
 
-# +
-def run_input_to_nonlinearity(r_0 = 0.3, I_ext = 20, alpha=0.5,theta=10):
-    
-    t_list = [0]
-    r_list = [r_0]
-    
-    dt = 0.1
-    tau = 20
-    for ii in range(1500):
-        t_list.append(t_list[-1]+dt)
-        r_list.append(r_list[-1] + dt*(-r_list[-1]+nonlinearity_f(I_ext,alpha=alpha,theta=theta))/tau)
-        
-    return t_list, r_list
-
-def show_input_to_nonlinearity(
-    t_list, 
-    r_list,
-    color = 'k',
-    ax = None):
-    if ax == None:
-        fig, ax = plt.subplots()
-
-    ax.plot(t_list, r_list, color=color)
-    ax.set_xticks([0,75,150])
-    ax.set_xticklabels([0,75,150],fontsize=14)
-    ax.set_yticks([0,0.5,1])
-    ax.set_yticklabels([0,0.5,1],fontsize=14)
-    ax.set_xlabel('time in ms', fontsize=16)
-    ax.set_ylabel('firing rate $r$', fontsize=16)
-    
-    return ax
-
-
-# +
-def interctive_input_to_nonlinearity(r_0 = 0.3, I_ext = 20):
-    t_list, r_list = run_input_to_nonlinearity(r_0 = r_0, I_ext = I_ext)
-    show_input_to_nonlinearity(t_list, r_list)
-    
-widgets.interactive(interctive_input_to_nonlinearity, r_0 = (0,1,0.05), I_ext = (0,40,1))
-
-
 # -
+
+# ## Recurrent rate model
+#
+# We now look at our population rate model with recurrent connections. 
+#
+# <div>
+# <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_8/static/rate_model_recurrent.png" width="750"/>
+# </div>
+#
+# The differential equation for this network describes how the external input and the recurrent input (the activity times the recurrent weight) is filtered through the non-linearity (F-I curve) and then defines the activity that the system is trying to reach:
+#
+# $\tau\,\frac{dr}{dt} = -r + F(w\,r+I_{\text{ext}})$
+#
+#
+# Below, we create a class (RecurrentNetwork) that allows 
 
 # \begin{align}
 # \tau_E \frac{dr_E}{dt} &= -r_E + F(w_{EE}r_E -w_{EI}r_I + I_E;\alpha_E,\theta_E) \\
@@ -721,25 +709,25 @@ widgets.interactive(fit_nonlinearity,max_rate=(0,200,1),alpha=(0,1,0.01),theta=(
 # -
 
 max_rate = 78
-alpha = 0.25
+alpha = 0.19
 theta = 20
 
 # +
-n_neurons = 100
+n_neurons = 1000
 n_E = int(n_neurons*0.8)
 n_I = int(n_neurons*0.2)
 
-g_EE = 30*nS
-p_con_EE = 0.15
+g_EE = 0.8*nS
+p_con_EE = 0.8
 
-g_IE = 50*nS
-p_con_IE = 0.15
+g_IE = 0.6*nS
+p_con_IE = 0.85
 
-g_EI = 60*nS
-p_con_EI = 0.35
+g_EI = 6*nS
+p_con_EI = 0.85
 
-g_II = 20*nS
-p_con_II = 0.45
+g_II = 3*nS
+p_con_II = 0.9
 
 
 def return_rate_weight(g_max, n_input, E_syn, tau_syn):
@@ -801,30 +789,31 @@ class EINetworkFit(EI_network_extended):
 
 # +
 fig, ax = plt.subplots()
+
+
 lecture_network = EINetworkFit(
     w_EE = w_EE ,
     w_EI = w_EI ,
     w_II = w_II ,
     w_IE = w_IE ,
-    
+
     theta_E = theta,
     theta_I = theta,
     alpha_E = alpha,
     alpha_I = alpha,
     max_rate_E = max_rate,
     max_rate_I = max_rate,
-    tau_E = 5,
+    tau_E = 10,
     tau_I = 10,
     dt = 0.1)
 
 
-inputs = np.vstack([10*randn(500,n_neurons)+5,10*randn(500,n_neurons)+10])
-lecture_network.run_simulation_with_input(r_E0 = 5.8, r_I0 = 0.7, timesteps = 1000, 
+inputs = np.vstack([5*randn(2000,n_neurons)+8,5*randn(2000,n_neurons)+14.5])
+lecture_network.run_simulation_with_input(r_E0 = 5.8, r_I0 = 5, timesteps = 4000, 
                                           I_E = np.mean(inputs[:,:n_E],axis=1),
                                           I_I = np.mean(inputs[:,n_E:],axis=1))
 # lecture_network.show_nullclines(ax=ax2)
 lecture_network.show_sim_results(ax=ax)
-
 
 # +
 start_scope() # this opens our brian2 environment
@@ -853,58 +842,27 @@ i_i.connect(p=p_con_II)
 i_i.w = g_II
 
 
-W = np.full((n_neurons +2, n_neurons + 2), np.nan) # we always add + 2 to allow color annotations in plot
-# Insert the values from the Synapses object
-W[e_e.i[:], e_e.j[:]] = e_e.w[:]/nS
-W[i_e.i[:], i_e.j[:]+len(neurons_exc)] = i_e.w[:]/nS
-W[e_i.i[:]+len(neurons_exc),e_i.j[:]] = e_i.w[:]/nS
-W[i_i.i[:]+len(neurons_exc),i_i.j[:]+len(neurons_exc)] = i_i.w/nS
-
-
-fig, ax = plt.subplots()
-im = ax.imshow(W, origin='lower', cmap='binary', vmin=0)
-ax.plot([-1,-1],[-1,len(neurons_exc)], color = '#3690c0',linewidth=4)
-ax.plot([-1,-1],[len(neurons_exc),n_neurons], color = '#d7301f',linewidth=4)
-ax.plot([-1,len(neurons_exc)],[-1,-1], color = '#3690c0',linewidth=4)
-ax.plot([len(neurons_exc),n_neurons],[-1,-1], color = '#d7301f',linewidth=4)
-divider = make_axes_locatable(ax)
-ax.set(
-    xlim = (-2,n_neurons),
-    ylim = (-2,n_neurons),
-    xlabel = 'presynaptic neuron',
-    ylabel = 'postsynaptic neuron')
-cax = divider.append_axes('right', size='5%', pad=0.05)
-cax.grid(False)
-fig.colorbar(im, cax=cax, orientation='vertical', label='Synaptic weight in nS')
-
-plt.savefig('connectivity_matrix.pdf', dpi=300, format=None, metadata=None,
-        bbox_inches=None, pad_inches=0.1,
-        facecolor='auto', edgecolor='auto',
-        backend=None,
-       )
-
-
 M_e = SpikeMonitor(neurons_exc)
 M_i = SpikeMonitor(neurons_inh)
-voltage_exc = StateMonitor(neurons_exc, 'v', record=True)
 rate_exc = PopulationRateMonitor(neurons_exc)
 rate_inh = PopulationRateMonitor(neurons_inh)
 
 
 
-run(100*ms)
+run(400*ms)
 
 # print (rate_exc.keys())
 
-fig, (ax1,ax2,ax3) = plt.subplots(3, sharex=True)
+fig, (ax1,ax2) = plt.subplots(2)
 ax1.plot(M_e.t/ms, M_e.i, '.', c='#2b8cbe')
 ax1.plot(M_i.t/ms, M_i.i+n_neurons*0.8, '.', c='#de2d26')
 ax1.set(
-    ylabel = 'Neuron')
-ax2.plot(voltage_exc.t/ms, np.mean(voltage_exc.v/mV,axis=0))
-ax3.plot(rate_exc.t/ms,rate_exc.smooth_rate(width=10*ms),c='#de2d26')
-ax3.plot(rate_inh.t/ms,rate_inh.smooth_rate(width=10*ms),c='#2b8cbe')
-ax3.set(
+    ylabel = 'Neuron',
+    xlabel = 'Time in ms')
+ax2.plot(rate_exc.t/ms,rate_exc.smooth_rate(width=16*ms),c='#2b8cbe')
+ax2.plot(rate_inh.t/ms,rate_inh.smooth_rate(width=16*ms),c='#de2d26')
+lecture_network.show_sim_results(ax=ax2, linestyle='--')
+ax2.set(
     xlabel = 'Time in ms')
 
 
