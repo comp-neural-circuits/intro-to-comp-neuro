@@ -222,6 +222,39 @@ class RecurrentNetwork(object):
         ax.set_yticklabels(y_ticks,fontsize=14)
         ax.set_xlabel('$r$', fontsize=16, fontweight='bold')
         ax.set_ylabel(r'$\frac{dr}{dt}$', fontsize=22, rotation=0, fontweight='bold')
+        
+    def get_fixed_points(self):
+        correct_fps = []
+        for x_guess in np.linspace(0,1,20):
+            x_fp =  np.round(opt.root(example.compute_drdt, x_guess).x.item(),7)
+            # check if its a real fixed point
+            if np.abs(example.compute_drdt(x_fp)) < 1e-6:
+                if x_fp not in correct_fps:
+                    correct_fps.append(x_fp)
+
+
+        if len(correct_fps) == 3:
+            scatter_color = ['#ff7f00','#ff7f00','#ff7f00']
+            scatter_x = np.sort(correct_fps)
+            middle = scatter_x[1]
+            lower_fixed_point_starts = np.linspace(0,middle-1e-3, int(20*middle))
+            upper_fixed_point_starts = np.linspace(middle+1e-3,1, int(20*(1-middle)))
+
+
+        if len(correct_fps) == 1:
+            x = correct_fps[0]
+            scatter_x = [x]
+            if x < 0.5:
+                scatter_color = '##ff7f00'
+                lower_fixed_point_starts = np.linspace(0,1, 20)
+                upper_fixed_point_starts = np.array([]) 
+            else:
+                scatter_color = '#ff7f00'
+                lower_fixed_point_starts = np.array([])
+                upper_fixed_point_starts = np.linspace(0,1, 20)      
+        
+        
+        return scatter_x, scatter_color, lower_fixed_point_starts, upper_fixed_point_starts
 
 
 # ### Phase plane
@@ -255,34 +288,8 @@ def mulitple_starting_conditions(w = 5, alpha = 1.2, theta = 2.8, tau = 20, I_ex
     fig, (ax1, ax2) = plt.subplots(1,2, figsize = (12,6))
     example = RecurrentNetwork(w = w, alpha = alpha, theta = theta, tau = tau, I_ext = I_ext)
     
-    correct_fps = []
-    for x_guess in np.linspace(0,1,20):
-        x_fp =  np.round(opt.root(example.compute_drdt, x_guess).x.item(),7)
-        # check if its a real fixed point
-        if np.abs(example.compute_drdt(x_fp)) < 1e-6:
-            if x_fp not in correct_fps:
-                correct_fps.append(x_fp)
     
-    
-    if len(correct_fps) == 3:
-        scatter_color = ['#984ea3','k','#ff7f00']
-        scatter_x = np.sort(correct_fps)
-        middle = scatter_x[1]
-        lower_fixed_point_starts = np.linspace(0,middle-1e-3, int(20*middle))
-        upper_fixed_point_starts = np.linspace(middle+1e-3,1, int(20*(1-middle)))
-        
-        
-    if len(correct_fps) == 1:
-        x = correct_fps[0]
-        scatter_x = [x]
-        if x < 0.5:
-            scatter_color = '#984ea3'
-            lower_fixed_point_starts = np.linspace(0,1, 20)
-            upper_fixed_point_starts = np.array([]) 
-        else:
-            scatter_color = '#ff7f00'
-            lower_fixed_point_starts = np.array([])
-            upper_fixed_point_starts = np.linspace(0,1, 20)        
+    scatter_x, scatter_color, lower_fixed_point_starts, upper_fixed_point_starts = example.get_fixed_points()
     
     example.run_simulation(r_0 = lower_fixed_point_starts, time_steps = 150)
     example.show_simulation_result(color = '#984ea3', linewidth = 0.8,ax = ax2)
@@ -318,37 +325,8 @@ def mulitple_starting_conditions(w = 5, alpha = 1.2, theta = 2.8, tau = 20, I_ex
     
     
     example = RecurrentNetwork(w = w, alpha = alpha, theta = theta, tau = tau, I_ext = I_ext)
-    
-    def get_fixed_points(self):
-        correct_fps = []
-        for x_guess in np.linspace(0,1,20):
-            x_fp =  np.round(opt.root(example.compute_drdt, x_guess).x.item(),7)
-            # check if its a real fixed point
-            if np.abs(example.compute_drdt(x_fp)) < 1e-6:
-                if x_fp not in correct_fps:
-                    correct_fps.append(x_fp)
-
-
-        if len(correct_fps) == 3:
-            scatter_color = ['#ff7f00','#ff7f00','#ff7f00']
-            scatter_x = np.sort(correct_fps)
-            middle = scatter_x[1]
-            lower_fixed_point_starts = np.linspace(0,middle-1e-3, int(20*middle))
-            upper_fixed_point_starts = np.linspace(middle+1e-3,1, int(20*(1-middle)))
-
-
-        if len(correct_fps) == 1:
-            x = correct_fps[0]
-            scatter_x = [x]
-            if x < 0.5:
-                scatter_color = '##ff7f00'
-                lower_fixed_point_starts = np.linspace(0,1, 20)
-                upper_fixed_point_starts = np.array([]) 
-            else:
-                scatter_color = '#ff7f00'
-                lower_fixed_point_starts = np.array([])
-                upper_fixed_point_starts = np.linspace(0,1, 20)      
-        return 
+        
+    scatter_x, scatter_color, _, _ = example.get_fixed_points()
     
 
     
