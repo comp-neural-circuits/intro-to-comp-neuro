@@ -24,6 +24,8 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.patches import ConnectionPatch
 import ipywidgets as widgets
 from scipy import optimize as opt
+from urllib.request import urlopen
+from PIL import Image
 
 # %matplotlib inline
 
@@ -237,7 +239,7 @@ class RecurrentNetwork(object):
         ax1.set_yticklabels(y_ticks,fontsize=14)
         ax1.set_ylabel('$r$', fontsize=22, rotation=0, fontweight='bold')
 
-        ax2.plot(drdt, r)
+        ax2.plot(drdt, r, 'k',alpha=0.6)
         ax2.plot([0,0],[0,1],linestyle = '--', color = 'k')
 
         x_ticks = [np.round(ii,5) for ii in np.linspace(-0.015,0.015,11) if ii < np.max(drdt) and ii > np.min(drdt)]
@@ -331,16 +333,8 @@ widgets.interactive(mulitple_starting_conditions,
 # +
 def mulitple_starting_conditions(w = 5, alpha = 1.2, theta = 2.8, tau = 20, I_ext = 0.5, r=0.3):
     
-    fig, (ax1, ax2) = plt.subplots(1,3, figsize = (15,6), gridspec_kw={'width_ratios': [3, 3, 1]}, sharey=True)
-    url = f'https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_8/static/recurrent.png'
-    with urlopen(url) as f:
-        image = Image.open(f)
-
-    # Convert the image data to a NumPy array
-    image_array = np.array(image)
-
-    # Plot the image
-    ax3.imshow(image_array)
+    fig, (ax1, ax2, ax3) = plt.subplots(1,3, figsize = (15,6), gridspec_kw={'width_ratios': [3,3, 2]}, sharey=True)
+    
     
     
     example = RecurrentNetwork(w = w, alpha = alpha, theta = theta, tau = tau, I_ext = I_ext)
@@ -393,9 +387,9 @@ def mulitple_starting_conditions(w = 5, alpha = 1.2, theta = 2.8, tau = 20, I_ex
         return F_inverse
 
     xy_r = (F_inv(r, alpha=example.alpha, theta=example.theta),r)
-    ax1.scatter(*xy_r, marker = 'o', zorder = 10, c='g')
+    ax1.scatter(*xy_r, marker = 'o', zorder = 10, c='#217127', s=70)
 
-    ax2.scatter(example.compute_drdt(r), r, marker = 'o', zorder = 10, c='g')
+
 
     con = ConnectionPatch(xy_r, xy_r_in, coordsA ='data', coordsB='data',
                       arrowstyle="->", shrinkA=5, shrinkB=5,
@@ -404,7 +398,7 @@ def mulitple_starting_conditions(w = 5, alpha = 1.2, theta = 2.8, tau = 20, I_ex
 
     xy_a = (example.compute_drdt(r), r)
     xy_b = (0, r)
-    ax2.scatter(*xy_a, marker = 'o', zorder = 10, c='g')
+    ax2.scatter(*xy_a, marker = 'o', zorder = 10, c='#217127', s=70)
     con = ConnectionPatch(xy_b, xy_a, coordsA ='data', coordsB='data',
                       arrowstyle="->", shrinkA=5, shrinkB=5,
                       mutation_scale=20, fc="k",zorder=20, linewidth = 2)
@@ -431,6 +425,20 @@ def mulitple_starting_conditions(w = 5, alpha = 1.2, theta = 2.8, tau = 20, I_ex
 
 
     ax1.legend()
+    
+    
+    ax3.axis('off')
+    url = f'https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_8/static/recurrent.png'
+    with urlopen(url) as f:
+        image = Image.open(f)
+
+    # Convert the image data to a NumPy array
+    image_array = np.array(image)
+
+    # Plot the image
+    ax3.imshow(image_array,extent=(-.05,1.05,-0.05,1.05))
+    
+
 
 widgets.interactive(mulitple_starting_conditions,
                     w = (0.1,10,0.1),
