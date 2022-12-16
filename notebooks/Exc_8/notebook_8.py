@@ -111,7 +111,7 @@ widgets.interactive(interactive_f, alpha = (0.01,1,0.01), theta=(0,60,10))
 # We now look at our population rate model with recurrent connections. 
 #
 # <div>
-# <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_8/static/rate_model_recurrent.png" width="750"/>
+# <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_8/static/rate_model_recurrent.png" width="250"/>
 # </div>
 #
 # The differential equation for this network describes how the external input and the recurrent input (the activity times the recurrent weight) is filtered through the non-linearity (F-I curve) and then defines the activity that the system is trying to reach:
@@ -119,17 +119,17 @@ widgets.interactive(interactive_f, alpha = (0.01,1,0.01), theta=(0,60,10))
 # $\tau\,\frac{dr}{dt} = -r + F(w\,r+I_{\text{ext}})$
 #
 #
-# Below, we create a class (RecurrentNetwork) that allows 
-
-# \begin{align}
-# \tau_E \frac{dr_E}{dt} &= -r_E + F(w_{EE}r_E -w_{EI}r_I + I_E;\alpha_E,\theta_E) \\
-# \tau_I \frac{dr_I}{dt} &= -r_I + F(w_{IE}r_E -w_{II}r_I + I_I;\alpha_I,\theta_I) \qquad (1)
-# \end{align}
+# Below, we create a class (RecurrentNetwork) that allows us to investigate the system.
 #
-# \begin{align}
-# \tau_E \frac{dr_E}{dt} &= -r_E + F_E(w_{EE}r_E -w_{EI}r_I + I_E) \\
-# \tau_I \frac{dr_I}{dt} &= -r_I + F_I(w_{IE}r_E -w_{II}r_I + I_I) \qquad (1)
-# \end{align}
+# In the method 'compute_dr_dt' we use the differential equation above. 
+#
+# The method 'run_simulation' allows us to run a simulation with the current paramters.
+#
+# We can viusalize the results of this simulation ('show_simulation_results') and we can look at the phase plane of the system (given the current parameters) with the method 'show_phase_plane'.
+#
+# ### Task 2
+#
+# Please go through the class and check especially that you understand the implementation of the differential equation.
 
 class RecurrentNetwork(object):
     """
@@ -221,8 +221,16 @@ class RecurrentNetwork(object):
         ax.set_ylabel(r'$\frac{dr}{dt}$', fontsize=22, rotation=0, fontweight='bold')
 
 
+# ### Phase plane
+#
+# We can now simply plot the phase plane of our 1D dynamical system
+
 example = RecurrentNetwork(w = 5, alpha = 1.2, theta = 2.8, tau = 20, I_ext = 0.5)
 example.show_phase_plane()
+
+# ### Time evolution of the dynamical system
+#
+# We can also run the simulation in our system and look at the time dynamics
 
 example = RecurrentNetwork(w = 5, alpha = 1.2, theta = 2.8, tau = 20, I_ext = 0.5)
 example.run_simulation(r_0 = 0.3, time_steps = 150)
@@ -230,10 +238,15 @@ ax = example.show_simulation_result(color = '#984ea3',ax = None)
 example.run_simulation(r_0 = 0.6, time_steps = 150)
 example.show_simulation_result(color = '#ff7f00',ax = ax )
 
+
+# ## Fixed points
+#
+# Now we look at the fixed points of our system. They are the points where the system does not change anymore. To find these points, we use the scipy function _opt.root_. However, finding roots is not a trivial task. To find all the roots of our simple system, we start with multiple guesses (distributed across the input space between 0 and 1) 
+#
+# ### Task 3
+# See if you can understand the implementation of our fixed point search. When you execute the interactive widget, you can see how the fixed points and the trajectories change for different parameter combinations. See if you can understand how each paramter impacts the dynamical system.
+
 # +
-
-
-
 def mulitple_starting_conditions(w = 5, alpha = 1.2, theta = 2.8, tau = 20, I_ext = 0.5):
     
     fig, (ax1, ax2) = plt.subplots(1,2, figsize = (12,6))
@@ -288,10 +301,38 @@ widgets.interactive(mulitple_starting_conditions,
                    tau = (5,30,1))
 
 
-# +
-class EI_network(object):
+# -
+
+# We now look at a slighlty more complex dynamical system of two recurrently interacting populations: Excitation and Inhibition
+#
+# <div>
+# <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_8/static/rate_model_E_I.png" width="450"/>
+# </div>
+#
+# The dynamics of this system are described with the following coupled differential equations: 
+#
+# You can recognize the naming convention, we always write ($w_{\text{PostPre}}$)
+#
+# \begin{align}
+# \tau_E \frac{dr_E}{dt} &= -r_E + F(w_{EE}r_E -w_{EI}r_I + I_E;\alpha_E,\theta_E) \\
+# \tau_I \frac{dr_I}{dt} &= -r_I + F(w_{IE}r_E -w_{II}r_I + I_I;\alpha_I,\theta_I)
+# \end{align}
+#
+#
+#
+# <!-- \begin{align}
+# \tau_E \frac{dr_E}{dt} &= -r_E + F_E(w_{EE}r_E -w_{EI}r_I + I_E) \\
+# \tau_I \frac{dr_I}{dt} &= -r_I + F_I(w_{IE}r_E -w_{II}r_I + I_I) \qquad (1)
+# \end{align} -->
+
+# ### Task 4
+#
+# Below you find an implementation of a class that can setup and run the described dynamical system. The implementation follows very closely the implementation for the simple recurrent system we described before. See if you can understand the code, pay special attention again to the implementation of the differential equations
+
+class NetworkEI(object):
     """
     This class can create E-I networks, run simulations and visualize the results
+    either rates v. time or rates v. rates in the phase plane
     """
     def __init__(self, 
                     w_EE = 9,
@@ -319,7 +360,7 @@ class EI_network(object):
 
     ):
         '''This function is executed when we create an object from that class'''
-        super(EI_network, self).__init__()
+        super(NetworkEI, self).__init__()
          
         self.w_EE = w_EE 
         self.w_EI = w_EI 
@@ -392,9 +433,13 @@ class EI_network(object):
             self.t_list.append(self.t_list[-1]+self.dt)
 
 
-    def show_sim_results_current_v_time_lecture_plot(self, ax = None, linestyle='-'):
+    def show_sim_results_current_v_time_lecture_plot(self, 
+                                                    ax = None, 
+                                                    linestyle='-',
+                                                    position_in_time = None,
+                                                    color = 'k', label = ''):
         
-        ax = self.show_sim_results(ax = ax, linestyle=linestyle)
+        ax = self.show_sim_results(ax = ax, linestyle=linestyle, label = label)
             
         x_max = np.round(self.t_list[-1] + 10,-2)
         x_ticks = [0,x_max//2,x_max] 
@@ -408,24 +453,28 @@ class EI_network(object):
         ax.set(
             ylim = [-0.05,1.05])
         
+        if position_in_time != None:
+            ax.scatter([self.t_list[position_in_time],self.t_list[position_in_time]],
+                       [self.r_E_list[position_in_time],self.r_I_list[position_in_time]], color = color,
+                      zorder = 10,edgecolor='k', linewidth=1.2, s=55)        
         
         return ax
     
-    def show_sim_results(self, ax = None, linestyle='-'):
+    def show_sim_results(self, ax = None, linestyle='-', label = ''):
         
         if ax == None:
             fig, ax = plt.subplots()
 
         ax.set_xlabel('time in ms')
         ax.set_ylabel('firing rate $r$')
-        ax.plot(self.t_list, self.r_E_list, color='#2171B5', linewidth = 1.5, linestyle = linestyle)
-        ax.plot(self.t_list, self.r_I_list, color='#CB181D', linewidth = 1.5, linestyle = linestyle)
-        
+        ax.plot(self.t_list, self.r_E_list, color='#2171B5', linewidth = 1.5, linestyle = linestyle, label = f'{label} E neurons')
+        ax.plot(self.t_list, self.r_I_list, color='#CB181D', linewidth = 1.5, linestyle = linestyle, label = f'{label} I neurons')
+        ax.legend()
         
         return ax
         
         
-    def show_sim_results_phase_plane(self, ax = None, color = '#984ea3', linestyle='-' ):
+    def show_sim_results_phase_plane(self, ax = None, color = '#984ea3', linestyle='-' ,position_in_time=None):
         
         if ax == None:
             fig, ax = plt.subplots()
@@ -440,25 +489,100 @@ class EI_network(object):
 
         ax.plot(self.r_E_list, self.r_I_list, linewidth = 1.2, color = color, linestyle = linestyle)
         
+        if position_in_time != None:
+            ax.scatter(self.r_E_list[position_in_time],self.r_I_list[position_in_time], color = color,
+                      s=55, edgecolor = 'k', linewidth=1.2, zorder=10)
         
         return ax
 
 
-
+# ### Task 5
+#
+# We can now setup the network and run the simulations. 
+# Below, we show the results of the run over time and in the phase plane. With the slider, you can move around in time to see which points in the one space belong to which points in the other space. 
+#
+# Play around with the system, you can change the network (and the starting conditions) at the top of the code. 
+# Possible paramters to vary when calling the network are:
+#
+# ```python
+#      NetworkEI(w_EE = 9,
+#                 w_EI = 4,
+#                 w_II = 13,
+#                 w_IE = 11,
+#
+#                 tau_E = 20,
+#                 tau_I = 10,
+#
+#                 alpha_E = 1.2,
+#                 theta_E = 2.8,
+#                 alpha_I = 1.0,
+#                 theta_I = 4.0,
+#                      
+#                 max_rate_E = 1,
+#                 max_rate_I = 1,
+#                                  
+#                 I_E = 0,
+#                 I_I = 0,
+#                )
+# ```
+#
+#
 
 # +
-fig, (ax1,ax2) = plt.subplots(1,2, figsize = (12,6))
+network_1 = NetworkEI()
+network_2 = NetworkEI()
 
-lecture_network = EI_network()
-lecture_network.run_simulation(r_E0 = 0.32, r_I0 = 0.3)
-lecture_network.show_sim_results_current_v_time_lecture_plot(linestyle = '-', ax = ax1)
-lecture_network.show_sim_results_phase_plane( color = '#984ea3', ax = ax2)
+network_1.run_simulation(r_E0 = 0.32, r_I0 = 0.3)
+network_2.run_simulation(r_E0 = 0.33, r_I0 = 0.3)
+
+def show_simulation_results(position_in_time):
+    fig, (ax1,ax2) = plt.subplots(1,2, figsize = (12,6))
+    network_1.show_sim_results_current_v_time_lecture_plot(linestyle = '-', ax = ax1, 
+                                                           position_in_time = position_in_time,
+                                                          color = '#984ea3', label = 'sim 1')
+    network_1.show_sim_results_phase_plane( color = '#984ea3', ax = ax2, 
+                                           position_in_time = position_in_time)
+    network_2.show_sim_results_current_v_time_lecture_plot(ax = ax1, linestyle = '--', 
+                                                           position_in_time = position_in_time,
+                                                          color = '#ff7f00', label = 'sim 2')
+    network_2.show_sim_results_phase_plane(ax = ax2, color = '#ff7f00', linestyle = '--',
+                                           position_in_time = position_in_time);
+    
+widgets.interactive(show_simulation_results, position_in_time = (0,200,5))
 
 
-lecture_network.run_simulation(r_E0 = 0.33, r_I0 = 0.3)
-lecture_network.show_sim_results_current_v_time_lecture_plot(ax = ax1, linestyle = '--')
-lecture_network.show_sim_results_phase_plane(ax = ax2, color = '#ff7f00');
+# -
 
+# ## Phase plane analysis - Nullclines in 2D
+#
+# In 2D, the phase plane analysis is slightly more complex than in the 1D case we explored above. 
+#
+# First of all, we are interested in the functions that describes the points in the phase plane, where the firing rates $r_E$ and $r_I$ do not change. They are called _nullclines_.
+#
+# To calculate the nullclines we set the derivate $\frac{dr_E}{dt}$ and $\frac{dr_I}{dt}$ to zero and solve for $r_I$ and $r_E$ respectively:
+#
+# \begin{align}
+# r_I = \frac{1}{w_{EI}}\big{[}w_{EE}r_E - F_E^{-1}(r_E; a_E,\theta_E) + I^{\text{ext}}_E \big{]}
+# \end{align}
+#
+# \begin{align}
+# r_E = \frac{1}{w_{IE}} \big{[} w_{II}r_I + F_I^{-1}(r_I;a_I,\theta_I) - I^{\text{ext}}_I \big{]} 
+# \end{align}
+#
+# You can see that we need the inverse function of the non-linearity in order to find a solution for these expressions. In our case, the inverse function of the sigmoidal function looks like this:
+#
+#
+# \begin{equation}
+# F^{-1}(x; a, \theta) = -\frac{1}{a} \ln \left[ \frac{1}{x + \displaystyle \frac{1}{1+\text{e}^{a\theta}}} - 1 \right] + \theta
+# \end{equation}
+#
+#
+# ### Task 6
+#
+# Go through the code below. We first define the inverse function. Then we extend our class from above (we inherit all the properties from the _NetworkEI_ class and add the methods we need to calculate an show the nullclines of the system, as well as the vector plots. 
+#
+# Go through the code and make sure that you can follow how the equations above have been translated.
+#
 
 # +
 def F_inv(x, alpha, theta):
@@ -467,25 +591,25 @@ def F_inv(x, alpha, theta):
 
     return F_inverse
 
-class EI_network_extended(EI_network):
+class ExtendedNetworkEI(NetworkEI):
     """
     This class can create E-I networks, run simulations and visualize the results
     """
     def __init__(self, **params):
         '''This function is executed when we create an object from that class'''
-        super(EI_network_extended, self).__init__(**params)
+        super(ExtendedNetworkEI, self).__init__(**params)
         
         
     def get_E_nullcline(self, r_E):
         # calculate rI for E nullclines on rI
-        r_I = 1 / self.w_EI * (self.w_EE * r_E - F_inv(r_E/self.max_rate_E, self.alpha_E, self.theta_E) + self.I_E)
-
+        r_I = (self.I_E + self.w_EE * r_E - F_inv(r_E/self.max_rate_E,alpha=self.alpha_E,theta=self.theta_E))/self.w_EI
+  
         return r_I
 
 
     def get_I_nullcline(self, r_I):
         # calculate rE for I nullclines on rI
-        r_E = 1 / self.w_IE * (self.w_II * r_I + F_inv(r_I/self.max_rate_I, self.alpha_I, self.theta_I) + self.I_I)
+        r_E = (-self.I_I + self.w_II * r_I + F_inv(r_I/self.max_rate_I,alpha=self.alpha_I,theta=self.theta_I))/self.w_IE
 
         return r_E
     
@@ -510,8 +634,8 @@ class EI_network_extended(EI_network):
             fig, ax = plt.subplots()
             
         # Set parameters
-        Exc_null_rE = np.linspace(-0.01, 0.9*self.max_rate_I, 100)
-        Inh_null_rI = np.linspace(-.01, 0.8*self.max_rate_E, 100)
+        Exc_null_rE = np.linspace(-0.01, 0.98*self.max_rate_I, 100)
+        Inh_null_rI = np.linspace(-.01, 0.89*self.max_rate_E, 100)
         
         # Compute nullclines
         Exc_null_rI = self.get_E_nullcline(Exc_null_rE)
@@ -545,72 +669,63 @@ class EI_network_extended(EI_network):
 # -
 
 
-example = EI_network_extended()
-ax = example.show_nullclines_lecture_plot()
-example.show_vectors_in_phase_plane(ax=ax)
+# ### Task 6.1 
+# Can you plot the inverse function we defined above?
+
+
+
+# ## Phase plane with nullclines in 2D
+#
+# The class above now allows us to show the phase plane with the corresponding nullclines and the vector field, you can run the code below to show the example from the lecture.
+
+network_phase_plane = ExtendedNetworkEI()
+ax = network_phase_plane.show_nullclines_lecture_plot()
+network_phase_plane.show_vectors_in_phase_plane(ax=ax)
+
+# We now repeat the analysis from before, but now we can see how the overall vector field looks like. This can help you to further understand the dynamics and also to find 'interesting' starting positions for a given system.
+#
+# ### Task 7
+# You can try to vary the network below to find networks where you see oscillations, or limit cycles. 
 
 # +
-fig, (ax1,ax2) = plt.subplots(1,2, figsize = (12,6))
+extended_network_1 = ExtendedNetworkEI(I_E = 0.1, I_I = 0.5)
+extended_network_2 = ExtendedNetworkEI(I_E = 0.1, I_I = 0.5)
 
-lecture_network = EI_network_extended()
-lecture_network.run_simulation(r_E0 = 0.32, r_I0 = 0.3)
-lecture_network.show_sim_results_current_v_time_lecture_plot(linestyle = '-', ax = ax1)
-lecture_network.show_sim_results_phase_plane( color = '#984ea3', ax = ax2)
-
-lecture_network.run_simulation(r_E0 = 0.33, r_I0 = 0.3)
-lecture_network.show_sim_results_current_v_time_lecture_plot(ax = ax1, linestyle = '--')
-lecture_network.show_sim_results_phase_plane(ax = ax2, color = '#ff7f00');
-
-lecture_network.show_nullclines_lecture_plot(ax=ax2)
-lecture_network.show_vectors_in_phase_plane(ax=ax2)
-
-# +
-fig, (ax1,ax2) = plt.subplots(1,2, figsize = (12,6))
-
-lecture_network = EI_network_extended(
-    w_EE = 9 ,
-    w_EI = 6,
-    w_II = 7,
-    w_IE = 14,
-    tau_E = 10, 
-    tau_I = 14,
-    I_E = 0.8,
-    I_I = 0)
-
-lecture_network.run_simulation(r_E0 = 0.8, r_I0 = 0.7, timesteps = 400)
-lecture_network.show_sim_results_current_v_time_lecture_plot(linestyle = '-', ax = ax1)
-lecture_network.show_sim_results_phase_plane( color = '#548235', ax = ax2)
-
-lecture_network.show_nullclines_lecture_plot(ax=ax2)
-lecture_network.show_vectors_in_phase_plane(ax=ax2)
-
-# +
-fig, (ax1,ax3) = plt.subplots(1,2, figsize = (12,6))
-divider = make_axes_locatable(ax1)
-ax2 = divider.append_axes("top", size="100%", pad=0.6, sharex=ax1)
-
-lecture_network = EI_network_extended(
-    w_EE = 6.4 ,
-    w_EI = 4.8,
-    w_II = 1.2,
-    w_IE = 6,
-    tau_E = 10,
-    tau_I = 20,
-    I_E = 0.8,
-    I_I = 0)
+extended_network_1.run_simulation(r_E0 = 0.32, r_I0 = 0.3)
+extended_network_2.run_simulation(r_E0 = 0.6, r_I0 = 0.5)
 
 
+def show_simulation_results(position_in_time):
+    fig, (ax1,ax2) = plt.subplots(1,2, figsize = (12,6))
+    extended_network_1.show_sim_results_current_v_time_lecture_plot(linestyle = '-', ax = ax1, 
+                                                           position_in_time = position_in_time,
+                                                          color = '#984ea3')
+    extended_network_1.show_sim_results_phase_plane( color = '#984ea3', ax = ax2, 
+                                           position_in_time = position_in_time)
+    extended_network_2.show_sim_results_current_v_time_lecture_plot(ax = ax1, linestyle = '--', 
+                                                           position_in_time = position_in_time,
+                                                          color = '#ff7f00')
+    extended_network_2.show_sim_results_phase_plane(ax = ax2, color = '#ff7f00', linestyle = '--',
+                                           position_in_time = position_in_time);
+    
+    extended_network_2.show_nullclines_lecture_plot(ax=ax2)
+    extended_network_2.show_vectors_in_phase_plane(ax=ax2)
+    
+widgets.interactive(show_simulation_results, position_in_time = (0,200,5))
+# -
 
-lecture_network.run_simulation(r_E0 = 0.8, r_I0 = 0.7, timesteps = 600)
-lecture_network.show_sim_results_current_v_time_lecture_plot(linestyle = '-', ax = ax1)
-lecture_network.show_sim_results_phase_plane( color = '#548235', ax = ax3)
+# ## [Solution 7](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_8/solutions/482fdd347c57468ecabbc67755a3fcd8.txt)
 
-lecture_network.run_simulation(r_E0 = 0.5, r_I0 = 0.25, timesteps = 600)
-lecture_network.show_sim_results_current_v_time_lecture_plot(linestyle = '--', ax = ax2)
-lecture_network.show_sim_results_phase_plane( color = '#548235', ax = ax3, linestyle='--')
-
-lecture_network.show_nullclines_lecture_plot(ax=ax3)
-lecture_network.show_vectors_in_phase_plane(ax=ax3)
+# # BONUS
+#
+# ## Comparison of a spiking and rate network
+#
+# We now look at how to compare spiking networks and rate networks.
+# Disclaimer - this is not really intended to be part of the teaching notebook. 
+#
+# The idea is to setup a spiking neuron model that has intrinsic noise (see equations) and translate the activity arising from a network that consists of 1000 neurons (E and I) into the activity of a rate based model.
+#
+# First, the f-i ciurve is fit to the output of the neuron. Then the rate-weights are calculated. 
 
 # +
 # define single neuron properties
@@ -708,9 +823,15 @@ def fit_nonlinearity(max_rate=124, alpha=0.28, theta=32):
 widgets.interactive(fit_nonlinearity,max_rate=(0,200,1),alpha=(0,1,0.01),theta=(0,100,1))
 # -
 
-max_rate = 78
-alpha = 0.19
-theta = 20
+# ### Task 8
+# Fit the non-linearity above and enter the parameters below
+
+max_rate = 0
+alpha = 0
+theta = 0
+
+# ## [Solution 8](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_8/solutions/d998387aebdb5f9605dc1191890502b8.txt)
+#
 
 # +
 n_neurons = 1000
@@ -752,12 +873,12 @@ w_IE = return_rate_weight(g_max=g_IE, n_input=p_con_IE*n_E, E_syn=E_e, tau_syn=t
 w_EI = return_rate_weight(g_max=g_EI, n_input=p_con_EI*n_I, E_syn=E_i, tau_syn=tau_i)
 w_II = return_rate_weight(g_max=g_II, n_input=p_con_II*n_I, E_syn=E_i, tau_syn=tau_i)
 
-print(w_EE, w_IE, w_EI, w_II)
+print(f'w_EE: {w_EE}, w_IE = {w_IE}, w_EI = {w_EI}, w_II = {w_II}')
 
 
 # -
 
-class EINetworkFit(EI_network_extended):
+class EINetworkFit(ExtendedNetworkEI):
     """
     This class can create E-I networks, run simulations and visualize the results
     """
@@ -809,11 +930,17 @@ lecture_network = EINetworkFit(
 
 
 inputs = np.vstack([5*randn(2000,n_neurons)+8,5*randn(2000,n_neurons)+14.5])
+# we create the inputs that we can also feed into the spiking network (timesteps,n_neurons)
+
+
 lecture_network.run_simulation_with_input(r_E0 = 5.8, r_I0 = 5, timesteps = 4000, 
                                           I_E = np.mean(inputs[:,:n_E],axis=1),
                                           I_I = np.mean(inputs[:,n_E:],axis=1))
 # lecture_network.show_nullclines(ax=ax2)
 lecture_network.show_sim_results(ax=ax)
+# -
+
+# ### below we run the spiking network
 
 # +
 start_scope() # this opens our brian2 environment
@@ -853,25 +980,23 @@ run(400*ms)
 
 # print (rate_exc.keys())
 
+
+
+
+# -
+# ### Plot the results of the spiking network and the rate model
+
 fig, (ax1,ax2) = plt.subplots(2)
 ax1.plot(M_e.t/ms, M_e.i, '.', c='#2b8cbe')
 ax1.plot(M_i.t/ms, M_i.i+n_neurons*0.8, '.', c='#de2d26')
 ax1.set(
     ylabel = 'Neuron',
     xlabel = 'Time in ms')
-ax2.plot(rate_exc.t/ms,rate_exc.smooth_rate(width=16*ms),c='#2b8cbe')
-ax2.plot(rate_inh.t/ms,rate_inh.smooth_rate(width=16*ms),c='#de2d26')
-lecture_network.show_sim_results(ax=ax2, linestyle='--')
+ax2.plot(rate_exc.t/ms,rate_exc.smooth_rate(width=16*ms),c='#2b8cbe', label = 'spiking population rate (E)')
+ax2.plot(rate_inh.t/ms,rate_inh.smooth_rate(width=16*ms),c='#de2d26',label = 'spiking population rate (I)')
+lecture_network.show_sim_results(ax=ax2, linestyle='--', label = 'rate model')
 ax2.set(
     xlabel = 'Time in ms')
-
-
-# -
-
-
-# \begin{align}
-# \tau_E \frac{dr_E}{dt} &= -r_E + F_E(w_{EE}r_E -w_{EI}r_I + I_E) \\
-# \tau_I \frac{dr_I}{dt} &= -r_I + F_I(w_{IE}r_E -w_{II}r_I + I_I) \qquad (1)
-# \end{align}
+ax2.legend()
 
 

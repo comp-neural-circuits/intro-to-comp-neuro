@@ -1,0 +1,69 @@
+### Solution 7
+
+A possible network for damped oscillations is achieved with the the following settings:
+
+```python
+lecture_network = ExtendedNetworkEI(
+    w_EE = 9 ,
+    w_EI = 6,
+    w_II = 7,
+    w_IE = 14,
+    tau_E = 10, 
+    tau_I = 14,
+    I_E = 0.8,
+    I_I = 0)
+
+```
+
+<div>
+<img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_8/static/example_damped_oscillations.png" width="450"/>
+</div>
+
+A possible network configuration to see limit cycles is achieved with these settings:
+
+```python
+lecture_network = ExtendedNetworkEI(
+    w_EE = 6.4 ,
+    w_EI = 4.8,
+    w_II = 1.2,
+    w_IE = 6,
+    tau_E = 10,
+    tau_I = 20,
+    I_E = 0.8,
+    I_I = 0)
+```
+
+<div>
+<img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_8/static/example_limit_cycle.png" width="450"/>
+</div>
+To show the last network for two distinct starting positions as in the image above, you can use the following code:
+
+```python
+fig, (ax1,ax3) = plt.subplots(1,2, figsize = (12,6))
+divider = make_axes_locatable(ax1)
+ax2 = divider.append_axes("top", size="100%", pad=0.6, sharex=ax1)
+
+lecture_network = ExtendedNetworkEI(
+    w_EE = 6.4 ,
+    w_EI = 4.8,
+    w_II = 1.2,
+    w_IE = 6,
+    tau_E = 10,
+    tau_I = 20,
+    I_E = 0.8,
+    I_I = 0)
+
+
+
+lecture_network.run_simulation(r_E0 = 0.8, r_I0 = 0.7, timesteps = 600)
+lecture_network.show_sim_results_current_v_time_lecture_plot(linestyle = '-', ax = ax1)
+lecture_network.show_sim_results_phase_plane( color = '#548235', ax = ax3)
+
+lecture_network.run_simulation(r_E0 = 0.5, r_I0 = 0.25, timesteps = 600)
+lecture_network.show_sim_results_current_v_time_lecture_plot(linestyle = '--', ax = ax2)
+lecture_network.show_sim_results_phase_plane( color = '#548235', ax = ax3, linestyle='--')
+
+lecture_network.show_nullclines_lecture_plot(ax=ax3)
+lecture_network.show_vectors_in_phase_plane(ax=ax3)
+```
+

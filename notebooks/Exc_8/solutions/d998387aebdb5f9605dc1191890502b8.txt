@@ -1,0 +1,9 @@
+### Solution 8 
+
+example parameters that should work quite well as long as the system is in a low-firing rate regime
+
+```python
+max_rate = 78
+alpha = 0.19
+theta = 20
+```
