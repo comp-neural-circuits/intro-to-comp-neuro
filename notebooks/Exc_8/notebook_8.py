@@ -21,6 +21,7 @@ import requests
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from matplotlib.patches import ConnectionPatch
 import ipywidgets as widgets
 from scipy import optimize as opt
 
@@ -44,15 +45,15 @@ prefs.codegen.target = 'numpy'
 #
 # This notebook follows the lecture quite closely. We want to understand how to investigate 2D rate models. Therefore we 
 #
-# 1) Investigate an example non-linearity, the sigmoidal Function. 
+# * Investigate an example non-linearity, the sigmoidal Function. 
 #
-# 2) Look at a simple, Feedforward dynamical system and how it evolves. 
+# * Look at a simple, Feedforward dynamical system and how it evolves. 
 #
-# 3) Investigate the phase plane and fixed points of a recurrent system in one dimenision. 
+# * Investigate the phase plane and fixed points of a recurrent system in one dimenision. 
 #
-# 4) Do the same in two dimensions.
+# * Do the same in two dimensions.
 #
-# 5) Make the comparison of a spiking network and a rate based network
+# * Make the comparison of a spiking network and a rate based network
 
 # ## 1) An example non-linearity: The sigmoidal function
 #
@@ -219,6 +220,32 @@ class RecurrentNetwork(object):
         ax.set_yticklabels(y_ticks,fontsize=14)
         ax.set_xlabel('$r$', fontsize=16, fontweight='bold')
         ax.set_ylabel(r'$\frac{dr}{dt}$', fontsize=22, rotation=0, fontweight='bold')
+        
+    def show_phase_plane_turned(self, ax1= ax1, ax2=ax2):
+    
+
+        # Define a vector of r values and the simulation parameters
+        r = np.linspace(0, 1, 1000)
+
+        # Compute dr/dt
+        drdt = self.compute_drdt(r)
+    
+        X = np.linspace(0.,self.theta*2.3,500)
+        ax1.plot(X, nonlinearity_f(X, alpha=self.alpha, theta=self.theta), color='k', linewidth = 1)
+        y_ticks = [0,0.5,1]
+        ax1.set_yticks(y_ticks)
+        ax1.set_yticklabels(y_ticks,fontsize=14)
+        ax1.set_ylabel('$r$', fontsize=22, rotation=0, fontweight='bold')
+
+        ax2.plot(drdt, r)
+        ax2.plot([0,0],[0,1],linestyle = '--', color = 'k')
+
+        x_ticks = [np.round(ii,5) for ii in np.linspace(-0.015,0.015,11) if ii < np.max(drdt) and ii > np.min(drdt)]
+
+        ax2.set_xticks(x_ticks)
+        ax2.set_xticklabels(x_ticks,fontsize=14)
+        
+        ax2.set_xlabel(r'$\frac{dr}{dt}$', fontsize=22, fontweight='bold')
 
 
 # ### Phase plane
@@ -299,6 +326,119 @@ widgets.interactive(mulitple_starting_conditions,
                    alpha = (0.5,2.5,0.1),
                    theta = (0.5, 4,0.1),
                    tau = (5,30,1))
+
+
+# +
+def mulitple_starting_conditions(w = 5, alpha = 1.2, theta = 2.8, tau = 20, I_ext = 0.5, r=0.3):
+    
+    fig, (ax1, ax2) = plt.subplots(1,3, figsize = (15,6), gridspec_kw={'width_ratios': [3, 3, 1]}, sharey=True)
+    url = f'https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_8/static/recurrent.png'
+    with urlopen(url) as f:
+        image = Image.open(f)
+
+    # Convert the image data to a NumPy array
+    image_array = np.array(image)
+
+    # Plot the image
+    ax3.imshow(image_array)
+    
+    
+    example = RecurrentNetwork(w = w, alpha = alpha, theta = theta, tau = tau, I_ext = I_ext)
+    
+    correct_fps = []
+    for x_guess in np.linspace(0,1,20):
+        x_fp =  np.round(opt.root(example.compute_drdt, x_guess).x.item(),7)
+        # check if its a real fixed point
+        if np.abs(example.compute_drdt(x_fp)) < 1e-6:
+            if x_fp not in correct_fps:
+                correct_fps.append(x_fp)
+    
+    
+    if len(correct_fps) == 3:
+        scatter_color = ['#ff7f00','#ff7f00','#ff7f00']
+        scatter_x = np.sort(correct_fps)
+        middle = scatter_x[1]
+        lower_fixed_point_starts = np.linspace(0,middle-1e-3, int(20*middle))
+        upper_fixed_point_starts = np.linspace(middle+1e-3,1, int(20*(1-middle)))
+        
+        
+    if len(correct_fps) == 1:
+        x = correct_fps[0]
+        scatter_x = [x]
+        if x < 0.5:
+            scatter_color = '##ff7f00'
+            lower_fixed_point_starts = np.linspace(0,1, 20)
+            upper_fixed_point_starts = np.array([]) 
+        else:
+            scatter_color = '#ff7f00'
+            lower_fixed_point_starts = np.array([])
+            upper_fixed_point_starts = np.linspace(0,1, 20)        
+    
+
+    ax2.scatter(np.zeros_like(scatter_x), scatter_x, 
+                    s=80, c = scatter_color,zorder=10)
+    example.show_phase_plane_turned(ax1=ax1, ax2 = ax2)
+
+    val = example.I_ext
+    ax1.plot([0,val],[0,0], linewidth = 3, label = r'external current $I_{ext}$', color = '#9016CB')
+    rec_val = r * example.w
+    ax1.plot([val,rec_val+val],[0,0], linewidth = 3, label = r'recurrent input $r\,w$', color = '#2171B5')
+
+    xy_r_in = (rec_val+val,nonlinearity_f(rec_val+val, alpha=example.alpha, theta=example.theta))
+    ax1.scatter(*xy_r_in, marker = 'o', zorder = 10, color = '#9016CB', edgecolor = '#2171B5' , linewidth=2, s=80 )
+    def F_inv(x, alpha, theta):
+        # Calculate Finverse (ln(x) can be calculated as np.log(x))
+        F_inverse = -1/alpha * np.log((x + (1 + np.exp(alpha * theta))**-1)**-1 - 1) + theta
+
+        return F_inverse
+
+    xy_r = (F_inv(r, alpha=example.alpha, theta=example.theta),r)
+    ax1.scatter(*xy_r, marker = 'o', zorder = 10, c='g')
+
+    ax2.scatter(example.compute_drdt(r), r, marker = 'o', zorder = 10, c='g')
+
+    con = ConnectionPatch(xy_r, xy_r_in, coordsA ='data', coordsB='data',
+                      arrowstyle="->", shrinkA=5, shrinkB=5,
+                      mutation_scale=20, fc="k",zorder=20, linewidth = 2)
+    ax1.add_artist(con)
+
+    xy_a = (example.compute_drdt(r), r)
+    xy_b = (0, r)
+    ax2.scatter(*xy_a, marker = 'o', zorder = 10, c='g')
+    con = ConnectionPatch(xy_b, xy_a, coordsA ='data', coordsB='data',
+                      arrowstyle="->", shrinkA=5, shrinkB=5,
+                      mutation_scale=20, fc="k",zorder=20, linewidth = 2)
+    ax2.add_artist(con)
+
+    con = ConnectionPatch(xy_a, (example.compute_drdt(r), r), coordsA ='data', coordsB='data',
+                      arrowstyle="->", shrinkA=5, shrinkB=5,
+                      mutation_scale=20, fc="k",zorder=20, linewidth = 2)
+    ax2.add_artist(con)
+
+    if len(scatter_x) == 3:
+        for yy, cc in zip(scatter_x, scatter_color):
+            ax1.axhline(y=yy, c=cc, linestyle = '--')
+    else:
+        ax1.axhline(y=scatter_x, c=scatter_color, linestyle = '--')
+        
+    max_x = int(np.floor(ax1.get_xlim()[1]))
+    x_ticks = np.linspace(0,max_x,max_x+1).astype(int)
+    ax1.set_xticks(x_ticks)
+    ax1.set_xticklabels(x_ticks,fontsize=14)
+    ax1.set_xlabel('Input current', fontsize=18, fontweight=10)
+
+
+
+
+    ax1.legend()
+
+widgets.interactive(mulitple_starting_conditions,
+                    w = (0.1,10,0.1),
+                   alpha = (0.5,2.5,0.1),
+                   theta = (0.5, 4,0.1),
+                   tau = (5,30,1),
+                    I_ext = (0,3,0.1),
+                   r = (0,1,0.01))
 
 
 # -
