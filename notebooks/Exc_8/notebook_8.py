@@ -222,32 +222,6 @@ class RecurrentNetwork(object):
         ax.set_yticklabels(y_ticks,fontsize=14)
         ax.set_xlabel('$r$', fontsize=16, fontweight='bold')
         ax.set_ylabel(r'$\frac{dr}{dt}$', fontsize=22, rotation=0, fontweight='bold')
-        
-    def show_phase_plane_turned(self, ax1= ax1, ax2=ax2):
-    
-
-        # Define a vector of r values and the simulation parameters
-        r = np.linspace(0, 1, 1000)
-
-        # Compute dr/dt
-        drdt = self.compute_drdt(r)
-    
-        X = np.linspace(0.,self.theta*2.3,500)
-        ax1.plot(X, nonlinearity_f(X, alpha=self.alpha, theta=self.theta), color='k', linewidth = 1)
-        y_ticks = [0,0.5,1]
-        ax1.set_yticks(y_ticks)
-        ax1.set_yticklabels(y_ticks,fontsize=14)
-        ax1.set_ylabel('$r$', fontsize=22, rotation=0, fontweight='bold')
-
-        ax2.plot(drdt, r, 'k',alpha=0.6)
-        ax2.plot([0,0],[0,1],linestyle = '--', color = 'k')
-
-        x_ticks = [np.round(ii,5) for ii in np.linspace(-0.015,0.015,11) if ii < np.max(drdt) and ii > np.min(drdt)]
-
-        ax2.set_xticks(x_ticks)
-        ax2.set_xticklabels(x_ticks,fontsize=14)
-        
-        ax2.set_xlabel(r'$\frac{dr}{dt}$', fontsize=22, fontweight='bold')
 
 
 # ### Phase plane
@@ -333,87 +307,85 @@ widgets.interactive(mulitple_starting_conditions,
 # +
 def mulitple_starting_conditions(w = 5, alpha = 1.2, theta = 2.8, tau = 20, I_ext = 0.5, r=0.3):
     
-    fig, (ax1, ax2, ax3) = plt.subplots(1,3, figsize = (15,6), gridspec_kw={'width_ratios': [3,3, 2]}, sharey=True)
-    
-    
-    
-    example = RecurrentNetwork(w = w, alpha = alpha, theta = theta, tau = tau, I_ext = I_ext)
-    
-    correct_fps = []
-    for x_guess in np.linspace(0,1,20):
-        x_fp =  np.round(opt.root(example.compute_drdt, x_guess).x.item(),7)
-        # check if its a real fixed point
-        if np.abs(example.compute_drdt(x_fp)) < 1e-6:
-            if x_fp not in correct_fps:
-                correct_fps.append(x_fp)
-    
-    
-    if len(correct_fps) == 3:
-        scatter_color = ['#ff7f00','#ff7f00','#ff7f00']
-        scatter_x = np.sort(correct_fps)
-        middle = scatter_x[1]
-        lower_fixed_point_starts = np.linspace(0,middle-1e-3, int(20*middle))
-        upper_fixed_point_starts = np.linspace(middle+1e-3,1, int(20*(1-middle)))
-        
-        
-    if len(correct_fps) == 1:
-        x = correct_fps[0]
-        scatter_x = [x]
-        if x < 0.5:
-            scatter_color = '##ff7f00'
-            lower_fixed_point_starts = np.linspace(0,1, 20)
-            upper_fixed_point_starts = np.array([]) 
-        else:
-            scatter_color = '#ff7f00'
-            lower_fixed_point_starts = np.array([])
-            upper_fixed_point_starts = np.linspace(0,1, 20)        
-    
-
-    ax2.scatter(np.zeros_like(scatter_x), scatter_x, 
-                    s=80, c = scatter_color,zorder=10)
-    example.show_phase_plane_turned(ax1=ax1, ax2 = ax2)
-
-    val = example.I_ext
-    ax1.plot([0,val],[0,0], linewidth = 3, label = r'external current $I_{ext}$', color = '#9016CB')
-    rec_val = r * example.w
-    ax1.plot([val,rec_val+val],[0,0], linewidth = 3, label = r'recurrent input $r\,w$', color = '#2171B5')
-
-    xy_r_in = (rec_val+val,nonlinearity_f(rec_val+val, alpha=example.alpha, theta=example.theta))
-    ax1.scatter(*xy_r_in, marker = 'o', zorder = 10, color = '#9016CB', edgecolor = '#2171B5' , linewidth=2, s=80 )
     def F_inv(x, alpha, theta):
         # Calculate Finverse (ln(x) can be calculated as np.log(x))
         F_inverse = -1/alpha * np.log((x + (1 + np.exp(alpha * theta))**-1)**-1 - 1) + theta
 
         return F_inverse
+    
+    
+    fig, (ax1, ax2, ax3) = plt.subplots(1,3, figsize = (15,6), gridspec_kw={'width_ratios': [3,3, 2]}, sharey=True)
+    
+    
+    example = RecurrentNetwork(w = w, alpha = alpha, theta = theta, tau = tau, I_ext = I_ext)
+    
+    def get_fixed_points(self):
+        correct_fps = []
+        for x_guess in np.linspace(0,1,20):
+            x_fp =  np.round(opt.root(example.compute_drdt, x_guess).x.item(),7)
+            # check if its a real fixed point
+            if np.abs(example.compute_drdt(x_fp)) < 1e-6:
+                if x_fp not in correct_fps:
+                    correct_fps.append(x_fp)
 
+
+        if len(correct_fps) == 3:
+            scatter_color = ['#ff7f00','#ff7f00','#ff7f00']
+            scatter_x = np.sort(correct_fps)
+            middle = scatter_x[1]
+            lower_fixed_point_starts = np.linspace(0,middle-1e-3, int(20*middle))
+            upper_fixed_point_starts = np.linspace(middle+1e-3,1, int(20*(1-middle)))
+
+
+        if len(correct_fps) == 1:
+            x = correct_fps[0]
+            scatter_x = [x]
+            if x < 0.5:
+                scatter_color = '##ff7f00'
+                lower_fixed_point_starts = np.linspace(0,1, 20)
+                upper_fixed_point_starts = np.array([]) 
+            else:
+                scatter_color = '#ff7f00'
+                lower_fixed_point_starts = np.array([])
+                upper_fixed_point_starts = np.linspace(0,1, 20)      
+        return 
+    
+
+    
+    
+    # Define a vector of r values and the simulation parameters
+    r_array = np.linspace(0, 1, 1000)
+
+    # Compute dr/dt
+    drdt = example.compute_drdt(r_array)
+    val = example.I_ext
+    rec_val = r * example.w
+    xy_r_in = (rec_val+val,nonlinearity_f(rec_val+val, alpha=example.alpha, theta=example.theta))
     xy_r = (F_inv(r, alpha=example.alpha, theta=example.theta),r)
-    ax1.scatter(*xy_r, marker = 'o', zorder = 10, c='#217127', s=70)
-
-
-
-    con = ConnectionPatch(xy_r, xy_r_in, coordsA ='data', coordsB='data',
-                      arrowstyle="->", shrinkA=5, shrinkB=5,
-                      mutation_scale=20, fc="k",zorder=20, linewidth = 2)
-    ax1.add_artist(con)
-
     xy_a = (example.compute_drdt(r), r)
     xy_b = (0, r)
-    ax2.scatter(*xy_a, marker = 'o', zorder = 10, c='#217127', s=70)
-    con = ConnectionPatch(xy_b, xy_a, coordsA ='data', coordsB='data',
-                      arrowstyle="->", shrinkA=5, shrinkB=5,
-                      mutation_scale=20, fc="k",zorder=20, linewidth = 2)
-    ax2.add_artist(con)
-
-    con = ConnectionPatch(xy_a, (example.compute_drdt(r), r), coordsA ='data', coordsB='data',
-                      arrowstyle="->", shrinkA=5, shrinkB=5,
-                      mutation_scale=20, fc="k",zorder=20, linewidth = 2)
-    ax2.add_artist(con)
-
+    
+    
+    X = np.linspace(0.,example.theta*2.3,500)
+    ax1.plot(X, nonlinearity_f(X, alpha=example.alpha, theta=example.theta), color='k', linewidth = 1)
+    y_ticks = [0,0.5,1]
+    ax1.set_yticks(y_ticks)
+    ax1.set_yticklabels(y_ticks,fontsize=14)
+    ax1.set_ylabel('$r$', fontsize=22, rotation=0, fontweight='bold')
+    ax1.scatter(*xy_r_in, marker = 'o', zorder = 10, color = '#9016CB', edgecolor = '#2171B5' , linewidth=2, s=80 )
+    ax1.plot([0,val],[0,0], linewidth = 3, label = r'external current $I_{ext}$', color = '#9016CB')
+    ax1.plot([val,rec_val+val],[0,0], linewidth = 3, label = r'recurrent input $r\,w$', color = '#2171B5')
+    ax1.scatter(*xy_r, marker = 'o', zorder = 10, c='#217127', s=70)
     if len(scatter_x) == 3:
         for yy, cc in zip(scatter_x, scatter_color):
             ax1.axhline(y=yy, c=cc, linestyle = '--')
     else:
         ax1.axhline(y=scatter_x, c=scatter_color, linestyle = '--')
+        
+    con = ConnectionPatch(xy_r, xy_r_in, coordsA ='data', coordsB='data',
+                      arrowstyle="->", shrinkA=5, shrinkB=5,
+                      mutation_scale=20, fc="k",zorder=20, linewidth = 2)
+    ax1.add_artist(con)
         
     max_x = int(np.floor(ax1.get_xlim()[1]))
     x_ticks = np.linspace(0,max_x,max_x+1).astype(int)
@@ -425,6 +397,30 @@ def mulitple_starting_conditions(w = 5, alpha = 1.2, theta = 2.8, tau = 20, I_ex
 
 
     ax1.legend()
+    
+    
+    
+    ax2.scatter(*xy_a, marker = 'o', zorder = 10, c='#217127', s=70)
+    con = ConnectionPatch(xy_b, xy_a, coordsA ='data', coordsB='data',
+                      arrowstyle="->", shrinkA=5, shrinkB=5,
+                      mutation_scale=20, fc="k",zorder=20, linewidth = 2)
+    ax2.add_artist(con)
+
+    con = ConnectionPatch(xy_a, (example.compute_drdt(r), r), coordsA ='data', coordsB='data',
+                      arrowstyle="->", shrinkA=5, shrinkB=5,
+                      mutation_scale=20, fc="k",zorder=20, linewidth = 2)
+    ax2.add_artist(con)
+    ax2.scatter(np.zeros_like(scatter_x), scatter_x, 
+                    s=80, c = scatter_color,zorder=10)
+    ax2.plot(drdt, r_array, 'k',alpha=0.6)
+    ax2.plot([0,0],[0,1],linestyle = '--', color = 'k')
+
+    x_ticks = [np.round(ii,5) for ii in np.linspace(-0.015,0.015,11) if ii < np.max(drdt) and ii > np.min(drdt)]
+
+    ax2.set_xticks(x_ticks)
+    ax2.set_xticklabels(x_ticks,fontsize=14)
+
+    ax2.set_xlabel(r'$\frac{dr}{dt}$', fontsize=22, fontweight='bold')
     
     
     ax3.axis('off')
