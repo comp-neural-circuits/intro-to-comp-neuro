@@ -22,6 +22,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.patches import ConnectionPatch
+from matplotlib import animation
 import ipywidgets as widgets
 from scipy import optimize as opt
 from urllib.request import urlopen
@@ -42,6 +43,127 @@ from sklearn.datasets import fetch_openml
 # ### Task X
 #
 # Can you implement the perceptron algorithm ?
+#
+#
+# <div>
+# <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_9/static/learning_algorithm_perceptron.png" width="400"/>
+# </div>
+
+# +
+seed = 44
+
+np.random.seed(10)
+
+n_samples = 40
+X = np.random.rand(2,n_samples)*1.1
+labels = X[0,:] + X[1,:]  >=1
+print (labels)
+
+fig,ax = plt.subplots()
+ax.scatter(*X[:,labels], color = 'b')
+ax.scatter(*X[:,labels == False], color = 'r')
+ax.set(
+    xlabel = r'$x_1$',
+    ylabel = r'$x_2$')
+
+x_ticks = [0,0.5,1]
+y_ticks = [0,0.5,1]
+ax.set_xticks(x_ticks)
+ax.set_xticklabels(x_ticks,fontsize=14)
+ax.set_yticks(y_ticks)
+ax.set_yticklabels(y_ticks,fontsize=14)
+ax.set_xlabel('$x_1$', fontsize=20, fontweight='bold')
+ax.set_ylabel('$x_2$', fontsize=20, fontweight='bold')
+
+X = np.vstack((np.ones(n_samples), X))
+np.random.seed(seed)
+w = np.random.rand(3)
+
+print (w)
+print (X.shape)
+
+
+all_w = w
+
+np.random.seed(10)
+converged = False
+ii = 0
+while not converged:
+    
+    print (ii)
+    
+    converged = True
+    for x, l in zip(X.T, labels):
+        if l == True and np.dot(w,x) < 0:
+            w += x
+            converged = False
+        if l == False and np.dot(w,x) >=0:
+            w -= x
+            converged = False
+            
+        all_w = np.vstack((all_w, w))
+            
+    ii += 1
+
+print (w)        
+
+def perceptron(x, w):
+    
+    return np.dot(w, x) >= 0
+
+print (perceptron(X,w))
+
+
+
+
+fig,ax = plt.subplots(figsize = (8,8))
+
+labels = perceptron(X, all_w[0,:])
+
+data_true = ax.scatter(*X[1:,labels], color = 'b', label = 'classified as True', s=90)
+data_false = ax.scatter(*X[1:,labels == False], color = 'r', label = 'classified as False', s=90)
+ax.set(
+    xlabel = r'$x_1$',
+    ylabel = r'$x_2$')
+
+x_ticks = [0,0.5,1]
+y_ticks = [0,0.5,1]
+ax.set_xticks(x_ticks)
+ax.set_xticklabels(x_ticks,fontsize=20)
+ax.set_yticks(y_ticks)
+ax.set_yticklabels(y_ticks,fontsize=20)
+ax.set_xlabel('$x_1$', fontsize=32, fontweight='bold')
+ax.set_ylabel('$x_2$', fontsize=32, fontweight='bold')
+
+
+def update(t, data_true=data_true, data_false=data_false, X=X, all_w = all_w):
+    
+    if t > all_w.shape[0] - 1:
+        t = all_w.shape[0] - 1
+        
+    else:
+        labels = perceptron(X, all_w[t,:])
+        if np.any(labels):
+            new_true_offsets = X[1:,labels]
+            data_true.set_offsets(new_true_offsets.T)
+
+        if np.any(labels == False):
+            new_false_offsets = X[1:,labels == False]
+            data_false.set_offsets(new_false_offsets.T)
+        
+    ax.set_title(f'Step: {t}', fontsize=40)
+    
+
+frames = [t for t in range(ii*n_samples+1 + 100)]
+
+print (len(frames), all_w.shape)
+# Create and render the animation
+anim = animation.FuncAnimation(fig, func = update,  frames = frames )
+# save it to file
+anim.save(f"perceptron_seed_{seed}.gif",
+          fps = 12, writer='imagemagick',dpi=300)
+
+# -
 
 mnist = fetch_openml(name='mnist_784', as_frame = False)
 
