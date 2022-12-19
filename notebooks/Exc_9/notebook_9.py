@@ -15,9 +15,33 @@
 
 # # Artificial networks
 
+# +
+import io
+import requests
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from matplotlib.patches import ConnectionPatch
+import ipywidgets as widgets
+from scipy import optimize as opt
+from urllib.request import urlopen
+from PIL import Image
+
 # %matplotlib inline
-from pylab import *
+
+# Settings for the figures
+plt.style.use(plt.style.available[20])
+plt.style.use("https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/plots_style.txt")
+
+# from pylab import *
 from sklearn.datasets import fetch_openml
+# -
+
+# # Perceptron
+
+# ### Task X
+#
+# Can you implement the perceptron algorithm ?
 
 mnist = fetch_openml(name='mnist_784', as_frame = False)
 
