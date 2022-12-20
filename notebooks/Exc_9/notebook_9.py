@@ -229,6 +229,18 @@ def show_example_plot_binary(example_ids = [0,1]):
 show_example_plot_binary([0,1,2,3,4,5,6,7])
 
 # +
+import numpy as np
+from PIL import Image
+import requests
+from io import BytesIO
+
+url = '...'
+response = requests.get(url)
+img = Image.open(BytesIO(response.content))
+
+
+
+# +
 # The matplotlib object to do animations
 from matplotlib import animation
 import numpy as np
