@@ -234,9 +234,12 @@ from PIL import Image
 import requests
 from io import BytesIO
 
-url = '...'
+url = 'https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_9/static/pixel_images_homer.png'
 response = requests.get(url)
 img = Image.open(BytesIO(response.content))
+
+fig,ax = plt.subplots()
+ax.imshow(img)
 
 
 
