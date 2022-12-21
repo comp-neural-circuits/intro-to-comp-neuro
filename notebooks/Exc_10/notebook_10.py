@@ -196,4 +196,92 @@ widgets.interactive(AAA,alpha=(0,179,10))
 #     
 #
 
+# +
+def pca(X):
+  """
+  Performs PCA on multivariate data. Eigenvalues are sorted in decreasing order
+
+  Args:
+     X (numpy array of floats) :   Data matrix each column corresponds to a
+                                   different random variable
+
+  Returns:
+    (numpy array of floats)    : Data projected onto the new basis
+    (numpy array of floats)    : Corresponding matrix of eigenvectors
+    (numpy array of floats)    : Vector of eigenvalues
+
+  """
+
+  X = X - np.mean(X, 0)
+  cov_matrix = get_sample_cov_matrix(X)
+  evals, evectors = np.linalg.eigh(cov_matrix)
+  evals, evectors = sort_evals_descending(evals, evectors)
+  score = change_of_basis(X, evectors)
+
+  return score, evectors, evals
+
+def get_sample_cov_matrix(X):
+  """
+  Returns the sample covariance matrix of data X.
+
+  Args:
+    X (numpy array of floats) : Data matrix each column corresponds to a
+                                different random variable
+
+  Returns:
+    (numpy array of floats)   : Covariance matrix
+"""
+
+  X = X - np.mean(X, 0)
+  cov_matrix = 1 / X.shape[0] * np.matmul(X.T, X)
+  return cov_matrix
+
+def sort_evals_descending(evals, evectors):
+  """
+  Sorts eigenvalues and eigenvectors in decreasing order. Also aligns first two
+  eigenvectors to be in first two quadrants (if 2D).
+
+  Args:
+    evals (numpy array of floats)    :   Vector of eigenvalues
+    evectors (numpy array of floats) :   Corresponding matrix of eigenvectors
+                                         each column corresponds to a different
+                                         eigenvalue
+
+  Returns:
+    (numpy array of floats)          : Vector of eigenvalues after sorting
+    (numpy array of floats)          : Matrix of eigenvectors after sorting
+  """
+
+  index = np.flip(np.argsort(evals))
+  evals = evals[index]
+  evectors = evectors[:, index]
+  if evals.shape[0] == 2:
+    if np.arccos(np.matmul(evectors[:, 0],
+                           1 / np.sqrt(2) * np.array([1, 1]))) > np.pi / 2:
+      evectors[:, 0] = -evectors[:, 0]
+    if np.arccos(np.matmul(evectors[:, 1],
+                           1 / np.sqrt(2)*np.array([-1, 1]))) > np.pi / 2:
+      evectors[:, 1] = -evectors[:, 1]
+
+  return evals, evectors
+
+def change_of_basis(X, W):
+  """
+  Projects data onto a new basis.
+
+  Args:
+    X (numpy array of floats) : Data matrix each column corresponding to a
+                                different random variable
+    W (numpy array of floats) : new orthonormal basis columns correspond to
+                                basis vectors
+
+  Returns:
+    (numpy array of floats)   : Data matrix expressed in new basis
+  """
+
+  Y = np.matmul(X, W)
+
+  return Y
+# -
+
 

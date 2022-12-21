@@ -42,7 +42,28 @@ from sklearn.datasets import fetch_openml
 
 # # Perceptron
 
-# ### Task X
+# <div>
+# <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_9/static/perceptron.png" width="400"/>
+# </div>
+#
+# The perceptron is known as the first artificial neuron. It calculates its output with the following equation
+#
+# \begin{equation*}
+# y=\begin{cases}
+#     1,  & \text{if } \mathbf{w}\cdot\mathbf{x} \geq 0 \\
+#     0,  & \text{otherwise}
+# \end{cases}
+# \end{equation*}
+#
+# where $x_0$ is always 1 and therefore $w_0$ can be interpreted as the threshold $\theta$. Below is the very simple code for the perceptron
+
+def perceptron(x, w):  
+    return np.dot(w, x) >= 0
+
+
+# With linearly seperable data points, the perceptron can learn the synaptic weights to classify the data. We want to look at the algorithm
+
+# ### Task 1
 #
 # Can you implement the perceptron algorithm ?
 #
@@ -50,13 +71,12 @@ from sklearn.datasets import fetch_openml
 # <div>
 # <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_9/static/learning_algorithm_perceptron.png" width="400"/>
 # </div>
+#
+# Try to implement the algorithm in the code below at the indicated position
 
 # +
-def perceptron(x, w):  
-    return np.dot(w, x) >= 0
-
-starting_weights_seed = 44
-np.random.seed(10) 
+starting_weights_seed = 18
+np.random.seed(46) 
 
 n_samples = 40 # number of samples
 
@@ -78,9 +98,8 @@ selected_points = [None] # this is a list
 ''' put the algorithm here '''
 # be sure to include the following two lines after every step
 # then the viusalization works in the end
-all_w = np.vstack((all_w, w))
-selected_points.append(x)
-
+# all_w = np.vstack((all_w, w))
+# selected_points.append(x)
 
             
 
@@ -90,11 +109,20 @@ def scroll_through_weights(nn):
 
 
     fig,ax = plt.subplots(figsize = (8,8))
-    labels = perceptron(X, all_w[nn,:]) # get the classification results from the perceptron
+    
+    w = all_w[nn,:]
+    labels = perceptron(X, w) # get the classification results from the perceptron
 
     data_true = ax.scatter(*X[1:,labels], color = 'b', label = 'classified as True', s=90)
     data_false = ax.scatter(*X[1:,labels == False], color = 'r', label = 'classified as False', s=90)
     ax.scatter(*selected_points[nn+1][1:], color = (0,0,0,0), edgecolor='k', linewidth=2, s=90 )
+    
+    m = - w[1]/w[2]
+    b = - w[0]/w[2]  
+    xx = np.linspace(-0.1,1.1,2)
+    ax.plot(xx, xx*m + b, color='k', linestyle = '--', label = 'decision boundary')
+    
+    
     
     ax.set(
         xlabel = r'$x_1$',
@@ -108,9 +136,12 @@ def scroll_through_weights(nn):
     ax.set_yticklabels(y_ticks,fontsize=20)
     ax.set_xlabel('$x_1$', fontsize=32, fontweight='bold')
     ax.set_ylabel('$x_2$', fontsize=32, fontweight='bold')
+    ax.set_xlim([-0.1,1.1])
+    ax.set_ylim([-0.1,1.1])
+    ax.legend()
 
     
-widgets.interactive(scroll_through_weights, nn = (0,all_w.shape[0],1))
+widgets.interactive(scroll_through_weights, nn = (0,all_w.shape[0]-1,1))
 
 
 
@@ -121,85 +152,11 @@ widgets.interactive(scroll_through_weights, nn = (0,all_w.shape[0],1))
 # 78a5a35c0791e03abff0b965447c82b9
 #
 
-mnist = fetch_openml(name='mnist_784', as_frame = False)
-
-
-# +
-# print(mnist.keys())
-# print (mnist.target)
-
-def to_mat(image_array):
-    return image_array.reshape(28,28)
-
-def show_example_plot(image_array, label=None):
-    fig, ax = plt.subplots()
-    ax.imshow(to_mat(image_array),cmap='Greys')
-    if label != None:
-        ax.set(
-            title = f'Number {label}',
-        )
-    ax.axis('off')
-
-
-# -
-
-example_id = 4
-show_example_plot(mnist.data[example_id],mnist.target[example_id])
+# ### Task 2
+#
+# In the example above, the data was linearly seperable. What happens if its not?
 
 # +
-
-# Take two rows
-patterns = mnist.data
-labels = mnist.target
-
-# We need only the sign (transform to binary input)
-patterns = np.sign(patterns/255.0 - 0.5)
-
-# Set the number of patterns (two in out case)
-n_patterns = 2
-
-# Number of units of the network
-# n = img_side*img_side
-# -
-
-def show_example_plot_binary(example_ids = [0,1]):
-    sqrt = np.sqrt(len(example_ids))
-    rows = int(np.floor(sqrt))
-    cols = int(np.ceil(sqrt))
-    
-    if rows * cols < len(example_ids):
-        rows += 1
-    
-    fig, axes = plt.subplots(rows, cols,figsize=(12,12))
-    ax = axes.ravel()
-    for ii, ex_id in enumerate(example_ids):
-        ax[ii].imshow(to_mat(patterns[ex_id]),cmap='Greys')
-        ax[ii].set(
-            title = f'Number {labels[ex_id]}',
-        )
-    for this_ax in ax:
-        this_ax.axis('off')
-    plt.tight_layout()
-
-
-show_example_plot_binary([0,1,2,3,4,5,6,7])
-
-# +
-import numpy as np
-from PIL import Image
-import requests
-from io import BytesIO
-
-
-
-
-
-# +
-# The matplotlib object to do animations
-from matplotlib import animation
-import numpy as np
-
-
 class HopfieldNetwork(object):
     """docstring for HopfieldNetwork
 
@@ -258,8 +215,7 @@ class HopfieldNetwork(object):
         sample_interval = sim_time // frames_to_save
 
         self.store_images = np.zeros([self.dim_patterns, frames_to_save])
-        self.store_energy = np.zeros(frames_to_save)
-
+        
         x = self.current_target_pattern.copy()
 
         # We randomly perturb the initial image by swapping the values
@@ -277,16 +233,8 @@ class HopfieldNetwork(object):
             
             # Store current activations
             if tt % sample_interval == 0:
-                # Energy of the current state of the network
-                self.store_energy[tt // sample_interval] = -0.5 * np.dot(x, np.dot(self.W, x))
-
                 # array containing frames_to_save of network activation
                 self.store_images[:, tt // sample_interval] = x
-
-
-                if self.store_overlap_with_training_data:
-                    print (np.sum(self.training_patterns == x,axis=1)/self.training_patterns.shape[1])
-                    # self.overlap_with_training_data[tt//sample_interval] = a
                     
 
             if synchrounous_update:
@@ -308,11 +256,11 @@ class HopfieldNetwork(object):
 
     def init_figure(self):
 
-        fig, ax = plt.subplots(2,3, figsize=(15,10))
+        fig, ax = plt.subplots(1,3, figsize=(15,5))
 
         # Plot 1 - showing the target digit
         # Create subplot
-        ax1 = ax[0,0]
+        ax1 = ax[0]
         ax1.set_title("Start")
         # Create the imshow and save the handler
         self.display_image(ax1, self.store_images[:,0]) 
@@ -321,68 +269,22 @@ class HopfieldNetwork(object):
         # Plot 2 - plot the state of the network
 
         # Create subplot
-        ax2 = ax[0,1]
+        ax2 = ax[1]
         ax2.set_title("Recalling")
 
         # Create the imshow and save the handler
         im_activation = self.display_image(ax2, self.store_images[:,0]) 
         
-        ax6 = ax[0,2]
+        ax6 = ax[2]
         ax6.set_title("Target")
         # Create the imshow and save the handler
         im_target = self.display_image(ax6, self.current_target_pattern) 
 
 
-        # Plot 3 - plot the history of the energy
-        # Create subplot
-        ax3 = ax[1,1]
-
-        ax3.set_title("Energy")
-
-        # Create the line plot and save the handler
-        im_energy, = ax3.plot(self.store_energy) # the comma after im_energy is important (line plots are returned in lists)
-
-        # style
-        ax3.spines['top'].set_visible(False)
-        ax3.spines['right'].set_visible(False)
-        ax3.set_xticks([])
-        ax3.set_yticks([])   
-
-
-        ax4 = ax[1,0]
-        ax4.set_title("Errors")
-
-        # Create the imshow and save the handler
-        im_errors = self.display_image(ax4, self.store_images[:,0]+ self.current_target_pattern * -1, cmap='bwr') 
-        
+       
         # return plot handlers
-        return fig, im_target, im_activation, im_energy, im_errors
+        return fig, im_target, im_activation
 
-
-    def save_simulation(self):
-
-    
-        fig, im_target, im_activation, im_energy, im_errors = self.init_figure()
-        
-        frames = [t for t in range(self.store_images.shape[1])]
-
-        def update(t,
-            im_activation=im_activation, 
-            im_energy=im_energy,
-            im_errors=im_errors,) :
-            
-            
-            A = np.squeeze(self.store_images[:,t])
-            im_activation.set_array(self.to_mat(A))
-            im_errors.set_array(self.to_mat(A + self.current_target_pattern*-1)) 
-            im_energy.set_data(np.arange(t), self.store_energy[:t]) 
-
-
-        # Create and render the animation
-        anim = animation.FuncAnimation(fig, func = update,  frames = frames )
-        # save it to file
-        anim.save(f"mnist-hopfield_{self.current_target_label}.gif",
-                  fps = 10, writer='imagemagick',dpi=50)
         
     def to_mat(self, pattern):
         img_dim = int(np.sqrt(self.dim_patterns))
@@ -395,29 +297,34 @@ class HopfieldNetwork(object):
                     cmap = cmap) 
         ax.axis('off')
         return im
+    
+    
+    def save_simulation(self):
+        fig, im_target, im_activation = self.init_figure()
+        
+        frames = [t for t in range(self.store_images.shape[1])]
 
+        def update(t,
+            im_activation=im_activation, 
+            im_energy=im_energy,
+            im_errors=im_errors,) :
+            
+            
+            A = np.squeeze(self.store_images[:,t])
+            im_activation.set_array(self.to_mat(A))
 
-
-
-
-
-# -
-
-test_network = HopfieldNetwork(
-    training_patterns = patterns[[0,1]],
-    training_labels = labels[[0,1]])
-
-
-test_network.train()
-
-# +
-print (patterns[1].shape)
-print (labels[1])
-test_network.run_simuation(
-    noise=0.1,
-    target_pattern=patterns[1],
-    target_label=labels[1])
-
+        # Create and render the animation
+        anim = animation.FuncAnimation(fig, func = update,  frames = frames )
+        # save it to file
+        anim.save(f"hopfield_{self.current_target_label}.gif",
+                  fps = 10, writer='imagemagick',dpi=50)
+        
+    def visualize_results(self, t = 99):
+        
+        fig, im_target, im_activation = self.init_figure()
+        A = np.squeeze(self.store_images[:,t])
+        im_activation.set_array(self.to_mat(A))
+       
 
 
 # +
@@ -448,7 +355,7 @@ def load_binary_images_and_labels(
             
     if show_images:
         
-        fig, axes = plt.subplots(2,5, figsize = (19,9))
+        fig, axes = plt.subplots(2,5, figsize = (19,8))
         
         for img, ll, ax in zip(images, labels, axes.flatten()):
             ax.imshow(img.reshape(64,64),cmap='binary',interpolation = 'none', 
@@ -460,140 +367,119 @@ def load_binary_images_and_labels(
 
 
 load_binary_images_and_labels(show_images=True);
+# -
+
+# ### Task 3 - investigate the network
+#
+# Below you can play around with the network, take different images to train the network and see how the network retrieves them.
+# You can see all the available images in the list "labels" of the function _load_binary_images_and_labels_ above.
 
 # +
-images, labels = load_binary_images_and_labels()
+images, labels = load_binary_images_and_labels(['homer', 'tintin', 'pikachu', 'hello_kitty'])
 
 test_network = HopfieldNetwork(
     training_patterns = images,
     training_labels = labels)
-# -
-
 test_network.train()
+
+# +
+frames = 100
 
 test_network.run_simuation(
     noise=0.0,
-    target_pattern= images[0],
-    target_label=labels[0],
+    target_pattern= images[2],
+    target_label=labels[2],
     synchrounous_update = False,
-    sim_time=5500,)
+    sim_time=5500,
+    frames_to_save = frames,    
+    save_simulation = False)
 
 
-# +
-def pca(X):
-  """
-  Performs PCA on multivariate data. Eigenvalues are sorted in decreasing order
-
-  Args:
-     X (numpy array of floats) :   Data matrix each column corresponds to a
-                                   different random variable
-
-  Returns:
-    (numpy array of floats)    : Data projected onto the new basis
-    (numpy array of floats)    : Corresponding matrix of eigenvectors
-    (numpy array of floats)    : Vector of eigenvalues
-
-  """
-
-  X = X - np.mean(X, 0)
-  cov_matrix = get_sample_cov_matrix(X)
-  evals, evectors = np.linalg.eigh(cov_matrix)
-  evals, evectors = sort_evals_descending(evals, evectors)
-  score = change_of_basis(X, evectors)
-
-  return score, evectors, evals
-
-def get_sample_cov_matrix(X):
-  """
-  Returns the sample covariance matrix of data X.
-
-  Args:
-    X (numpy array of floats) : Data matrix each column corresponds to a
-                                different random variable
-
-  Returns:
-    (numpy array of floats)   : Covariance matrix
-"""
-
-  X = X - np.mean(X, 0)
-  cov_matrix = 1 / X.shape[0] * np.matmul(X.T, X)
-  return cov_matrix
-
-def sort_evals_descending(evals, evectors):
-  """
-  Sorts eigenvalues and eigenvectors in decreasing order. Also aligns first two
-  eigenvectors to be in first two quadrants (if 2D).
-
-  Args:
-    evals (numpy array of floats)    :   Vector of eigenvalues
-    evectors (numpy array of floats) :   Corresponding matrix of eigenvectors
-                                         each column corresponds to a different
-                                         eigenvalue
-
-  Returns:
-    (numpy array of floats)          : Vector of eigenvalues after sorting
-    (numpy array of floats)          : Matrix of eigenvectors after sorting
-  """
-
-  index = np.flip(np.argsort(evals))
-  evals = evals[index]
-  evectors = evectors[:, index]
-  if evals.shape[0] == 2:
-    if np.arccos(np.matmul(evectors[:, 0],
-                           1 / np.sqrt(2) * np.array([1, 1]))) > np.pi / 2:
-      evectors[:, 0] = -evectors[:, 0]
-    if np.arccos(np.matmul(evectors[:, 1],
-                           1 / np.sqrt(2)*np.array([-1, 1]))) > np.pi / 2:
-      evectors[:, 1] = -evectors[:, 1]
-
-  return evals, evectors
-
-def change_of_basis(X, W):
-  """
-  Projects data onto a new basis.
-
-  Args:
-    X (numpy array of floats) : Data matrix each column corresponding to a
-                                different random variable
-    W (numpy array of floats) : new orthonormal basis columns correspond to
-                                basis vectors
-
-  Returns:
-    (numpy array of floats)   : Data matrix expressed in new basis
-  """
-
-  Y = np.matmul(X, W)
-
-  return Y
-
-# +
+widgets.interactive(test_network.visualize_results, t=(0,frames-1, 1))
 
 
-training_data = []
-for ii in range(1,10):
-    numbers = patterns[labels==f'{ii}']
-    print (numbers.shape)
-    score, evectors, evals = pca(numbers)
-    
-    X = evectors[:, 0]
-    Y = np.sign(X-np.mean(X))
-    if np.sum(Y) > 0:
-        Y *= -1
-    show_example_plot(Y)
-    training_data.append(Y)
 # -
 
+# ### Task X
+#
+# Can you store and recall all 10 patterns in the network?
+# Take some time to think about the task and actually try something out before you check the solution.
+# If it does not work on the first try, try something else, get creative.
+
+# +
+ pattern_dict = dict(
+        homer = 0,
+        tintin = 1,
+        pikachu = 2,
+        hello_kitty = 3,
+        super_mario = 4,
+        lab_logo = 5,
+        lucky_luke = 6,
+        obelix = 7,
+        scrooge_duck = 8,
+        winnie_pooh = 9,
+    )
+
+def map_target_name_to_pattern(pattern_name, N):
+    
+    def non_overlapping_pattern(n,N):
+            
+        
+        pattern = np.zeros(64*64) - 1
+        
+        np.random.seed(n)
+        
+        pattern[np.random.random(64*64) > 0.6] = 1
+        pattern[n::N] = 1            
+            
+        return pattern
+    
+    return non_overlapping_pattern(n=pattern_dict[pattern_name], N=N)
+
+
+
+
+
+
+# +
+images_a, labels_a = load_binary_images_and_labels(
+                ['homer', 'tintin', 'pikachu', 'hello_kitty','super_mario', 'lab_logo',
+              'lucky_luke','obelix','scrooge_duck','winnie_pooh']
+                )
+
+images_a = np.array([map_target_name_to_pattern(label, N=len(labels_a)) for label in labels_a])
+
+
 test_network = HopfieldNetwork(
-    training_patterns = np.array(training_data),
-    training_labels = range(1,10),
-    store_overlap_with_training_data=True,
-)
+    training_patterns = images_a,
+    training_labels = labels_a)
 test_network.train()
 
+print (test_network.W)
+
+# +
+frames = 100
+target_index = 9
+
 test_network.run_simuation(
-    noise=0.2,
-    target_pattern=patterns[2],
-    target_label=labels[2],
-    synchrounous_update=False)
+    noise=0.4,
+    target_pattern= images_a[target_index],
+    target_label=labels_a[target_index],
+    synchrounous_update = False,
+    sim_time=5500,
+    frames_to_save = frames,    
+    save_simulation = False)
+
+print (f'we search for: {labels_a[target_index]}')
+final_network = test_network.store_images[:,-1].astype(int)
+for label in labels_a:
+    
+    possible_target = map_target_name_to_pattern(label, N=len(labels_a)).astype(int)
+    if np.all(final_network == possible_target):
+        print ('we find: ', label)
+    
+
+widgets.interactive(test_network.visualize_results, t=(0,frames-1, 1))
+# -
 
 
