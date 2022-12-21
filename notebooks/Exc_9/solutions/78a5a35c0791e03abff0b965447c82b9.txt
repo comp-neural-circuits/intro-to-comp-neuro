@@ -1,0 +1,19 @@
+### Solution 1
+
+
+```python
+converged = False
+while not converged:
+    converged = True
+    for x, l in zip(X.T, labels):
+        if l == True and np.dot(w,x) < 0:
+            w += x
+            converged = False
+        if l == False and np.dot(w,x) >=0:
+            w -= x
+            converged = False
+            
+        all_w = np.vstack((all_w, w))
+        selected_points.append(x)
+
+```
