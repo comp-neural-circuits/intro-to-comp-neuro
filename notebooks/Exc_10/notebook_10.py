@@ -69,9 +69,36 @@ def create_poisson_process(time_steps, rate,dt):
 
     return events
 
+
+# -
+
+def set_axes(ax):
+    ax.grid(False)
+    xticks = [0,10,20]
+    yticks = [0,5,10]
+    zticks = [0,10,20]
+
+
+
+    ax.set(
+        xticks = xticks,
+        xlabel = 'Neuron 1 in Hz',
+        yticks = yticks,
+        ylabel = 'Neuron 2 in Hz',
+        zticks = zticks,
+        zlabel = 'Neuron 3 in Hz',    
+    )
+    ax.w_xaxis.set_pane_color((0.0, 0.0, 0.0, 0.04))
+    ax.w_yaxis.set_pane_color((0.0, 0.0, 0.0, 0.08))
+    ax.w_zaxis.set_pane_color((0.0, 0.0, 0.0, 0.02))
+    ax.set_xticklabels(xticks, fontsize=12)
+    ax.set_yticklabels(yticks, fontsize=12)
+    ax.set_zticklabels(zticks, fontsize=12)
+
 # +
 
 
+np.random.seed(42)
 
 point_on_plane = np.array([1,1,1])
 normal = np.array([1, 4, -2])
@@ -82,7 +109,7 @@ zz = (point_on_plane.dot(normal)-normal[0] * xx - normal[1] * yy) /normal[2]
 
 # calculate possible coordinate system of the plane
 b1 = np.cross(point_on_plane, normal)
-b2= np.cross(b1, normal)
+b2 = np.cross(b1, normal)
 
 bv1=-b1/np.sqrt(np.sum(b1**2))
 bv2=-b2/np.sqrt(np.sum(b2**2))
@@ -108,10 +135,13 @@ Z = np.array([x1*bv1+x2*bv2 + point_on_plane for x1,x2 in zip(a1,a2)]).T
 
 # create plot
 ax = plt.figure().add_subplot(projection='3d')
-ax.plot_surface(xx, yy, zz, alpha=0.3, color='#fec44f')
+ax.plot_surface(xx, yy, zz, color=(0,0,0,0), edgecolor='k', rcount=5, ccount=5)
 ax.quiver(*point_on_plane, *bv1,length=7)
 ax.quiver(*point_on_plane, *bv2, length=7)
 ax.plot(*Z)
+
+
+set_axes(ax)
 
 
 
@@ -126,14 +156,14 @@ all_spikes = [np.array([])]*3
 # we assume that the underlying rate of the process is valid for 1 s
 for jj,val in enumerate(Z.T):
     for ii in range(3):
-        spike_times = create_poisson_process(time_steps=10_000 * window_length, rate=val[ii],dt=0.1)
+        spike_times = create_poisson_process(time_steps=int(10_000 * window_length), rate=val[ii],dt=0.1)
         spike_times += jj * window_length * 1_000 # transform to ms
         all_spike_times[ii] = np.hstack([all_spike_times[ii], spike_times])
         all_spikes[ii] = np.hstack([all_spikes[ii], np.array([len(spike_times)])])
         
 fig,ax_spikes = plt.subplots()
 ax_spikes.eventplot(all_spike_times,linelengths=0.5)
-# ax_spikes.axis('off')
+ax_spikes.axis('off')
 
 stop_after = 4
 ax_spikes.set_xlim([-100,1_000 * window_length * stop_after])
@@ -144,25 +174,38 @@ for jj in range(stop_after):
     for ii in range(3):
         ax_spikes.annotate(f'{int(all_spikes[ii][jj])}', (jj*t_in_ms + t_in_ms/2., ii-0.4), fontweight='bold')
 
-
+plt.savefig('dim_red_spike_trains.pdf', dpi=300, format=None, metadata=None,
+        bbox_inches=None, pad_inches=0.1,
+        facecolor='auto', edgecolor='auto',
+        backend=None,
+       )
 
 ax = plt.figure().add_subplot(projection='3d')
-ax.plot_surface(xx, yy, zz, alpha=0.3, color='#fec44f')
-ax.plot(*Z)
+# ax.plot_surface(xx, yy, zz, color=(0,0,0,0), edgecolor='k', rcount=5, ccount=5)
+set_axes(ax)
+# ax.plot(*Z)
+ax.plot(*np.array(all_spikes))
 for jj,count in enumerate(np.array(all_spikes).T):
-    ax.scatter(*count)
-      
+    ax.scatter(*count, color='#ff7f00')
+
+    
+plt.savefig('dim_red_spike_count_in_3d.pdf', dpi=300, format=None, metadata=None,
+        bbox_inches=None, pad_inches=0.1,
+        facecolor='auto', edgecolor='auto',
+        backend=None,
+       )    
+
 # temporal smoothing of the spike trains
 def gaussian(x, mu, sig):
     return np.exp(-np.power(x - mu, 2.) / (2 * np.power(sig, 2.)))
 
-scale = 0.3
-length = 10 * window_length
+scale = 0.25
+length = int(10 * window_length)
 filter_array = gaussian(np.linspace(0,length,length+1), length//2, scale * length)
 
-ax_spikes.plot(np.linspace(0,length,length+1)*1_000,filter_array)
-fig, ax = plt.subplots()
-ax.plot(np.linspace(0,length,length+1)*1_000,filter_array)
+# ax_spikes.plot(np.linspace(0,length,length+1)*1_000,filter_array)
+# fig, ax = plt.subplots()
+# ax.plot(np.linspace(0,length,length+1)*1_000,filter_array)
 all_filtered_signals = [[],[],[]]
 for ii in range(3): 
     shift_ = len(filter_array)//2 + 1
@@ -173,7 +216,7 @@ for ii in range(3):
 
     for kk in range(n_samples):
         k_index = kk + shift_
-        filtered = window_length* len(filter_array) * np.mean(
+        filtered = 1/window_length* len(filter_array) * np.mean(
             shifted_trial[k_index-len(filter_array)//2:k_index+len(filter_array)//2+1] * filter_array/np.sum(filter_array)
         )
         
@@ -191,27 +234,29 @@ ax.plot(np.linspace(0,1,len(all_filtered_signals[2])), all_filtered_signals[2])
 
 
 ax = plt.figure().add_subplot(projection='3d')
-ax.plot_surface(xx, yy, zz, alpha=0.5)
-ax.plot(*Z)
+ax.plot_surface(xx, yy, zz, color=(0,0,0,0), edgecolor='k', rcount=5, ccount=5)
+# ax.plot(*Z)
+ax.grid(False)
 colors = ['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffff33']
+ax.plot(*np.array(all_filtered_signals), c = '#ff7f00' )
 for jj, count in enumerate(np.array(all_filtered_signals).T):
-    ax.scatter(*count, color = colors[jj%len(colors)])
+    ax.scatter(*count, color = colors[4]) #colors[jj%len(colors)])
 #     ax.scatter(*Z.T[jj], color = colors[jj%len(colors)])
-    print (count, Z.T[jj], jj//len(colors))
-    
-
-#     if jj >= 9:
-#         break
 
 
-        
-        
+set_axes(ax)
+
+
+plt.savefig('dim_red_smoothed_spikes_in_3d.pdf', dpi=300, format=None, metadata=None,
+        bbox_inches=None, pad_inches=0.1,
+        facecolor='auto', edgecolor='auto',
+        backend=None,
+       )
+
 all_filtered_signals = np.array(all_filtered_signals)
 score, evectors, evals = pca(all_filtered_signals.T)
 
-print (evals)
-print (score.shape)
-print (evectors.shape)
+
 
 fig2, ax2 = plt.subplots()
 
@@ -222,7 +267,7 @@ fig2, ax2 = plt.subplots()
 # colors = ['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffff33']
 for jj, count in enumerate(np.array(all_filtered_signals).T):
     
-    ax2.scatter(*score[jj][:2])
+    ax2.scatter(*score[jj][:2], c = '#ff7f00')
 #     if jj < 5 or jj > 10:
 #         continue
     
@@ -231,9 +276,21 @@ for jj, count in enumerate(np.array(all_filtered_signals).T):
 #     ax.scatter(*projected_point, color = colors[jj%len(colors)], alpha=1)
 # #     ax.scatter(*count, color = colors[jj%len(colors)])
 #     ax.scatter(*Z.T[jj], color = colors[jj%len(colors)])
+ticks = [-8,-4,0,4,8]
+ax2.set(
+        xticks = ticks,
+        xlabel = 'Dim 1',
+        yticks = ticks,
+        ylabel = 'Dim 2',
+)
+ax2.set_xticklabels(ticks, fontsize=12)
+ax2.set_yticklabels(ticks, fontsize=12)
     
-    
-
+plt.savefig('dim_red_projected_smooothed_spikes.pdf', dpi=300, format=None, metadata=None,
+        bbox_inches=None, pad_inches=0.1,
+        facecolor='auto', edgecolor='auto',
+        backend=None,
+       )
         
 # print (evals.shape)
 # ax.quiver(*point_on_plane, *bv1,length=7)
@@ -956,6 +1013,48 @@ def change_of_basis(X, W):
     Y = np.matmul(X, W)
 
     return Y
+# +
+np.random.seed(12)
+
+X = -0.9 + np.random.rand(45)*1.8 + 1
+Y = 0.42*X + (-0.5 + np.random.rand(45)) - 0.7
+vec = np.vstack([X,Y])
+
+def plot_scatter(vec):
+    
+
+    fig, ax = plt.subplots(figsize=(6,6))
+    ax.scatter(*vec, c = '#1f78b4', s=50)
+    ax.set_box_aspect(1)
+
+    ax.set(
+        xlim = [-1.5,1.5],
+        ylim = [-1.5,1.5])
+
+    for axis in ['top','bottom','left','right']:
+        ax.spines[axis].set_linewidth(2)
+    ax.tick_params(width=2)
+
+    x_ticks = [-1,0,1,2]
+    y_ticks = [-1,0,1]
+    ax.set_xticks(x_ticks)
+    ax.set_xticklabels(x_ticks,fontsize=20)
+    ax.set_yticks(y_ticks)
+    ax.set_yticklabels(y_ticks,fontsize=20)
+
+    ax.set_xlabel('Feature 1', fontsize=25, fontweight='bold')
+    ax.set_ylabel('Feature 2', fontsize=25, fontweight='bold', labelpad=19)
+    plt.tight_layout()
+    
+    return ax
+
+plot_scatter(vec)
+
+X = X - np.mean(X)
+Y = Y - np.mean(Y)
+vec = np.vstack([X,Y])
+plot_scatter(vec)
 # -
+
 
 
