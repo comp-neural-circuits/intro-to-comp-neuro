@@ -28,7 +28,8 @@ from scipy import special
 import time
 import gif
 from IPython.display import HTML
-
+from sklearn.datasets import fetch_openml
+import matplotlib.patches as mpatches
 
 
 # Settings for the figures
@@ -94,6 +95,8 @@ def set_axes(ax):
     ax.set_xticklabels(xticks, fontsize=12)
     ax.set_yticklabels(yticks, fontsize=12)
     ax.set_zticklabels(zticks, fontsize=12)
+
+
 
 # +
 
@@ -1054,7 +1057,522 @@ X = X - np.mean(X)
 Y = Y - np.mean(Y)
 vec = np.vstack([X,Y])
 plot_scatter(vec)
+
+
+score, evectors, evals = pca(vec.T)
+print (evectors.shape)
+
+ax = plot_scatter(vec)
+ax.quiver(0,0,*evectors[:,0], scale = 2, color='#FF8E00')
+ax.quiver(0,0,*evectors[:,0]*-1, scale = 2, color='#FF8E00', headlength=0, headaxislength=0)
+ax.quiver(0,0,*evectors[:,1], scale = 2, color='#19891F')
+ax.quiver(0,0,*evectors[:,1]*-1, scale = 2, color='#19891F', headlength=0, headaxislength=0)
+
+
+projected_vec = np.matmul(vec.T,evectors)
+ax = plot_scatter(projected_vec.T)
+ax.set(
+    xlabel = 'Principle Component 1',
+    ylabel = 'Principle Component 2')
+
+
+
+X = -5 + np.random.rand(45)*10 
+Y = X/15 + (-0.1 + np.random.rand(45)*0.2) 
+vec = np.vstack([X,Y])
+
+ax = plot_scatter(vec)
+ax.set(
+    xlabel = 'Neuron 1',
+    ylabel = 'Neuron 2')
+ax.set(
+    xlim = [-6,6])
+
+x_ticks = [-5,0,5]
+
+ax.set_xticks(x_ticks)
+ax.set_xticklabels(x_ticks,fontsize=20)
+score, evectors, evals = pca(vec.T)
+ax.quiver(0,0,*evectors[:,0], scale = 2, color='#FF8E00')
+ax.quiver(0,0,*evectors[:,0]*-1, scale = 2, color='#FF8E00', headlength=0, headaxislength=0)
+ax.quiver(0,0,*evectors[:,1], scale = 2, color='#19891F')
+ax.quiver(0,0,*evectors[:,1]*-1, scale = 2, color='#19891F', headlength=0, headaxislength=0)
+projected_vec = np.matmul(vec.T,evectors)
+ax = plot_scatter(projected_vec.T)
+ax.set(
+    xlabel = 'Principle Component 1',
+    ylabel = 'Principle Component 2')
+ax.set(
+    xlim = [-6,6])
+x_ticks = [-5,0,5]
+
+ax.set_xticks(x_ticks)
+ax.set_xticklabels(x_ticks,fontsize=20)
+
+
+
+
+X = X/np.std(X)
+Y = Y/np.std(Y)
+print (X)
+vec = np.vstack([X,Y])
+ax = plot_scatter(vec)
+ax.set(
+    xlabel = 'Neuron 1',
+    ylabel = 'Neuron 2')
+x_ticks = [-2,-1,0,1,2]
+ax.set_xticks(x_ticks)
+ax.set_xticklabels(x_ticks,fontsize=20)
+score, evectors, evals = pca(vec.T)
+ax.quiver(0,0,*evectors[:,0], scale = 2, color='#FF8E00')
+ax.quiver(0,0,*evectors[:,0]*-1, scale = 2, color='#FF8E00', headlength=0, headaxislength=0)
+ax.quiver(0,0,*evectors[:,1], scale = 2, color='#19891F')
+ax.quiver(0,0,*evectors[:,1]*-1, scale = 2, color='#19891F', headlength=0, headaxislength=0)
+projected_vec = np.matmul(vec.T,evectors)
+ax = plot_scatter(projected_vec.T)
+ax.set(
+    xlabel = 'Principle Component 1',
+    ylabel = 'Principle Component 2')
+
+ax.set_xticks(x_ticks)
+ax.set_xticklabels(x_ticks,fontsize=20)
+
+
+
+X = -0.4 + np.random.rand(45)*2
+Y = -X*0.9 + np.random.rand(45)
+Y[22:] += 1
+
+X -= np.mean(X)
+Y -= np.mean(Y)
+vec = np.vstack([X,Y])
+
+fig, ax_main = plt.subplots(figsize=(6,6))
+ax_main.scatter(*vec[:,:22], c = '#1f78b4', s=50)
+ax_main.scatter(*vec[:,22:], c = '#984ea3', s=50)
+ax_main.set_box_aspect(1)
+
+ax_main.set(
+    xlim = [-1.5,1.5],
+    ylim = [-1.5,1.5])
+
+for axis in ['top','bottom','left','right']:
+    ax_main.spines[axis].set_linewidth(2)
+ax_main.tick_params(width=2)
+
+x_ticks = [-1,0,1,2]
+y_ticks = [-1,0,1]
+ax_main.set_xticks(x_ticks)
+ax_main.set_xticklabels(x_ticks,fontsize=20)
+ax_main.set_yticks(y_ticks)
+ax_main.set_yticklabels(y_ticks,fontsize=20)
+
+ax_main.set_xlabel('Neuron 1', fontsize=25, fontweight='bold')
+ax_main.set_ylabel('Neuron 2', fontsize=25, fontweight='bold', labelpad=19)
+plt.tight_layout()
+
+
+score, evectors, evals = pca(vec.T)
+ax_main.quiver(0,0,*evectors[:,0], scale = 2, color='k')
+ax_main.quiver(0,0,*evectors[:,0]*-1, scale = 2, color='k', headlength=0, headaxislength=0)
+
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
+lda = LDA(n_components=1)
+X_trans = lda.fit_transform(vec.T, np.hstack([np.zeros(22),np.ones(23)]))
+print(lda.coef_.shape)
+
+evec_lda = lda.coef_[0]/np.sqrt(np.sum(lda.coef_[0]**2))
+ax_main.quiver(0,0,*evec_lda, scale = 2, color='k', ec='k', linewidth=1, fc = 'w')
+ax_main.quiver(0,0,*evec_lda*-1, scale = 2, color='k', ec='k', linewidth=1, fc = 'w', headlength=0, headaxislength=0)
+
+projected_vec = np.matmul(vec.T,evectors)
+
+fig, ax = plt.subplots(figsize=(6,6))
+ax.scatter(projected_vec[:22,0].T,np.zeros(22), c = '#1f78b4', s=50)
+ax.scatter(projected_vec[22:,0].T,np.zeros(23), c = '#984ea3', s=50)
+ax.set_box_aspect(1)
+
+ax.set(
+    xlim = [-1.5,1.5],
+    ylim = [-1.5,1.5])
+
+for axis in ['top','bottom','left','right']:
+    ax.spines[axis].set_linewidth(2)
+ax.tick_params(width=2)
+
+x_ticks = [-3,0,3]
+y_ticks = [-1,0,1]
+ax.set_xticks(x_ticks)
+ax.set_xticklabels(x_ticks,fontsize=20)
+ax.set_yticks(y_ticks)
+ax.set_yticklabels([],fontsize=20)
+
+ax.set_xlabel('Principle Component 1', fontsize=25, fontweight='bold')
+ax.set_ylabel('', fontsize=25, fontweight='bold', labelpad=19)
+plt.tight_layout()
+
+
+
+
+
+
+fig, ax = plt.subplots(figsize=(6,6))
+ax.scatter(X_trans[:22,:],np.zeros(22), c = '#1f78b4', s=50)
+ax.scatter(X_trans[22:,:],np.zeros(23), c = '#984ea3', s=50)
+ax.set_box_aspect(1)
+ax.set(
+    ylim = [-1.5,1.5])
+
+for axis in ['top','bottom','left','right']:
+    ax.spines[axis].set_linewidth(2)
+ax.tick_params(width=2)
+
+x_ticks = [-5,0,5]
+y_ticks = [-1,0,1]
+ax.set_xticks(x_ticks)
+ax.set_xticklabels(x_ticks,fontsize=20)
+ax.set_yticks(y_ticks)
+ax.set_yticklabels([],fontsize=20)
+
+ax.set_xlabel('LDA axis', fontsize=25, fontweight='bold')
+ax.set_ylabel('', fontsize=25, fontweight='bold', labelpad=19)
+plt.tight_layout()
+
+
+
+# +
+def pca(X):
+    """
+    Performs PCA on multivariate data. Eigenvalues are sorted in decreasing order
+
+    Args:
+     X (numpy array of floats) :   Data matrix each column corresponds to a
+                                   different random variable
+
+    Returns:
+    (numpy array of floats)    : Data projected onto the new basis
+    (numpy array of floats)    : Corresponding matrix of eigenvectors
+    (numpy array of floats)    : Vector of eigenvalues
+
+    """
+
+    X = X - np.mean(X, 0)
+    cov_matrix = get_sample_cov_matrix(X)
+    evals, evectors = np.linalg.eigh(cov_matrix)
+    evals, evectors = sort_evals_descending(evals, evectors)
+    score = change_of_basis(X, evectors)
+
+    return score, evectors, evals
+
+def get_sample_cov_matrix(X):
+    """
+    Returns the sample covariance matrix of data X.
+
+    Args:
+    X (numpy array of floats) : Data matrix each column corresponds to a
+                            different random variable
+
+    Returns:
+    (numpy array of floats)   : Covariance matrix
+    """
+
+    X = X - np.mean(X, 0)
+    cov_matrix = 1 / X.shape[0] * np.matmul(X.T, X)
+    return cov_matrix
+
+def sort_evals_descending(evals, evectors):
+    """
+    Sorts eigenvalues and eigenvectors in decreasing order. Also aligns first two
+    eigenvectors to be in first two quadrants (if 2D).
+
+    Args:
+    evals (numpy array of floats)    :   Vector of eigenvalues
+    evectors (numpy array of floats) :   Corresponding matrix of eigenvectors
+                                         each column corresponds to a different
+                                         eigenvalue
+
+    Returns:
+    (numpy array of floats)          : Vector of eigenvalues after sorting
+    (numpy array of floats)          : Matrix of eigenvectors after sorting
+    """
+
+    index = np.flip(np.argsort(evals))
+    evals = evals[index]
+    evectors = evectors[:, index]
+    if evals.shape[0] == 2:
+        if np.arccos(np.matmul(evectors[:, 0],
+                               1 / np.sqrt(2) * np.array([1, 1]))) > np.pi / 2:
+            evectors[:, 0] = -evectors[:, 0]
+        if np.arccos(np.matmul(evectors[:, 1],
+                               1 / np.sqrt(2)*np.array([-1, 1]))) > np.pi / 2:
+            evectors[:, 1] = -evectors[:, 1]
+
+    return evals, evectors
+
+def change_of_basis(X, W):
+    """
+    Projects data onto a new basis.
+
+    Args:
+    X (numpy array of floats) : Data matrix each column corresponding to a
+                                different random variable
+    W (numpy array of floats) : new orthonormal basis columns correspond to
+                                basis vectors
+
+    Returns:
+    (numpy array of floats)   : Data matrix expressed in new basis
+    """
+
+    Y = np.matmul(X, W)
+
+    return Y
+
+
 # -
+
+mnist = fetch_openml(name='mnist_784', as_frame = False)
+X = mnist.data
+
+print (X.shape)
+# show some MNIS samples
+fig, ax = plt.subplots()
+k = 10
+for k1 in range(3):
+    for k2 in range(3):
+        k = k + 1
+        ax.imshow(np.reshape(X[k, :], (28, 28)),
+             extent=[(k1 + 1) * 28, k1 * 28, (k2+1) * 28, k2 * 28],
+             vmin=0, vmax=255, cmap = 'binary')
+ax.set(
+    xlim = (3 * 28, 0),
+    ylim = (3 * 28, 0),
+)
+ax.axis('off')
+
+# +
+score, evectors, evals = pca(X)
+
+fig, ax = plt.subplots()
+ax.plot(np.arange(1, len(evals) + 1), evals, 'o-k')
+ax.set(
+    xlabel ='Component',
+    ylabel ='Eigenvalue',
+    title = 'Scree plot',
+    xlim=[0,70])
+
+# +
+fig, ax = plt.subplots()
+csum = np.cumsum(evals)
+
+# Normalize by the sum of eigenvalues
+variance_explained = csum / np.sum(evals)
+
+print (np.argmax(variance_explained > 0.98))
+ax.plot(np.arange(1, len(variance_explained) + 1), variance_explained,
+       '--k')
+ax.set(
+    xlabel ='Number of components',
+    ylabel = 'Variance explained')
+
+# +
+K = 649
+
+# Reconstruct the data based on all components
+X_mean = np.mean(X, 0)
+X_reconstructed =  np.matmul(score[:, :K], evectors[:, :K].T) + X_mean
+X_reconstructed_without_mean =  np.matmul(score[:, :K], evectors[:, :K].T)
+
+fig, ax = plt.subplots()
+ax.imshow((X[12]).reshape((28,28)), cmap='binary')
+ax.axis('off')
+
+fig, ax = plt.subplots()
+ax.imshow(X_reconstructed[12].reshape((28,28)), cmap='binary', vmin=0, vmax=255)
+
+
+ax.axis('off')
+
+fig, ax = plt.subplots()
+ax.imshow(X_reconstructed_without_mean[12].reshape((28,28)), cmap='bwr',vmin=-255,vmax=255)
+ax.axis('off')
+
+fig, ax = plt.subplots()
+ax.imshow(X_mean.reshape((28,28)), cmap='binary')
+ax.axis('off')
+
+
+# +
+
+fig, ax = plt.subplots()
+k = 50
+for k1 in range(3):
+    for k2 in range(3):
+        k = k + 1
+        ax.imshow(np.reshape(X[k, :]-X_mean, (28, 28)),
+             extent=[(k1 + 1) * 28, k1 * 28, (k2+1) * 28, k2 * 28],
+              vmin = -255, vmax = 255, cmap = 'bwr')
+ax.set(
+    xlim = (3 * 28, 0),
+    ylim = (3 * 28, 0),
+)
+ax.axis('off')
+
+fig, ax = plt.subplots()
+k = 50
+for k1 in range(3):
+    for k2 in range(3):
+        k = k + 1
+        ax.imshow(np.reshape(X[k, :], (28, 28)),
+             extent=[(k1 + 1) * 28, k1 * 28, (k2+1) * 28, k2 * 28],
+             cmap = 'binary')
+ax.set(
+    xlim = (3 * 28, 0),
+    ylim = (3 * 28, 0),
+)
+ax.axis('off')
+
+print (np.min(X-X_mean), np.max(X-X_mean))
+
+
+# +
+fig, ax = plt.subplots()
+k = 50
+
+i,j = [10, 21, 6],[10, 21, 6]
+colors = ['#984ea3','#ff7f00','#4daf4a']
+
+for k1 in range(3):
+    for k2 in range(3):
+        k = k + 1
+        ax.imshow(np.reshape(X[k, :]-X_mean, (28, 28)),
+             extent=[(k1 + 1) * 28, k1 * 28, (k2+1) * 28, k2 * 28],
+             vmin = -255, vmax = 255,cmap = 'bwr')
+        for ll in range(3):
+            rect= mpatches.Rectangle((k1 * 28 + i[ll]-0.5,k2 * 28 + j[ll]-0.5),1,1, 
+                            fill=False,
+                            color=colors[ll],
+                           linewidth=1)
+                           #facecolor="red")
+            ax.add_patch(rect)
+ax.set(
+    xlim = (3 * 28, 0),
+    ylim = (3 * 28, 0),
+)
+ax.axis('off')
+
+fig, ax = plt.subplots()
+ax.scatter((X-X_mean)[:,10*28+10], (X-X_mean)[:,21*28+21])
+
+fig, ax = plt.subplots()
+ax.scatter(X[:,6*28+6], X[:,21*28+21])
+
+ax.scatter(X[:,6*28+6], X[:,6*28+6])
+
+print (np.min(X-X_mean), np.max(X-X_mean))
+
+print (get_sample_cov_matrix(X)[6*28+6,6*28+6])
+print (get_sample_cov_matrix(X)[6*28+6,21*28+21])
+print (get_sample_cov_matrix(X)[6*28+6,10*28+10])
+print (get_sample_cov_matrix(X)[10*28+6,10*28+21])
+print (get_sample_cov_matrix(X)[10*28+6,21*28+21])
+print (get_sample_cov_matrix(X)[21*28+6,21*28+21])
+
+# -
+
+score, evectors, evals = pca(X)
+
+
+
+# +
+
+
+pcs = [0,1,2,100,150,400,-1]
+for pc in pcs:
+    fig, ax = plt.subplots()
+    max_abs = np.max([-np.min(evectors[:,pc]),np.max(evectors[:,pc])])
+    ax.imshow(evectors[:,pc].reshape((28,28)), cmap='PRGn', vmin=-max_abs, vmax = max_abs)
+    ax.axis('off')
+    print (evals[pc])
+
+
+# +
+sample = 12 #42, 80 (40)
+
+# fig, ax = plt.subplots()
+# ax.imshow((X[sample]).reshape((28,28)), cmap='binary')
+# ax.axis('off')
+
+fig, ax = plt.subplots()
+ax.imshow((X[sample]-X_mean).reshape((28,28)), cmap='bwr', vmin=-255,vmax=255)
+ax.axis('off')
+
+pc = 3
+fig, ax = plt.subplots()
+max_abs = np.max([-np.min(evectors[:,pc]),np.max(evectors[:,pc])])
+ax.imshow(evectors[:,pc].reshape((28,28)), cmap='PRGn', vmin=-max_abs, vmax = max_abs)
+ax.axis('off')
+
+print (evectors[:,pc].dot(X[sample]-X_mean).T)
+
+# +
+Y = mnist.target.astype(int)
+
+fig, ax = plt.subplots()
+
+
+Y_tick = Y[:2000]
+X_tick = X[:2000]
+
+A = evectors.T.dot((X_tick-X_mean).T)
+colors = ['#3182bd','#fec44f']
+for tt in [0,1]:
+    ax.scatter(A[0][Y_tick == tt],A[1][Y_tick==tt], edgecolor = colors[tt], facecolor='w', linewidth=1.1)
+print (A[0][40])
+
+for axis in ['top','bottom','left','right']:
+    ax.spines[axis].set_linewidth(2)
+ax.tick_params(width=2)
+
+x_ticks = [-2000,-1000,0,1000]
+y_ticks = [-1000,-500,0,500]
+ax.set_xticks(x_ticks)
+ax.set_xticklabels(x_ticks,fontsize=20)
+ax.set_yticks(y_ticks)
+ax.set_yticklabels(y_ticks,fontsize=20)
+
+ax.set_xlabel('PC 1', fontsize=25, fontweight='bold')
+ax.set_ylabel('PC 2', fontsize=25, rotation=0, fontweight='bold', labelpad=19)
+
+print (np.argmax(np.abs(evals)<1))
+
+# +
+ax = plt.figure().add_subplot(projection='3d')
+for tt in [0,1]:
+    ax.scatter(A[0][Y_tick == tt],A[1][Y_tick==tt],A[2][Y_tick==tt], edgecolor = colors[tt], facecolor='w', linewidth=1.1)
+ax.grid(False)
+xticks = [-2000,-1000,0,500]
+yticks = [-1000,-500,0,500]
+zticks = [-500,0,500,1000]
+
+
+
+ax.set(
+    xticks = xticks,
+#     xlabel = 'PC 1',
+    yticks = yticks,
+#     ylabel = 'PC 2',
+    zticks = zticks,
+#     zlabel = 'PC 3',    
+)
+ax.w_xaxis.set_pane_color((0.0, 0.0, 0.0, 0.04))
+ax.w_yaxis.set_pane_color((0.0, 0.0, 0.0, 0.08))
+ax.w_zaxis.set_pane_color((0.0, 0.0, 0.0, 0.02))
+ax.set_xticklabels(xticks, fontsize=12)
+ax.set_yticklabels(yticks, fontsize=12)
+ax.set_zticklabels(zticks, fontsize=12)
+# -
+
+
 
 
 
