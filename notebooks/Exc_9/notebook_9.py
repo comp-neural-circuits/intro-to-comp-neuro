@@ -27,6 +27,7 @@ import ipywidgets as widgets
 from scipy import optimize as opt
 from urllib.request import urlopen
 from PIL import Image
+from io import BytesIO
 
 # %matplotlib inline
 
@@ -92,15 +93,12 @@ w = np.random.rand(3) # initialize a random connectivity matrix to start with (i
 np.random.seed(10)
 
 
-all_w = w # this is an array 
+all_w = w[None,:] # this is an array 
 selected_points = [None] # this is a list
 
 ''' put the algorithm here '''
 # be sure to include the following two lines after every step
-# then the viusalization works in the end
-# all_w = np.vstack((all_w, w))
-# selected_points.append(x)
-
+# otherwise the viusalization in the end does not work
             
 
 
@@ -115,7 +113,8 @@ def scroll_through_weights(nn):
 
     data_true = ax.scatter(*X[1:,labels], color = 'b', label = 'classified as True', s=90)
     data_false = ax.scatter(*X[1:,labels == False], color = 'r', label = 'classified as False', s=90)
-    ax.scatter(*selected_points[nn+1][1:], color = (0,0,0,0), edgecolor='k', linewidth=2, s=90 )
+    if len (selected_points) > nn+1:
+        ax.scatter(*selected_points[nn+1][1:], color = (0,0,0,0), edgecolor='k', linewidth=2, s=90 )
     
     m = - w[1]/w[2]
     b = - w[0]/w[2]  
@@ -147,16 +146,19 @@ widgets.interactive(scroll_through_weights, nn = (0,all_w.shape[0]-1,1))
 
 # -
 
-# ### Solution 1
-#
-# 78a5a35c0791e03abff0b965447c82b9
+# ### [Solution 1](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_9/solutions/78a5a35c0791e03abff0b965447c82b9.txt)
 #
 
 # ### Task 2
 #
 # In the example above, the data was linearly seperable. What happens if its not?
 
-# +
+# ## Hopfield network
+#
+# In contrast to the perceptron and the deep learning algorithms that were developed afterwards, the hopfield network takes a different approach and uses the interaction of single units to create an emergent property, the concept of a memory. 
+#
+# Below you find the class of a Hopfield network. Go through the code and compare it with the lecture. 
+
 class HopfieldNetwork(object):
     """docstring for HopfieldNetwork
 
@@ -327,6 +329,8 @@ class HopfieldNetwork(object):
        
 
 
+# Here we load 10 different pixelated images, that we can try to store in the Hopfield network
+
 # +
 def load_binary_images_and_labels(
     labels = ['homer', 'tintin', 'pikachu', 'hello_kitty','super_mario', 'lab_logo',
@@ -373,6 +377,8 @@ load_binary_images_and_labels(show_images=True);
 #
 # Below you can play around with the network, take different images to train the network and see how the network retrieves them.
 # You can see all the available images in the list "labels" of the function _load_binary_images_and_labels_ above.
+#
+# Try and recreate the sucess but also the problems from Hopfield networks discussed in the lecture.
 
 # +
 images, labels = load_binary_images_and_labels(['homer', 'tintin', 'pikachu', 'hello_kitty'])
@@ -386,7 +392,7 @@ test_network.train()
 frames = 100
 
 test_network.run_simuation(
-    noise=0.0,
+    noise=.5,
     target_pattern= images[2],
     target_label=labels[2],
     synchrounous_update = False,
@@ -396,66 +402,36 @@ test_network.run_simuation(
 
 
 widgets.interactive(test_network.visualize_results, t=(0,frames-1, 1))
-
-
 # -
 
-# ### Task X
+# ### Task 4
 #
 # Can you store and recall all 10 patterns in the network?
 # Take some time to think about the task and actually try something out before you check the solution.
 # If it does not work on the first try, try something else, get creative.
+#
+# Also, if you think your solution should solve the problem but it does not, make sure to save your approach.
 
 # +
- pattern_dict = dict(
-        homer = 0,
-        tintin = 1,
-        pikachu = 2,
-        hello_kitty = 3,
-        super_mario = 4,
-        lab_logo = 5,
-        lucky_luke = 6,
-        obelix = 7,
-        scrooge_duck = 8,
-        winnie_pooh = 9,
-    )
-
-def map_target_name_to_pattern(pattern_name, N):
-    
-    def non_overlapping_pattern(n,N):
-            
-        
-        pattern = np.zeros(64*64) - 1
-        
-        np.random.seed(n)
-        
-        pattern[np.random.random(64*64) > 0.6] = 1
-        pattern[n::N] = 1            
-            
-        return pattern
-    
-    return non_overlapping_pattern(n=pattern_dict[pattern_name], N=N)
-
-
-
-
-
-
-# +
-images_a, labels_a = load_binary_images_and_labels(
+images_many, labels_many = load_binary_images_and_labels(
                 ['homer', 'tintin', 'pikachu', 'hello_kitty','super_mario', 'lab_logo',
               'lucky_luke','obelix','scrooge_duck','winnie_pooh']
                 )
 
-images_a = np.array([map_target_name_to_pattern(label, N=len(labels_a)) for label in labels_a])
-
+''' put your code here '''
 
 test_network = HopfieldNetwork(
-    training_patterns = images_a,
-    training_labels = labels_a)
+    training_patterns = images_many,
+    training_labels = labels_many)
 test_network.train()
+# -
 
-print (test_network.W)
+
+# ### [Possible Solution 4](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_9/solutions/07e5a35c07ab403abff0b965447c82c4.txt)
+#
+#
+
+# You can then test whether your solution works by executing the cell below 
 
 # +
 frames = 100
@@ -463,18 +439,18 @@ target_index = 9
 
 test_network.run_simuation(
     noise=0.4,
-    target_pattern= images_a[target_index],
-    target_label=labels_a[target_index],
+    target_pattern= images_many[target_index],
+    target_label=labels_many[target_index],
     synchrounous_update = False,
     sim_time=5500,
     frames_to_save = frames,    
     save_simulation = False)
 
-print (f'we search for: {labels_a[target_index]}')
+print (f'we search for: {labels_many[target_index]}')
 final_network = test_network.store_images[:,-1].astype(int)
-for label in labels_a:
+for label in labels_many:
     
-    possible_target = map_target_name_to_pattern(label, N=len(labels_a)).astype(int)
+    possible_target = map_target_name_to_pattern(label, N=len(labels_many)).astype(int)
     if np.all(final_network == possible_target):
         print ('we find: ', label)
     

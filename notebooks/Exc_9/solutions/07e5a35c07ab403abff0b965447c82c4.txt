@@ -1,0 +1,34 @@
+### solution 4
+
+```python
+pattern_dict = dict(
+        homer = 0,
+        tintin = 1,
+        pikachu = 2,
+        hello_kitty = 3,
+        super_mario = 4,
+        lab_logo = 5,
+        lucky_luke = 6,
+        obelix = 7,
+        scrooge_duck = 8,
+        winnie_pooh = 9,
+    )
+
+def map_target_name_to_pattern(pattern_name, N):
+    
+    def non_overlapping_pattern(n,N):
+            
+        
+        pattern = np.zeros(64*64) - 1
+        
+        np.random.seed(n)
+        
+        pattern[np.random.random(64*64) > 0.6] = 1
+        pattern[n::N] = 1            
+            
+        return pattern
+    
+    return non_overlapping_pattern(n=pattern_dict[pattern_name], N=N)
+
+images_many = np.array([map_target_name_to_pattern(label, N=len(labels_a)) for label in labels_a])
+```
