@@ -157,6 +157,10 @@ widgets.interactive(scroll_through_weights, nn = (0,all_w.shape[0]-1,1))
 #
 # In contrast to the perceptron and the deep learning algorithms that were developed afterwards, the hopfield network takes a different approach and uses the interaction of single units to create an emergent property, the concept of a memory. 
 #
+# <div>
+# <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_9/static/hopfield.png" width="600"/>
+# </div>
+#
 # Below you find the class of a Hopfield network. Go through the code and compare it with the lecture. 
 
 class HopfieldNetwork(object):
