@@ -99,6 +99,9 @@ selected_points = [None] # this is a list
 ''' put the algorithm here '''
 # be sure to include the following two lines after every step
 # otherwise the viusalization in the end does not work
+
+# all_w = np.vstack((all_w, w))
+# selected_points.append(x)
             
 
 
