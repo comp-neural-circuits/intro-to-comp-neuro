@@ -77,7 +77,7 @@ def perceptron(x, w):
 
 # +
 starting_weights_seed = 18
-np.random.seed(46) 
+np.random.seed(0) 
 
 n_samples = 40 # number of samples
 
@@ -211,6 +211,7 @@ class HopfieldNetwork(object):
         target_label = None,
         save_simulation = True,
         synchrounous_update = False,
+        start_inverse = False,
     ):
         if target_pattern.size != 0:
             self.current_target_pattern = target_pattern
@@ -223,11 +224,16 @@ class HopfieldNetwork(object):
         self.store_images = np.zeros([self.dim_patterns, frames_to_save])
         
         x = self.current_target_pattern.copy()
+        
+        if start_inverse == True:
+            x[:] *= -1
 
         # We randomly perturb the initial image by swapping the values
         mask = np.sign(np.random.random(self.dim_patterns) - noise)
         random_array = np.sign(np.random.random(self.dim_patterns)-0.5)
         x[mask == -1] = random_array[mask == -1]
+        
+        
 
         # During the iterations we ranomly select a unit to update
         x_indices = np.arange(self.dim_patterns)
@@ -383,9 +389,11 @@ load_binary_images_and_labels(show_images=True);
 # You can see all the available images in the list "labels" of the function _load_binary_images_and_labels_ above.
 #
 # Try and recreate the sucess but also the problems from Hopfield networks discussed in the lecture.
+#
+# In addition, if a memory is imprinted into the network, the inverse is always imprinted as well. You can test it by setting the changing the starting condition "start_inverse=False" 
 
 # +
-images, labels = load_binary_images_and_labels(['homer', 'tintin', 'pikachu', 'hello_kitty'])
+images, labels = load_binary_images_and_labels(['pikachu', 'hello_kitty', 'scrooge_duck'])
 
 test_network = HopfieldNetwork(
     training_patterns = images,
@@ -402,7 +410,8 @@ test_network.run_simuation(
     synchrounous_update = False,
     sim_time=5500,
     frames_to_save = frames,    
-    save_simulation = False)
+    save_simulation = False,
+    start_inverse = False)
 
 
 widgets.interactive(test_network.visualize_results, t=(0,frames-1, 1))
