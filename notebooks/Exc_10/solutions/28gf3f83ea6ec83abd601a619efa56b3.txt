@@ -1,0 +1,15 @@
+### Solution 2
+
+The matrix X we have for our data is already in the correct shape (samples, features)
+therefore we can calculate the mean and substract it while using the original matrix X.
+
+We need to take the mean along the first axis (axis=0) because we need the mean for every pixel across all samples.
+
+```python
+design_matrix = X
+design_matrix_mean = np.mean(design_matrix, axis=0)
+design_matrix_centered = design_matrix - design_matrix_mean
+visualize_number(design_matrix_mean, title='Mean')
+```
+
+

@@ -179,19 +179,7 @@ design_matrix = X
 design_matrix_centered = design_matrix - X_mean
 visualize_number(X_mean, title='Mean')
 
-# ### Solution 2
-#
-# The matrix X we have for our data is already in the correct shape (samples, features)
-# therefore we can calculate the mean and substract it while using the original matrix X.
-#
-# We need to take the mean along the first axis (axis=0) because we need the mean for every pixel across all samples.
-#
-# ```python
-# design_matrix = X
-# design_matrix_mean = np.mean(design_matrix, axis=0)
-# design_matrix_centered = design_matrix - design_matrix_mean
-# visualize_number(design_matrix_mean, title='Mean')
-# ```
+# ### [Solution 2](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_10/solutions/28gf3f83ea6ec83abd601a619efa56b3.txt)
 #
 #
 #
@@ -238,14 +226,7 @@ fig.tight_layout()
 cov_matrix = 1 / (design_matrix_centered.shape[0]) * np.matmul(design_matrix_centered.T, design_matrix_centered)
 
 
-# ### Solution 3
-#
-# it is important to take the mean centered matrix. 
-# However, it is fine to either use N or N-1
-# ```python
-# cov_matrix = 1 / (design_matrix_centered.shape[0]-1) * np.matmul(design_matrix_centered.T, design_matrix_centered)
-# ``` 
-#
+# ### [Solution 3](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_10/solutions/542afb032da6b0afaggfb56a6e030b88.txt)
 
 # We can look how two pixels of the image visually are correlated across the dataset. You can change the two selected pixels down below
 
@@ -326,40 +307,7 @@ widgets.interactive(show_eigenvector, nn=(0,783,1))
 
 
 
-# ### Solution 5
-#
-# ```python
-# # 1 - looking at the cumulative explained variance
-#
-# variance_expalained = 0.98
-#
-# fig, ax = plt.subplots()
-# csum = np.cumsum(evals)
-# # Normalize by the sum of eigenvalues
-# variance_explained = csum / np.sum(evals)
-# print (np.argmax(variance_explained > variance_expalained))
-# ax.plot(np.arange(1, len(variance_explained) + 1), variance_explained,
-#        '--k')
-# ax.set(
-#     xlabel ='Number of components',
-#     ylabel = 'Explaeined variance')
-#
-# # 2 - if we want to visualize the data we select the top 1,2 or 3 eigenvalues
-#
-# # 3 - all eigenvalues that are bigger than 1 
-#     
-# print (np.argmax(np.abs(evals) < 1))
-#     
-# # 4 - look at the scree plot
-# fig, ax = plt.subplots()
-# ax.plot(np.arange(1, len(evals) + 1), evals, 'o-k')
-# ax.set(
-#     xlabel ='Component',
-#     ylabel ='Eigenvalue',
-#     title = 'Scree plot',
-#     # change xlim to zoom in
-#     xlim=[0,784],)
-# ```
+# ### [Solution 5](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_10/solutions/a3dd6a1ac53626e00932e2aadca52865.txt)
 #
 #
 #
@@ -384,26 +332,283 @@ ax.set(
 
 # ## Step 5 - project back into the original space
 #
+# We can now multiply the projected data with the transposed of the weights to project back into the original space. To make it faster, below we only do so for the selected sample, in principle one can perform the operation for the whole set 
 #
 
 # +
 def project_back(n_components = 3, chosen_sample=0):
     
     fig, (ax1,ax2,ax3) = plt.subplots(1,3)
-    score = np.matmul(design_matrix_centered, evectors[:,:n_components])
-    
-    
+    score = np.matmul(design_matrix_centered[chosen_sample:chosen_sample+1,:], evectors[:,:n_components])  
     
     project_back = np.matmul(score,evectors[:,:n_components].T) + design_matrix_mean 
     
-    visualize_number(number=design_matrix_centered[chosen_sample], title='original number', ax=ax1)
-    visualize_number(number=project_back[chosen_sample], title='projection', ax=ax2)
+    visualize_number(number=design_matrix[chosen_sample], title='original number', ax=ax1)
+    visualize_number(number=project_back, title='projection', ax=ax2)
     
-    strongest_eigenvector = np.argmax(np.abs(score[chosen_sample]))
-    visualize_number(number=evectors[:,strongest_eigenvector], title=f'Most contributing eigenvector {strongest_eigenvector+1}', ax=ax3, style ='eigenvectors' )
+    strongest_eigenvector = np.argmax(np.abs(score))
+    visualize_number(number=evectors[:,strongest_eigenvector], title=f'Most strongly\ncontributing eigenvector: #{strongest_eigenvector+1}', ax=ax3, style ='eigenvectors' )
 
 
 widgets.interactive(project_back, n_components=(1,784,1), chosen_sample=(0,69000,1))
+
+
+# -
+
+# ## PCA in concise form
+#
+# We now put all steps in one class
+
+class PCA(object):
+    """
+    Performs PCA on multivariate data. Eigenvalues are sorted in decreasing order
+
+    Args:
+     X (numpy array of floats) :   Data matrix each column corresponds to a
+                                   different feature, each row to a different sample
+
+    Returns:
+    (numpy array of floats)    : Data projected onto the new basis
+    (numpy array of floats)    : Corresponding matrix of eigenvectors
+    (numpy array of floats)    : Vector of eigenvalues
+    (numpy array of floats)    : projection back into the original space
+
+    """
+    def __init__(self, X):
+        super(PCA, self).__init__()
+        
+        
+        self.X = X
+        
+    
+    def perform_pca(self, n_components = None):
+        
+        X = np.copy(self.X)
+        
+        # step 1 - mean center
+        X = X - np.mean(X, 0)
+        # step 2 - calculate covariance matrix
+        cov_matrix = self.get_sample_cov_matrix(X)
+        # step 3 - get eigenvectors and -values
+        evals, evectors = np.linalg.eigh(cov_matrix)
+        # ... and sort them  
+        evals, evectors = self.sort_evals_descending(evals, evectors)
+        # step 4 - projet onto new basis
+        score = self.project_onto_pcs(X, evectors, n_components)
+        # step 5 - project back
+        Y = self.project_back(score, evectors, n_components)
+    
+    
+        self.evectors = evectors
+        self.evals = evals
+        self.Y = Y
+        self.score = score
+        
+        return score, evectors, evals, Y
+
+    def get_sample_cov_matrix(self, X):
+        """
+        Returns the sample covariance matrix of data X.
+
+        Args:
+        X (numpy array of floats) : Data matrix each column corresponds to a
+                                different random variable
+
+        Returns:
+        (numpy array of floats)   : Covariance matrix
+        """
+
+        X = X - np.mean(X, 0) # we include this part
+        cov_matrix = 1 / X.shape[0] * np.matmul(X.T, X)
+        return cov_matrix
+
+    def sort_evals_descending(self, evals, evectors):
+        """
+        Sorts eigenvalues and eigenvectors in decreasing order.
+
+        Args:
+        evals (numpy array of floats)    :   Vector of eigenvalues
+        evectors (numpy array of floats) :   Corresponding matrix of eigenvectors
+                                             each column corresponds to a different
+                                             eigenvalue
+
+        Returns:
+        (numpy array of floats)          : Vector of eigenvalues after sorting
+        (numpy array of floats)          : Matrix of eigenvectors after sorting
+        """
+
+        index = np.argsort(np.abs(evals))[::-1]
+        evals = evals[index]
+        evectors = evectors[:, index]
+
+        return evals, evectors
+
+    def project_onto_pcs(self, X, W, n_components = None):
+        """
+        Projects data onto the principle components.
+
+        Args:
+        X (numpy array of floats) : Data matrix each column corresponding to a
+                                    different random variable
+        W (numpy array of floats) : new orthonormal basis columns correspond to
+                                    basis vectors
+        n_components (int)        : the number of components chosen when projecting 
+
+        Returns:
+        (numpy array of floats)   : Data matrix expressed in new basis
+        """
+        if n_components == None:
+            S = np.matmul(X, W)
+        else: 
+            S = np.matmul(X, W[:,:n_components])
+            
+        self.S = S
+
+        return S
+    
+    def project_back(self, S, W, n_components = None):
+        """
+        Projects back into the original space.
+
+        Args:
+        X (numpy array of floats) : Data matrix each column corresponding to a
+                                    different random variable
+        W (numpy array of floats) : new orthonormal basis columns correspond to
+                                    basis vectors
+        n_components (int)        : the number of components chosen when projecting back
+
+        Returns:
+        (numpy array of floats)   : Data matrix expressed in new basis
+        """
+        if n_components == None:
+            Y = np.matmul(S, W.T)  
+        else:
+            Y = np.matmul(S, W[:,:n_components].T) 
+
+        return Y + np.mean(self.X, 0)
+    
+    def show_eigenvector(self, nn, title='', ax=None):
+        visualize_number(self.evectors[:,nn], title=f'{title}\nEigenvector {nn} - Eigenvalue = {np.round(self.evals[nn])}', style='eigenvectors',ax=ax)
+        
+    def select_components(self, var_to_explain = 0.98, variant = 'cumsum', ax=None, color = 'k', label='', xlim = [0,784]):
+        
+        if variant == 'cumsum':
+            if ax == None:
+                fig, ax = plt.subplots()
+            
+            csum = np.cumsum(self.evals)
+            # Normalize by the sum of eigenvalues
+            variance_explained = csum / np.sum(self.evals)
+            ax.plot(np.arange(1, len(variance_explained) + 1), variance_explained,
+                   color=color, linestyle='--',label=label)
+            ax.set(
+                xlabel ='Number of components',
+                ylabel = 'Explaeined variance')
+            
+            eigenvalues_to_select = np.argmax(variance_explained > var_to_explain)
+            
+            ax.scatter([eigenvalues_to_select],variance_explained[eigenvalues_to_select],s=40,color=color, marker='x',label=f' {var_to_explain} var explained')
+            
+            
+            return 
+        
+        if variant == 'bigger 1':
+            return np.argmax(np.abs(self.evals) < 1)
+
+        if variant == 'scree':
+            # 4 - look at the scree plot
+            if ax == None:
+                fig, ax = plt.subplots()
+                
+            ax.plot(np.arange(1, len(evals) + 1), self.evals, 'o-', color=color, label=label)
+            ax.set(
+                xlabel ='Component',
+                ylabel ='Eigenvalue',
+                title = 'Scree plot',
+                # change xlim to zoom in
+                xlim=xlim,)
+
+pca_instance = PCA(X) 
+score, evectors, evals, Y = pca_instance.perform_pca(n_components = 3)
+
+pca_instance.show_eigenvector(0)
+
+# ## some experiments with PCA
+#
+# We can see that the first eigenvector strongly characterizes the digits 0 and 1. What happens if we remove them from the dataset?
+
+X_new = X[np.logical_and(mnist.target != '0', mnist.target != '1')]
+pca_instance_new = PCA(X_new) 
+score, evectors, evals, Y = pca_instance_new.perform_pca(n_components = 3)
+pca_instance_new.show_eigenvector(0)
+
+
+# ### Denoise using PCA
+#
+
+# +
+def add_noise(X, frac_noisy_pixels):
+
+    X_noisy = np.reshape(X, (X.shape[0] * X.shape[1]))
+    N_noise_ixs = int(X_noisy.shape[0] * frac_noisy_pixels)
+    noise_ixs = np.random.choice(X_noisy.shape[0], size=N_noise_ixs,
+                               replace=False)
+    X_noisy[noise_ixs] = np.random.uniform(0, 255, noise_ixs.shape)
+    X_noisy = np.reshape(X_noisy, (X.shape[0], X.shape[1]))
+
+    return X_noisy
+
+X_noisy = add_noise(X, frac_noisy_pixels=0.2)
+
+# +
+I, J = 2, 8
+fig, ax = plt.subplots(I,J, figsize=(12,4))
+
+for ii in range(I):
+    for jj in range(J//2):
+        random_integer = int(np.random.rand()*70_000)
+        random_sample = X[random_integer]
+        visualize_number(random_sample, ax=ax[ii,jj], title=f'{random_integer}')
+        random_sample = X_noisy[random_integer]
+        visualize_number(random_sample, ax=ax[ii,jj+J//2], title=f'{random_integer}')
+fig.tight_layout()
+
+# +
+pca_instance = PCA(X) 
+score, evectors, evals, Y = pca_instance.perform_pca(n_components = 100)
+
+pca_instance_noise = PCA(X_noisy) 
+score_noise, evectors_noise, evals_noise, Y_noise = pca_instance_noise.perform_pca(n_components = 100)
+
+
+# +
+fig, ax = plt.subplots()
+pca_instance.select_components(variant = 'cumsum',var_to_explain=0.98, ax=ax, color = 'k', label='', xlim = [0,784])
+
+pca_instance_noise.select_components(variant = 'cumsum',var_to_explain=0.98, ax=ax, color = 'b', label='noise', xlim = [0,784])
+ax.legend()
+
+
+# +
+def compare_eigenvalues(nn=0):
+    fig, (ax1,ax2) = plt.subplots(1,2)
+    pca_instance_noise.show_eigenvector(nn, ax = ax1, title='Noise')
+    pca_instance.show_eigenvector(nn, ax = ax2, title='Regular')
+    
+widgets.interactive(compare_eigenvalues, nn=(0,783,1))
+
+# +
+I, J = 2, 8
+fig, ax = plt.subplots(I,J, figsize=(12,4))
+
+for ii in range(I):
+    for jj in range(J//2):
+        random_integer = int(np.random.rand()*70_000)
+        random_sample = X_noisy[random_integer]
+        visualize_number(random_sample, ax=ax[ii,jj+J//2], title=f'{random_integer}')
+        random_sample = Y_noise[random_integer]
+        visualize_number(random_sample, ax=ax[ii,jj], title=f'{random_integer}')
+fig.tight_layout()
 # -
 
 

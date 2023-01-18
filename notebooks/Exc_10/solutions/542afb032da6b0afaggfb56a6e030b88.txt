@@ -1,0 +1,7 @@
+### Solution 3
+
+it is important to take the mean centered matrix. 
+However, it is fine to either use N or N-1
+```python
+cov_matrix = 1 / (design_matrix_centered.shape[0]-1) * np.matmul(design_matrix_centered.T, design_matrix_centered)
+``` 

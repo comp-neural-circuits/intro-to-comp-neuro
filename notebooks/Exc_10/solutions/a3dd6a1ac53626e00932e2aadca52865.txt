@@ -1,0 +1,35 @@
+### Solution 5
+
+```python
+# 1 - looking at the cumulative explained variance
+
+variance_expalained = 0.98
+
+fig, ax = plt.subplots()
+csum = np.cumsum(evals)
+# Normalize by the sum of eigenvalues
+variance_explained = csum / np.sum(evals)
+print (np.argmax(variance_explained > variance_expalained))
+ax.plot(np.arange(1, len(variance_explained) + 1), variance_explained,
+       '--k')
+ax.set(
+    xlabel ='Number of components',
+    ylabel = 'Explaeined variance')
+
+# 2 - if we want to visualize the data we select the top 1,2 or 3 eigenvalues
+
+# 3 - all eigenvalues that are bigger than 1 
+    
+print (np.argmax(np.abs(evals) < 1))
+    
+# 4 - look at the scree plot
+fig, ax = plt.subplots()
+ax.plot(np.arange(1, len(evals) + 1), evals, 'o-k')
+ax.set(
+    xlabel ='Component',
+    ylabel ='Eigenvalue',
+    title = 'Scree plot',
+    # change xlim to zoom in
+    xlim=[0,784],)
+```
+
