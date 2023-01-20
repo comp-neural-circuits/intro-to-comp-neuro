@@ -67,6 +67,9 @@ print (X.shape)
 #
 # To do so, we nee to reshape the 784 dimensions so that we get a 2D image again:
 #
+# ### Task 1 - look at some examples
+#
+# Change the selected sample below to look at some examples of the digits.
 
 # +
 example_number = X[0,:]
@@ -81,9 +84,7 @@ ax.imshow(example_number_reshaped, cmap='binary')
 
 # -
 
-# ### Task 1 - look at some examples
-#
-# Change the selected sample above to look at some of the samples. 
+#  
 
 # We now create a function that allows us to look at any sample
 
