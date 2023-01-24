@@ -538,6 +538,195 @@ anim.save(f"generate_noisy_data.gif",
           fps = 4, writer='imagemagick',dpi=300)
 
 # -
+# ### Linear Regression - Ordinary Least Squares (OLS) solution 
+#
+# Following the lecture, we start with a linear regression on 1D data. First we generate the data with a true theta. 
+#
+# (as in the lecture, we do not have an offset ($\theta_0=0$))
+
+# +
+np.random.seed(121)
+
+# Let's set some parameters
+theta = 1.2
+n_samples = 30
+
+# Draw x and then calculate y
+x = 10 * np.random.rand(n_samples)[:,None]  # sample from a uniform distribution over [0,10)
+noise = np.random.randn(n_samples)[:,None]  # sample from a standard normal distribution
+y = theta * x + noise
+
+# Plot the results
+fig, ax = plt.subplots()
+ax.scatter(x, y)  # produces a scatter plot
+ax.set(xlabel='x', ylabel='y', title = 'Data');
+
+
+# -
+
+# The solution for this problem is the same, no matter if we follow the idea of the mean square error (MSE) or the maximum likelihod estimate (MLE):
+#
+# \begin{aligned}
+# \theta^*=\left(\mathbf{X}^{\top} \mathbf{X}\right)^{-1} \mathbf{X}^{\top} \boldsymbol{y}
+# \end{aligned}
+
+def solve_normal_eqn(X, y):
+    # Compute theta_hat using OLS
+    theta_star = np.linalg.inv(X.T @ X) @ X.T @ y
+
+    return theta_star[:,0]
+
+
+# +
+def solve_normal_equ_and_plot(X,y):
+
+    theta_star = solve_normal_eqn(X, y)
+    print (theta_star.shape)
+    
+    x_plot = X
+    if x_plot.shape[1] > 1:
+        x_plot = X[:,1]
+        
+    y_star = np.sum(X*theta_star,axis=1) # we do the sum here so that we can use the same function later on 
+    
+    
+    fig, ax = plt.subplots()
+    ax.scatter(x_plot, y, label='Observed')  # our data scatter plot
+    ax.plot(x_plot, y_star, color='r', label='Fit')  # our estimated model
+    ax.set(
+      title=fr"$\theta^*$ ={np.round(theta_star,2)}, MSE = {np.round(np.mean((y - y_hat)**2),2)}",
+      xlabel='x',
+      ylabel='y'
+    )
+    ax.legend()
+    
+
+# -
+
+solve_normal_equ_and_plot(x,y)
+
+# great! that woorks
+
+# ## Multiple linear regression - model evaluation
+#
+#
+# As a first intermediate step towards multiple linear regression, we now introduce an offset and see how the previous model will fail to capture the data and how we can fix this by adjusting the design matrix
+#
+#
+# Let's generate new data
+
+# +
+np.random.seed(121)
+
+# Let's set some parameters
+theta = 1.2
+n_samples = 30
+
+theta_0 = 4
+
+# Draw x and then calculate y
+x_offset = 10 * np.random.rand(n_samples)[:,None]  # sample from a uniform distribution over [0,10)
+noise = np.random.randn(n_samples)[:,None]  # sample from a standard normal distribution
+y_offset = theta * x_offset + noise + theta_0
+
+# Plot the results
+fig, ax = plt.subplots()
+ax.scatter(x_offset, y_offset)  # produces a scatter plot
+ax.set(xlabel='x', ylabel='y', title = 'Data');
+# -
+
+solve_normal_equ_and_plot(x_offset,y_offset)
+
+X_design_offset = np.hstack([np.ones_like(x_offset),x_offset])
+solve_normal_equ_and_plot(X_design_offset,y_offset)
+
+# Now moving towards polynomal regression, we can add another dimension:
+#
+#
+
+# +
+# Set parameters
+theta = np.array([4, -1, 5])
+n_samples = 40
+
+x0 = np.ones((n_samples, 1))
+x1 = np.random.uniform(-2, 2, (n_samples, 1))
+x2 = np.random.uniform(-2, 2, (n_samples, 1))
+X_3d = np.hstack([x0, x1, x2])
+noise = np.random.randn(n_samples)
+y_3d = X_3d @ theta + noise
+
+
+ax = plt.subplot(projection='3d')
+ax.plot(X_3d[:,1], X_3d[:,2], y_3d, '.')
+
+ax.set(
+    xlabel='$\mathbf{x_1}$: Orientation',
+    ylabel='$\mathbf{x_2}$: Contrast',
+    zlabel='y: Neural Response'
+)
+plt.tight_layout()
+
+# +
+theta_star = solve_normal_eqn(X_3d, y_3d[:,None])
+xx, yy = np.mgrid[-2:2:50j, -2:2:50j]
+y_star_grid = np.array([xx.flatten(), yy.flatten()]).T @ theta_star[1:] + theta_star[0]
+y_star_grid = y_star_grid.reshape((50, 50))
+
+ax = plt.subplot(projection='3d')
+ax.plot(X_3d[:, 1], X_3d[:, 2], y_3d, '.')
+ax.plot_surface(xx, yy, y_star_grid, linewidth=0, alpha=0.5, color='C1',
+                cmap=plt.get_cmap('coolwarm'))
+ax.set(
+    xlabel='$\mathbf{x_1}$: Orientation',
+    ylabel='$\mathbf{x_2}$: Contrast',
+    zlabel='y: Neural Response',
+    title=fr"$\theta^*$ ={np.round(theta_star,2)}",
+);
+# -
+
+# ## Polynomal Regression
+#
+# We now look at 2D data again but with polynomal regression. We also use this to investigate the model evaluation
+#
+# First we generate data and in order to evaluate whether our model captures the data well, we will randomly hold back some data as our test-set. The data we use to fit our model will be our train-set.
+
+# +
+np.random.seed(240)
+n_samples = 70
+x = np.random.uniform(-2, 2.5, n_samples)  
+y = 0.1*x**3+x**2 - x + 3   # computing the outputs
+
+output_noise = np.random.randn(n_samples) * 0.1
+y += output_noise  # adding some output noise
+
+input_noise = np.random.randn(n_samples) * 0.3
+x += input_noise  # adding some input noise
+
+
+n_test = 25
+all_ids = np.linspace(0,n_samples-1,n_samples).astype(int)
+test_set_ids = np.random.choice(all_ids, size=n_test, replace=False)
+
+x_test = x[test_set_ids] 
+y_test = y[test_set_ids]
+
+train_set_ids = [ii for ii in all_ids if ii not in test_set_ids]
+
+x_train = x[train_set_ids]
+y_train = y[train_set_ids]
+
+fig, ax = plt.subplots()
+ax.scatter(x_train, y_train,label='train set')
+ax.scatter(x_test, y_test, label='test set',marker='x')
+ax.set(
+    xlabel='x', 
+    ylabel='y');
+ax.legend();
+
+
+# -
+
 # Now we have the basic idea of polynomial regression and some noisy data, let's begin! The key difference between fitting a linear regression model and a polynomial regression model lies in how we structure the input variables.  
 #
 # Let's go back to one feature for each data point. For linear regression, we used $\mathbf{X} = \mathbf{x}$ as the input data, where $\mathbf{x}$ is a vector where each element is the input for a single data point. To add a constant bias (a y-intercept in a 2-D plot), we use $\mathbf{X} = \big[ \boldsymbol 1, \mathbf{x} \big]$, where $\boldsymbol 1$ is a column of ones.  When fitting, we learn a weight for each column of this matrix. So we learn a weight that multiples with column 1 - in this case that column is all ones so we gain the bias parameter ($+ \theta_0$). 
@@ -557,7 +746,6 @@ anim.save(f"generate_noisy_data.gif",
 # \end{equation}
 
 
-# +
 def make_design_matrix(x, order):
     """Create the design matrix of inputs for use in polynomial regression
     Args:
@@ -582,14 +770,6 @@ def make_design_matrix(x, order):
     return design_matrix
 
 
-order = 5
-X_design = make_design_matrix(x, order)
-
-print(X_design[:2])
-
-
-# -
-
 # Now that we have the inputs structured correctly in our design matrix, fitting a polynomial regression is the same as fitting a linear regression model! All of the polynomial structure we need to learn is contained in how the inputs are structured in the design matrix. We can use the same least squares solution we computed in previous exercises. 
 
 # Here, we will fit polynomial regression models to find the regression coefficients ($\theta_0, \theta_1, \theta_2,$ ...) by solving the least squares problem. Create a function `solve_poly_reg` that loops over different order polynomials (up to `max_order`), fits that model, and saves out the weights for each. You may invoke the `ordinary_least_squares` function. 
@@ -609,26 +789,43 @@ def solve_poly_reg(x, y, max_order):
 
     # Create a dictionary with polynomial order as keys,
     # and np array of theta_hat (weights) as the values
-    theta_hats = {}
+    theta_stars = {}
 
     # Loop over polynomial orders from 0 through max_order
     for order in range(max_order + 1):
 
-    # Create design matrix
-    X_design = make_design_matrix(x, order)
+        # Create design matrix
+        X_design = make_design_matrix(x, order)
 
-    # Fit polynomial model
-    this_theta = ordinary_least_squares(X_design, y)
+        # Fit polynomial model
+        this_theta = solve_normal_eqn(X_design, y[:,None])
 
-    theta_hats[order] = this_theta
+        theta_stars[order] = this_theta
 
-    return theta_hats
+    return theta_stars
 
 
-max_order = 5
-theta_hats = solve_poly_reg(x, y, max_order)
+list_of_orders = [0,1,2,3,4,5,15]
+theta_stars = solve_poly_reg(x_train, y_train, np.max(list_of_orders))
 
-plot_fitted_polynomials(x, y, theta_hats)
+
+x_grid = np.linspace(x.min() - .5, x.max() + .5)
+fig, ax = plt.subplots()
+
+for order in list_of_orders:
+    X_design = make_design_matrix(x_grid, order)
+    ax.plot(x_grid, X_design @ theta_stars[order], label=f'order: {order}');
+
+ax.set(
+    xlabel ='x',
+    ylabel = 'y',
+    title = 'polynomial fits',
+    ylim = [0,10]
+)
+ax.scatter(x_train, y_train,label='train set')
+
+ax.legend()
+
 # -
 
 # As with linear regression, we can compute mean squared error (MSE) to get a sense of how well the model fits the data. 
@@ -636,87 +833,69 @@ plot_fitted_polynomials(x, y, theta_hats)
 # We compute MSE as:
 #
 # \begin{equation}
-# \mathrm{MSE} = \frac 1 N ||\mathbf{y} - \hat{\mathbf{y}}||^2 = \frac 1 N \sum_{i=1}^N (y_i - \hat y_i)^2 
+# \mathrm{MSE} = \frac 1 N ||\mathbf{y} - \mathbf{y}^*||^2 = \frac 1 N \sum_{i=1}^N (y_i -  y_i^*)^2 
 # \end{equation}
 #
-# where the predicted values for each model are given by $ \hat{\mathbf{y}} = \mathbf{X}\boldsymbol{\hat\theta}$.
+# where the predicted values for each model are given by $\mathbf{y}^* = \mathbf{X}\boldsymbol{\theta}^*$.
 #
-# *Which model (i.e. which polynomial order) do you think will have the best MSE?*
+# Now we can do this for both, the _train_set_ that we used to train the model, and with the _test_set_ that we hold back and that was not part of the training procedure 
+#
+# *Which model (i.e. which polynomial order) do you think will have the best MSE for the test set, which one will have the best for the train set?*
 
 # +
-mse_list = []
-order_list = list(range(max_order + 1))
 
-for order in order_list:
 
-    X_design = make_design_matrix(x, order)
+mse_list_test = []
+mse_list_train = []
+
+
+for order in list_of_orders:
+
+    X_design_train = make_design_matrix(x_train, order)
+    X_design_test = make_design_matrix(x_test, order)
 
     # Get prediction for the polynomial regression model of this order
-    y_hat = X_design @ theta_hats[order]
-
+    y_star_train = X_design_train @ theta_stars[order]
+    y_star_test = X_design_test @ theta_stars[order]
+    
     # Compute the residuals
-    residuals = y - y_hat
+    residuals_train = y_train - y_star_train
+    
+    
+    residuals_test = y_test - y_star_test
 
     # Compute the MSE
-    mse = np.mean(residuals ** 2)
+    mse = np.mean(residuals_train ** 2)
+    mse_list_train.append(mse)
+    
+    mse = np.mean(residuals_test ** 2)
+    mse_list_test.append(mse)
 
-    mse_list.append(mse)
 
 
-# Visualize MSE of fits
-evaluate_fits(order_list, mse_list)
-
-# +
-np.random.seed(0)
-n_train_samples = 50
-x_train = np.random.uniform(-2, 2.5, n_train_samples) # sample from a uniform distribution over [-2, 2.5)
-noise = np.random.randn(n_train_samples) # sample from a standard normal distribution
-y_train =  x_train**2 - x_train - 2 + noise
-
-### Generate testing data
-n_test_samples = 20
-x_test = np.random.uniform(-3, 3, n_test_samples) # sample from a uniform distribution over [-2, 2.5)
-noise = np.random.randn(n_test_samples) # sample from a standard normal distribution
-y_test =  x_test**2 - x_test - 2 + noise
-
-## Plot both train and test data
 fig, ax = plt.subplots()
-plt.title('Training & Test Data')
-plt.plot(x_train, y_train, '.', markersize=15, label='Training')
-plt.plot(x_test, y_test, 'g+', markersize=15, label='Test')
-plt.legend()
-plt.xlabel('x')
-plt.ylabel('y');
+width = .35
 
-
-# +
-def compute_mse(x_train, x_test, y_train, y_test, theta_hats, max_order):
-    """Compute MSE on training data and test data.
-    Args:
-    x_train(ndarray): training data input vector of shape (n_samples)
-    x_test(ndarray): test vector of shape (n_samples)
-    y_train(ndarray): training vector of measurements of shape (n_samples)
-    y_test(ndarray): test vector of measurements of shape (n_samples)
-    theta_hats(dict): fitted weights for each polynomial model (dict key is order)
-    max_order (scalar): max order of polynomial fit
-    Returns:
-    ndarray, ndarray: MSE error on training data and test data for each order
-    """
-
-    mse_train = evaluate_poly_reg(x_train, y_train, theta_hats, max_order)
-    mse_test = evaluate_poly_reg(x_test, y_test, theta_hats, max_order)
-
-    return mse_train, mse_test
-
-
-# Compute train and test MSE
-mse_train, mse_test = compute_mse(x_train, x_test, y_train, y_test, theta_hats, max_order)
-
-# Visualize
-plot_MSE_poly_fits(mse_train, mse_test, max_order)
-
-
+ax.bar(np.array(list_of_orders) - width / 2, mse_list_train, width, label="train set")
+ax.bar(np.array(list_of_orders) + width / 2, mse_list_test , width, label="test set")
+ax.legend()
+ax.set(
+    xlabel = 'Order of polynomal fit',
+    ylabel = 'MSE',)
 # -
+
+# We see that the MSE on the train set gets smaller, the more paramter we use. 
+# However the MSE on the test sets first gets smaller but then increases again. 
+#
+# This is an example of the bias-variance trade-off.
+#
+# A model with few parameters has a high bias: In our example, we put in a very strong assumption into the model with only one parameter, namely that y is independent of x. This is not the case, therefore the training error is high. 
+#
+# The more paramter we include, the better the model can be fit to the data, or in other words, the better it can capture the variance of the data. 
+# However, this can lead to over-fitting as we can see for the models with many parameters. Capturing to much of the variance of the data therefore prevents the model from making good predictions about future data. 
+#
+
+
 
 # ### Generate a model
 #
@@ -811,7 +990,7 @@ def generator_model(input_pattern, size = 20, ax=None):
 def create_random_image(size=20):
     
     random_dots = np.random.rand(size,size)*1
-    random_dots[np.random.rand(size,size)<0.8] = 0
+    random_dots[np.random.rand(size,size)<0.92] = 0
     
     return random_dots
 
@@ -831,8 +1010,8 @@ def get_random_gaussian_stim(size=20):
 # +
 def get_input_image(size=20):
     
-#     return create_random_image(size=size)
-    return get_random_gaussian_stim(size=20)
+    return create_random_image(size=size)
+#     return get_random_gaussian_stim(size=20)
 
 
 size=20
@@ -945,70 +1124,5 @@ https://compneuro.neuromatch.io/tutorials/W1D3_GeneralizedLinearModels/student/W
 
 
 
-def plot_observed_vs_predicted_lecture(x, y, y_hat, theta_hat, show_residuals=False):
-    """ Plot observed vs predicted data
-
-    Args:
-    x (ndarray): observed x values
-    y (ndarray): observed y values
-    y_hat (ndarray): predicted y values
-    theta_hat (ndarray):
-    """
-    fig, ax = plt.subplots()
-    ax.scatter(x, y, label='Observed')  # our data scatter plot
-    ax.plot(x, y_hat, color='r', label='Fit')  # our estimated model
-    # plot residuals
-    ymin = np.minimum(y, y_hat)
-    ymax = np.maximum(y, y_hat)
-    if show_residuals:
-        ax.vlines(x, ymin, ymax, 'g', alpha=0.5, label='Residuals')
-    ax.set(
-      title=fr"$\hat{{\theta}}$ = {theta_hat:0.2f}, MSE = {np.mean((y - y_hat)**2):.2f}",
-      xlabel='x',
-      ylabel='y'
-    )
-    ax.legend()
-
-
-def solve_normal_eqn(x, y):
-    """Solve the normal equations to produce the value of theta_hat that minimizes
-    MSE.
-    Args:
-    x (ndarray): An array of shape (samples,) that contains the input values.
-    y (ndarray): An array of shape (samples,) that contains the corresponding
-      measurement values to the inputs.
-    Returns:
-    float: the value for theta_hat arrived from minimizing MSE
-    """
-
-    # Compute theta_hat analytically
-    theta_hat = (x.T @ y) / (x.T @ x)
-
-    return theta_hat
-
-# +
-
-
-np.random.seed(121)
-
-# Let's set some parameters
-theta = 1.2
-n_samples = 30
-
-# Draw x and then calculate y
-x = 10 * np.random.rand(n_samples)  # sample from a uniform distribution over [0,10)
-noise = np.random.randn(n_samples)  # sample from a standard normal distribution
-y = theta * x + noise
-theta_hat = solve_normal_eqn(x, y)
-y_hat = theta_hat * x
-
-plot_observed_vs_predicted(x, y, y_hat, theta_hat)
-
-plt.savefig('linear_fit.pdf', dpi=300, format=None, metadata=None,
-        bbox_inches=None, pad_inches=0.1,
-        facecolor='auto', edgecolor='auto',
-        backend=None,
-       )
-# -
 
 
