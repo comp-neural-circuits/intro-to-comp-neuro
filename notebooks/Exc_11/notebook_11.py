@@ -403,11 +403,24 @@ ax.set(
 
 # # GLMs 
 #
-# We now look at the 
+# Generalized linear models are a very flexible class of models with many applications. 
+# In this short exercise we look at a Poisson GLM that is able to identify the linear filter of a 2D stimulus, the receptive field of a neuron. 
+# As a reminder, here are the GLMs that have been discussed in the lecture:
+#
+#
+# <div>
+# <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_11/static/glm_overview.png" width="950"/>
+# </div>
+#
 
 # ### Generate a model
 #
-# 2D makes spikes
+# To fit the GLM, we first need the data. 
+# The function _show_visual_space_ is used to visualize the input patterns and the filter that we use (or find)
+#
+# _gaussian_2d_ can generate a simple 2d gaussian, that we use for the filter.
+#
+# The _generator_model_ then takes the images we provide and generates spikes
 #
 
 def show_visual_space(pattern, ax = None, style='filter',alpha=1):
@@ -490,9 +503,8 @@ def generator_model(input_pattern, size = 20, ax=None):
 # -
 # ### Generate sample images
 #
-# We use the function _create_random_image_ to gerate the sample data
+# We use the function _create_random_image_ to gerate the sample data, that we can feed into our generator model to generate the spike outputs.
 #
-# ...
 
 # +
 def create_random_image(size=20):
@@ -616,18 +628,16 @@ show_visual_space(theta_lnp[0]+theta_lnp[1:].reshape((20,20)), style='filter')
 
 # -
 
-
-
-# +
-more on GLMs
-
-https://compneuro.neuromatch.io/tutorials/W1D3_GeneralizedLinearModels/student/W1D3_Tutorial1.html
-
-https://compneuro.neuromatch.io/tutorials/W1D3_GeneralizedLinearModels/student/W1D3_Tutorial2.html
-    
-    
-    
-# -
+# ### Further reading/exercises
+#
+# If you want to learn more about GLMs, you can check out the neuromatch tutorials:
+#
+# [Tutorial 1](https://compneuro.neuromatch.io/tutorials/W1D3_GeneralizedLinearModels/student/W1D3_Tutorial1.html)
+#
+# [Tutorial 2](https://compneuro.neuromatch.io/tutorials/W1D3_GeneralizedLinearModels/student/W1D3_Tutorial2.html)
+#     
+#     
+#     
 
 
 
