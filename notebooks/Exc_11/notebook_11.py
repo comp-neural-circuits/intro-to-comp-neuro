@@ -39,9 +39,10 @@ plt.style.use("https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/d
 
 # ### Linear Regression - Ordinary Least Squares (OLS) solution 
 #
-# Following the lecture, we start with a linear regression on 1D data. First we generate the data with a true theta. 
-#
+# Following the lecture, we start with a linear regression on 1D data. 
 # (as in the lecture, we do not have an offset ($\theta_0=0$))
+#
+# *First we generate the data with a true theta.*
 
 # +
 np.random.seed(121)
@@ -63,11 +64,13 @@ ax.set(xlabel='x', ylabel='y', title = 'Data');
 
 # -
 
-# The solution for this problem is the same, no matter if we follow the idea of the mean square error (MSE) or the maximum likelihod estimate (MLE):
+# As shown in the lecture, the solution for this problem is the same, no matter if we follow the idea of the mean square error (MSE) or the maximum likelihod estimate (MLE):
 #
 # \begin{aligned}
 # \theta^*=\left(\mathbf{X}^{\top} \mathbf{X}\right)^{-1} \mathbf{X}^{\top} \boldsymbol{y}
 # \end{aligned}
+#
+# Below we implement this solution in a flexible way so that we can use this function throughout the notebook
 
 def solve_normal_eqn(X, y):
     # Compute theta_hat using OLS
@@ -75,6 +78,8 @@ def solve_normal_eqn(X, y):
 
     return theta_star[:,0]
 
+
+# Given the data we created above, we can now solve for the best fit and plot the result
 
 # +
 def solve_normal_equ_and_plot(X,y):
@@ -93,7 +98,7 @@ def solve_normal_equ_and_plot(X,y):
     ax.scatter(x_plot, y, label='Observed')  # our data scatter plot
     ax.plot(x_plot, y_star, color='r', label='Fit')  # our estimated model
     ax.set(
-      title=fr"$\theta^*$ ={np.round(theta_star,2)}, MSE = {np.round(np.mean((y - y_hat)**2),2)}",
+      title=fr"$\theta^*$ ={np.round(theta_star,2)}, MSE = {np.round(np.mean((y - y_star)**2),2)}",
       xlabel='x',
       ylabel='y'
     )
@@ -112,7 +117,7 @@ solve_normal_equ_and_plot(x,y)
 # As a first intermediate step towards multiple linear regression, we now introduce an offset and see how the previous model will fail to capture the data and how we can fix this by adjusting the design matrix
 #
 #
-# Let's generate new data
+# Let's generate new data with an offset $\theta_0$
 
 # +
 np.random.seed(121)
@@ -134,12 +139,23 @@ ax.scatter(x_offset, y_offset)  # produces a scatter plot
 ax.set(xlabel='x', ylabel='y', title = 'Data');
 # -
 
+# We can use the function we created above to solve for the best theta given the new - offset - data
+
 solve_normal_equ_and_plot(x_offset,y_offset)
+
+# As we can see, the fit differs quite substantially from the original theta we put in (1.2) since the model cannot account for the offset. As discussed in the lecture, we can fix that by adding a bias ($x_0 = 1$) to the design matrix, i.e to all the samples of our data 
 
 X_design_offset = np.hstack([np.ones_like(x_offset),x_offset])
 solve_normal_equ_and_plot(X_design_offset,y_offset)
 
-# Now moving towards polynomal regression, we can add another dimension:
+# This works much better!
+#
+#
+# Now moving towards polynomal regression, we can add $x_2$ as another dimension. For example $x_1$ can describe the orientation of the stimulus, while $x_2$ describes the contrast.
+#
+# ### Task 1
+#
+# Can you create the proper design matrix that allows you to fit a linear model to the data using the function?
 #
 #
 
@@ -148,16 +164,15 @@ solve_normal_equ_and_plot(X_design_offset,y_offset)
 theta = np.array([4, -1, 5])
 n_samples = 40
 
-x0 = np.ones((n_samples, 1))
 x1 = np.random.uniform(-2, 2, (n_samples, 1))
 x2 = np.random.uniform(-2, 2, (n_samples, 1))
-X_3d = np.hstack([x0, x1, x2])
-noise = np.random.randn(n_samples)
-y_3d = X_3d @ theta + noise
+noise = np.random.randn(n_samples)[:,None]
+
+y_3d = theta[0] + x1 * theta[1] + x2 * theta[2] + noise
 
 
 ax = plt.subplot(projection='3d')
-ax.plot(X_3d[:,1], X_3d[:,2], y_3d, '.')
+ax.scatter(x1, x2, y_3d, '.')
 
 ax.set(
     xlabel='$\mathbf{x_1}$: Orientation',
@@ -167,28 +182,39 @@ ax.set(
 plt.tight_layout()
 
 # +
-theta_star = solve_normal_eqn(X_3d, y_3d[:,None])
-xx, yy = np.mgrid[-2:2:50j, -2:2:50j]
-y_star_grid = np.array([xx.flatten(), yy.flatten()]).T @ theta_star[1:] + theta_star[0]
-y_star_grid = y_star_grid.reshape((50, 50))
 
-ax = plt.subplot(projection='3d')
-ax.plot(X_3d[:, 1], X_3d[:, 2], y_3d, '.')
-ax.plot_surface(xx, yy, y_star_grid, linewidth=0, alpha=0.5, color='C1',
-                cmap=plt.get_cmap('coolwarm'))
-ax.set(
-    xlabel='$\mathbf{x_1}$: Orientation',
-    ylabel='$\mathbf{x_2}$: Contrast',
-    zlabel='y: Neural Response',
-    title=fr"$\theta^*$ ={np.round(theta_star,2)}",
-);
+# change the code here and uncomment everything
+# design_matrix = ...
+
+# theta_star = solve_normal_eqn(design_matrix, y_3d[:,None])
+
+
+# xx, yy = np.mgrid[-2:2:50j, -2:2:50j]
+# y_star_grid = np.array([xx.flatten(), yy.flatten()]).T @ theta_star[1:] + theta_star[0]
+# y_star_grid = y_star_grid.reshape((50, 50))
+
+# ax = plt.subplot(projection='3d')
+# ax.plot(X_3d[:, 1], X_3d[:, 2], y_3d, '.')
+# ax.plot_surface(xx, yy, y_star_grid, linewidth=0, alpha=0.5, color='C1',
+#                 cmap=plt.get_cmap('coolwarm'))
+# ax.set(
+#     xlabel='$\mathbf{x_1}$: Orientation',
+#     ylabel='$\mathbf{x_2}$: Contrast',
+#     zlabel='y: Neural Response',
+#     title=fr"$\theta^*$ ={np.round(theta_star,2)}",
+# );
 # -
+
+# ### [Solution 1](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_11/solutions/97242d1ac53626e981cfe2ae7ca52865.txt)
+#
+#
 
 # ## Polynomal Regression
 #
-# We now look at 2D data again but with polynomal regression. We also use this to investigate the model evaluation
+# We now look at 2D data again but with polynomal regression. We can do so by adding the different powers of x as new feature.
+# We will also use this approach to investigate the concept of *model evaluation*
 #
-# First we generate data and in order to evaluate whether our model captures the data well, we will randomly hold back some data as our test-set. The data we use to fit our model will be our train-set.
+# First we generate data. In order to evaluate whether our model captures the data well, we will randomly hold back some data as our test-set. The data we use to fit our model will be our train-set.
 
 # +
 np.random.seed(240)
@@ -228,7 +254,7 @@ ax.legend();
 
 # Now we have the basic idea of polynomial regression and some noisy data, let's begin! The key difference between fitting a linear regression model and a polynomial regression model lies in how we structure the input variables.  
 #
-# Let's go back to one feature for each data point. For linear regression, we used $\mathbf{X} = \mathbf{x}$ as the input data, where $\mathbf{x}$ is a vector where each element is the input for a single data point. To add a constant bias (a y-intercept in a 2-D plot), we use $\mathbf{X} = \big[ \boldsymbol 1, \mathbf{x} \big]$, where $\boldsymbol 1$ is a column of ones.  When fitting, we learn a weight for each column of this matrix. So we learn a weight that multiples with column 1 - in this case that column is all ones so we gain the bias parameter ($+ \theta_0$). 
+# For the very first simple linear regression, we used $\mathbf{X} = \mathbf{x}$ as the input data, where $\mathbf{x}$ is a vector and each element is the input for a single data point. To add a constant bias (a y-intercept in a 2-D plot), we used $\mathbf{X} = \big[ \boldsymbol 1, \mathbf{x} \big]$, where $\boldsymbol 1$ is a column of ones in the second example.  When fitting, we learned a weight for each column of this matrix and therefore gained the bias ($\theta_0$) in addititon to $\theta_1$. 
 #
 # This matrix $\mathbf{X}$ that we use for our inputs is known as a **design matrix**. We want to create our design matrix so we learn weights for $\mathbf{x}^2, \mathbf{x}^3,$ etc. Thus, we want to build our design matrix $X$ for polynomial regression of order $k$ as:
 #
@@ -243,26 +269,18 @@ ax.legend();
 # \begin{equation}
 # \mathbf{X} = \big[ \boldsymbol 1 , \mathbf{x}_m^1, \mathbf{x}_n^1, \mathbf{x}_m^2 , \mathbf{x}_n^2\ldots , \mathbf{x}_m^k , \mathbf{x}_n^k \big],
 # \end{equation}
+#
+# Below we create the design matrix for different orders of polynomial functions
 
 
 def make_design_matrix(x, order):
-    """Create the design matrix of inputs for use in polynomial regression
-    Args:
-    x (ndarray): input vector of shape (samples,)
-    order (scalar): polynomial regression order
-    Returns:
-    ndarray: design matrix for polynomial regression of shape (samples, order+1)
-    """
-
     # Broadcast to shape (n x 1) so dimensions work
     if x.ndim == 1:
         x = x[:, None]
-
-    #if x has more than one feature, we don't want multiple columns of ones so we assign
-    # x^0 here
+        
     design_matrix = np.ones((x.shape[0], 1))
 
-    # Loop through rest of degrees and stack columns (hint: np.hstack)
+    # Loop through rest of degrees and stack columns
     for degree in range(1, order + 1):
         design_matrix = np.hstack((design_matrix, x**degree))
 
@@ -270,22 +288,11 @@ def make_design_matrix(x, order):
 
 
 # Now that we have the inputs structured correctly in our design matrix, fitting a polynomial regression is the same as fitting a linear regression model! All of the polynomial structure we need to learn is contained in how the inputs are structured in the design matrix. We can use the same least squares solution we computed in previous exercises. 
-
-# Here, we will fit polynomial regression models to find the regression coefficients ($\theta_0, \theta_1, \theta_2,$ ...) by solving the least squares problem. Create a function `solve_poly_reg` that loops over different order polynomials (up to `max_order`), fits that model, and saves out the weights for each. You may invoke the `ordinary_least_squares` function. 
 #
-# We will then qualitatively inspect the quality of our fits for each order by plotting the fitted polynomials on top of the data. In order to see smooth curves, we evaluate the fitted polynomials on a grid of $x$ values (ranging between the largest and smallest of the inputs present in the dataset).
+# below we implement this solution. Have a look at the different fits. Which one describes the data best?
 
 # +
 def solve_poly_reg(x, y, max_order):
-    """Fit a polynomial regression model for each order 0 through max_order.
-    Args:
-    x (ndarray): input vector of shape (n_samples)
-    y (ndarray): vector of measurements of shape (n_samples)
-    max_order (scalar): max order for polynomial fits
-    Returns:
-    dict: fitted weights for each polynomial model (dict key is order)
-    """
-
     # Create a dictionary with polynomial order as keys,
     # and np array of theta_hat (weights) as the values
     theta_stars = {}
@@ -327,7 +334,7 @@ ax.legend()
 
 # -
 
-# As with linear regression, we can compute mean squared error (MSE) to get a sense of how well the model fits the data. 
+# We now want to evaluate how well the models capture the data. We can again compute the mean squared error (MSE) for every model
 #
 # We compute MSE as:
 #
@@ -342,8 +349,6 @@ ax.legend()
 # *Which model (i.e. which polynomial order) do you think will have the best MSE for the test set, which one will have the best for the train set?*
 
 # +
-
-
 mse_list_test = []
 mse_list_train = []
 
@@ -399,6 +404,14 @@ ax.set(
 # <div>
 # <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_11/static/biasvariance.png" width="550"/>
 # </div>
+#
+# If you want to learn more about confidence intervals, bootstrapping, and cross-validation, you can check out the following notebooks from the [neuromatch academy](https://compneuro.neuromatch.io/tutorials/intro.html) (and also all the other notebooks they provide), they also functioned as inspiration for some plots in this notebook.
+#
+# The relevant notebooks are
+#
+# [bootstrapping and confidence intervals](https://colab.research.google.com/github/NeuromatchAcademy/course-content/blob/main/tutorials/W1D2_ModelFitting/student/W1D2_Tutorial3.ipynb)
+# [Model Selection: Bias-variance trade-off](https://colab.research.google.com/github/NeuromatchAcademy/course-content/blob/main/tutorials/W1D2_ModelFitting/student/W1D2_Tutorial5.ipynb)
+# [Model Selection: Cross-validation](https://colab.research.google.com/github/NeuromatchAcademy/course-content/blob/main/tutorials/W1D2_ModelFitting/student/W1D2_Tutorial6.ipynb)
 #
 
 # # GLMs 
@@ -484,7 +497,7 @@ def generator_model(input_pattern, size = 20, ax=None):
     filter_matrix = pos-neg
 
     if ax != None:
-        ax.imshow(filter_matrix, cmap='bwr') 
+        show_visual_space(filter_matrix, ax = ax, style='filter',alpha=1)
 
         
     dim_red = np.sum(input_pattern * filter_matrix)
@@ -496,7 +509,11 @@ def generator_model(input_pattern, size = 20, ax=None):
     n_spikes = np.argmax(prob>threshold)
     
     return n_spikes
-        
+
+fig, ax = plt.subplots()
+generator_model(input_pattern=0, size = 20, ax=ax)
+ax.set(title='Linear Filter of the model');
+
     
 
 
@@ -554,7 +571,11 @@ fig.tight_layout()
 
 # -
 
-
+# We can now use these random images and the generated response to try to fit the Poisson GLM (linear-nonlinear-poisson) to the data. 
+#
+# First we define the negative log-likelihood (by doing this we search for the minimum an not the maximum) 
+#
+# We then use the scipy module *from scipy.optimize import minimize* to find the minimum (i.e. the best theta)
 
 
 # +
@@ -632,9 +653,11 @@ show_visual_space(theta_lnp[0]+theta_lnp[1:].reshape((20,20)), style='filter')
 #
 # If you want to learn more about GLMs, you can check out the neuromatch tutorials:
 #
-# [Tutorial 1](https://compneuro.neuromatch.io/tutorials/W1D3_GeneralizedLinearModels/student/W1D3_Tutorial1.html)
+# In case you want to try fitting a GLM to 1D temporal data:
+# [GLMs for Encoding](https://colab.research.google.com/github/NeuromatchAcademy/course-content/blob/main/tutorials/W1D3_GeneralizedLinearModels/student/W1D3_Tutorial1.ipynb)
 #
-# [Tutorial 2](https://compneuro.neuromatch.io/tutorials/W1D3_GeneralizedLinearModels/student/W1D3_Tutorial2.html)
+# If you want to learn more about how to avoid over-fitting with GLMs (how to introduce a stronger bias):
+# [Classifiers and regularizers](https://compneuro.neuromatch.io/tutorials/W1D3_GeneralizedLinearModels/student/W1D3_Tutorial2.html)
 #     
 #     
 #     

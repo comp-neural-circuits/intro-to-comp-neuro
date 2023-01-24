@@ -1,0 +1,8 @@
+### Solution 1
+
+```python
+x0 = np.ones((n_samples, 1))
+design_matrix = np.hstack([x0, x1, x2])
+```
+
+Solving this gives us all values for theta, $\theta_0$ describes the offset and $\theta_1$ and $\theta_2$ span the 2D plane that our linear fit describes.
