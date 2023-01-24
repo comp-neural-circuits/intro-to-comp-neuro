@@ -304,7 +304,7 @@ def solve_poly_reg(x, y, max_order):
     return theta_stars
 
 
-list_of_orders = [0,1,2,3,4,5,15]
+list_of_orders = [0,1,2,3,4,5]
 theta_stars = solve_poly_reg(x_train, y_train, np.max(list_of_orders))
 
 
@@ -381,6 +381,8 @@ ax.legend()
 ax.set(
     xlabel = 'Order of polynomal fit',
     ylabel = 'MSE',)
+
+
 # -
 
 # We see that the MSE on the train set gets smaller, the more paramter we use. 
@@ -399,7 +401,9 @@ ax.set(
 # </div>
 #
 
-
+# # GLMs 
+#
+# We now look at the 
 
 # ### Generate a model
 #
@@ -588,7 +592,7 @@ def fit_lnp(stim, spikes):
 np.random.seed(100)
 
 
-for ii in range(1000):
+for ii in range(2000):
     
     image = get_input_image()
     spikes = generator_model(image)
