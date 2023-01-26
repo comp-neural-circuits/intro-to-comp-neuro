@@ -81,8 +81,8 @@ class CliffWorld:
         
         # in 10% of the cases we move in the clockwise following direction
         # instead of the selected one
-        if np.random.rand() < 0.1:
-            action = (action - 1)%4
+#         if np.random.rand() < 0.05:
+#             action = (action - 1)%4
         
         
         if state == 9:  # goal state
@@ -373,7 +373,7 @@ def show_grid_world(ax=None):
         labelleft=False) # labels along the bottom edge are off
 
     ax.set_aspect('equal', adjustable='box')
-    rect=mpatches.Rectangle((0.52,-0.47),7.96,0.95, 
+    rect=mpatches.Rectangle((0.52,-0.49),7.96,0.96, 
                             fill=True,
                             color="#bdbdbd",zorder=10)
     ax.add_patch(rect)
@@ -385,7 +385,7 @@ def show_grid_world(ax=None):
 show_grid_world()
 
 # +
-# %matplotlib notebook
+# # %matplotlib notebook
 fig, ax = plt.subplots(figsize=(8,3))
 show_grid_world(ax)
 agent = ax.scatter([0],[0],s=800,c='b',zorder=60)
@@ -397,10 +397,7 @@ def move_states(state, agent):
 widgets.interactive(move_states, state = (0,39,1), agent=widgets.fixed(agent))
 
 # +
-fig, ax = plt.subplots(figsize=(8,3))
-show_grid_world(ax)
-agent = ax.scatter([0],[0],s=800,c='b',zorder=60)
-positions = ax.plot([0],[0])[0]
+
 
 
 def learn_environment(env, learning_rule, params, max_steps, n_episodes):
@@ -425,7 +422,7 @@ def learn_environment(env, learning_rule, params, max_steps, n_episodes):
         
         next_action = epsilon_greedy(value[state], params['epsilon'])
         
-        params['epsilon'] = initial_epsilon * (n_episodes - episode)/n_episodes
+#         params['epsilon'] = initial_epsilon * (n_episodes-1 - episode)/n_episodes
 
         for t in range(max_steps):
             # choose next action
@@ -451,10 +448,11 @@ def learn_environment(env, learning_rule, params, max_steps, n_episodes):
 
         reward_sums[episode] = reward_sum
         
-    return all_states, all_actions
+    print (params['epsilon'])
+    return all_states, all_actions, reward_sums
 
 params = {
-  'epsilon': 0.1,  # epsilon-greedy policy
+  'epsilon': 0.2,  # epsilon-greedy policy
   'alpha': 0.1,  # learning rate
   'gamma': 1.0,  # discount factor
 }
@@ -467,13 +465,41 @@ max_steps = 1000
 env = CliffWorld()
 
 # solve Cliff World using Q-learning
-results = learn_environment(env, q_learning, params, max_steps, n_episodes)
-# results = learn_environment(env, sarsa_learning, params, max_steps, n_episodes)
+results_q_learning = learn_environment(env, q_learning, params, max_steps, n_episodes)
+results_sarsa_learning = learn_environment(env, sarsa_learning, params, max_steps, n_episodes)
 # value_qlearning, reward_sums_qlearning = results
-all_states, all_actions = results
+all_states_q_learning, all_actions_q_learning, reward_sums_q_learning = results_q_learning
+all_states_sarsa_learning, all_actions_sarsa_learning, reward_sums_sarsa_learning = results_sarsa_learning
 
+fig, ax = plt.subplots()
 
-def visualise_agent_movements(episode=0, move_number=0):
+kernel_size = 50
+kernel = np.ones(kernel_size) / kernel_size
+
+X = np.linspace(1-kernel_size,n_episodes,n_episodes+kernel_size)
+ax.plot(X[kernel_size:-kernel_size],np.convolve(np.hstack([-100*np.ones(kernel_size),reward_sums_q_learning]), kernel,
+                                               mode='same')[kernel_size:-kernel_size], c='#bd0026', label='Q-Learning')
+ax.plot(X[kernel_size:-kernel_size],np.convolve(np.hstack([-100*np.ones(kernel_size),reward_sums_sarsa_learning]), kernel,
+                                               mode='same')[kernel_size:-kernel_size], c='#0570b0', label = 'SARSA')
+ax.set(
+    xlabel = 'Episodes',
+    ylabel = 'Mean reward of 10 episodes')
+ax.legend()
+
+# +
+fig, ax = plt.subplots(figsize=(8,3))
+show_grid_world(ax)
+agent = ax.scatter([0],[0],s=800,c='b',zorder=60)
+positions = ax.plot([0],[0])[0]
+def visualise_agent_movements(episode=0, move_number=0, learning='q-learning'):
+    
+    if learning == 'sarsa':
+        all_states = all_states_sarsa_learning
+        all_actions = all_actions_sarsa_learning
+    if learning == 'q-learning':
+        all_states = all_states_q_learning
+        all_actions = all_actions_q_learning
+        
     
     states_of_episode = all_states[episode]
     actions_of_episode = all_actions[episode] + [0]
@@ -491,9 +517,11 @@ def visualise_agent_movements(episode=0, move_number=0):
     positions.set_ydata(y)
 
     
-widgets.interactive(visualise_agent_movements, episode=(0,n_episodes-1,1),move_number=(0,200,1))
+widgets.interactive(visualise_agent_movements, episode=(0,n_episodes-1,1),move_number=(0,200,1), learning = ['sarsa','q-learning'])
+
 
 # -
+
 class ClassicalConditioning:
 
     def __init__(self, n_steps, reward_magnitude, reward_time):
