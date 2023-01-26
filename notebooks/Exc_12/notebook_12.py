@@ -78,6 +78,13 @@ class CliffWorld:
         self.init_state = 0
 
     def get_outcome(self, state, action):
+        
+        # in 10% of the cases we move in the clockwise following direction
+        # instead of the selected one
+        if np.random.rand() < 0.1:
+            action = (action - 1)%4
+        
+        
         if state == 9:  # goal state
             reward = 0
             next_state = None
@@ -152,6 +159,8 @@ def learn_environment(env, learning_rule, params, max_steps, n_episodes):
         reward_sums[episode] = reward_sum
 
     return value, reward_sums
+# -
+
 
 
 # +
@@ -256,7 +265,7 @@ def plot_performance(env, value, reward_sums):
 # +
 
 
-def q_learning(state, action, reward, next_state, value, params):
+def q_learning(state, action, reward, next_state, next_action, value, params):
     """Q-learning: updates the value function and returns it.
     Args:
         state (int): the current state identifier
@@ -284,32 +293,56 @@ def q_learning(state, action, reward, next_state, value, params):
 
     return value
 
+def sarsa_learning(state, action, reward, next_state, next_action, value, params):
+    """Q-learning: updates the value function and returns it.
+    Args:
+        state (int): the current state identifier
+        action (int): the action taken
+        reward (float): the reward received
+        next_state (int): the transitioned to state identifier
+        value (ndarray): current value function of shape (n_states, n_actions)
+        params (dict): a dictionary containing the default parameters
+    Returns:
+        ndarray: the updated value function of shape (n_states, n_actions)
+    """
+    # Q-value of current state-action pair
+    q = value[state, action]
+    if next_state is None:
+        next_q = 0
+    else:
+        next_q = value[next_state, next_action]
 
-# set for reproducibility, comment out / change seed value for different results
-np.random.seed(1)
+    # write the expression to compute the TD error
+    td_error = reward + params['gamma'] * next_q - q
+    # write the expression that updates the Q-value for the state-action pair
+    value[state, action] = q + params['alpha'] * td_error
 
-# parameters needed by our policy and learning rule
-params = {
-  'epsilon': 0.1,  # epsilon-greedy policy
-  'alpha': 0.1,  # learning rate
-  'gamma': 1.0,  # discount factor
-}
-
-# episodes/trials
-n_episodes = 500
-max_steps = 1000
-
-# environment initialization
-env = CliffWorld()
-
-# solve Cliff World using Q-learning
-results = learn_environment(env, q_learning, params, max_steps, n_episodes)
-value_qlearning, reward_sums_qlearning = results
-
-# Plot results
-plot_performance(env, value_qlearning, reward_sums_qlearning)
+    return value
 
 
+# # set for reproducibility, comment out / change seed value for different results
+# np.random.seed(1)
+
+# # parameters needed by our policy and learning rule
+# params = {
+#   'epsilon': 0.1,  # epsilon-greedy policy
+#   'alpha': 0.1,  # learning rate
+#   'gamma': 1.0,  # discount factor
+# }
+
+# # episodes/trials
+# n_episodes = 500
+# max_steps = 1000
+
+# # environment initialization
+# env = CliffWorld()
+
+# # solve Cliff World using Q-learning
+# results = learn_environment(env, q_learning, params, max_steps, n_episodes)
+# value_qlearning, reward_sums_qlearning = results
+
+# # Plot results
+# plot_performance(env, value_qlearning, reward_sums_qlearning)
 # -
 
 def show_grid_world(ax=None):
@@ -380,6 +413,7 @@ def learn_environment(env, learning_rule, params, max_steps, n_episodes):
     all_states = []
     all_actions = []
     
+    initial_epsilon =  params['epsilon']
     
     # Loop over episodes
     for episode in range(n_episodes):
@@ -389,17 +423,24 @@ def learn_environment(env, learning_rule, params, max_steps, n_episodes):
         all_states.append([state])
         all_actions.append([])
         
+        next_action = epsilon_greedy(value[state], params['epsilon'])
+        
+        params['epsilon'] = initial_epsilon * (n_episodes - episode)/n_episodes
 
         for t in range(max_steps):
             # choose next action
-            action = epsilon_greedy(value[state], params['epsilon'])
+            
+            action = next_action
             all_actions[-1].append(action)
             # observe outcome of action on environment
             next_state, reward = env.get_outcome(state, action)
             all_states[-1].append(next_state)
+            
+            next_action = epsilon_greedy(value[next_state], params['epsilon'])
+            
 
             # update value function
-            value = learning_rule(state, action, reward, next_state, value, params)
+            value = learning_rule(state, action, reward, next_state, next_action, value, params)
 
             # sum rewards obtained
             reward_sum += reward
@@ -427,6 +468,7 @@ env = CliffWorld()
 
 # solve Cliff World using Q-learning
 results = learn_environment(env, q_learning, params, max_steps, n_episodes)
+# results = learn_environment(env, sarsa_learning, params, max_steps, n_episodes)
 # value_qlearning, reward_sums_qlearning = results
 all_states, all_actions = results
 
@@ -451,6 +493,162 @@ def visualise_agent_movements(episode=0, move_number=0):
     
 widgets.interactive(visualise_agent_movements, episode=(0,n_episodes-1,1),move_number=(0,200,1))
 
+# -
+class ClassicalConditioning:
+
+    def __init__(self, n_steps, reward_magnitude, reward_time):
+
+        # Task variables
+        self.n_steps = n_steps
+        self.n_actions = 0
+        self.cs_time = int(n_steps/4) - 1
+
+        # Reward variables
+        self.reward_state = [0,0]
+        self.reward_magnitude = None
+        self.reward_probability = None
+        self.reward_time = None
+
+        # Time step at which the conditioned stimulus is presented
+        self.set_reward(reward_magnitude, reward_time)
+
+        # Create a state dictionary
+        self._create_state_dictionary()
+
+    def set_reward(self, reward_magnitude, reward_time):
+
+        """
+        Determine reward state and magnitude of reward
+        """
+        if reward_time >= self.n_steps - self.cs_time:
+            self.reward_magnitude = 0
+
+        else:
+            self.reward_magnitude = reward_magnitude
+            self.reward_state = [1, reward_time]
+
+    def get_outcome(self, current_state):
+
+        """
+        Determine next state and reward
+        """
+        # Update state
+        if current_state < self.n_steps - 1:
+            next_state = current_state + 1
+        else:
+            next_state = 0
+
+        # Check for reward
+        if self.reward_state == self.state_dict[current_state]:
+            reward = self.reward_magnitude
+        else:
+            reward = 0
+
+        return next_state, reward
+
+    def _create_state_dictionary(self):
+
+        """
+        This dictionary maps number of time steps/ state identities
+        in each episode to some useful state attributes:
+
+        state      - 0 1 2 3 4 5 (cs) 6 7 8 9 10 11 12 ...
+        is_delay   - 0 0 0 0 0 0 (cs) 1 1 1 1  1  1  1 ...
+        t_in_delay - 0 0 0 0 0 0 (cs) 1 2 3 4  5  6  7 ...
+        """
+        d = 0
+
+        self.state_dict = {}
+        for s in range(self.n_steps):
+            if s <= self.cs_time:
+                self.state_dict[s] = [0,0]
+            else:
+                d += 1 # Time in delay
+                self.state_dict[s] = [1,d]
+
+
+# +
+def td_learner(env, n_trials, gamma=0.98, alpha=0.001):
+    V = np.zeros(env.n_steps) # Array to store values over states (time)
+    TDE = np.zeros((env.n_steps, n_trials+1)) # Array to store TD errors
+    V_store = np.zeros((env.n_steps, n_trials+1))
+
+    for n in range(1,n_trials+1):
+        state = 0 # Initial state
+        for t in range(env.n_steps):
+
+            # Get next state and next reward
+            next_state, reward = env.get_outcome(state)
+
+            # Is the current state in the delay period (after CS)?
+            is_delay = env.state_dict[state][0]
+
+            # Write an expression to compute the TD-error
+            if n > 19800:
+                reward = 0
+            TDE[state, n] = (reward + gamma * V[next_state] - V[state])
+
+            # Write an expression to update the value function
+            V[state] += alpha * TDE[state, n] * is_delay
+
+            # Update state
+            state = next_state
+        V_store[:,n] = V[:]
+
+    return V_store, TDE
+
+n_steps=40
+# Initialize classical conditioning class
+env = ClassicalConditioning(n_steps=n_steps, reward_magnitude=10, reward_time=10)
+
+n_trials = 20000
+# Perform temporal difference learning
+V, TDE = td_learner(env, n_trials=n_trials)
+
+
+
+
+# indx = np.arange(0, TDE.shape[1], skip)
+# im = ax2.imshow(TDE[:,indx])
+# positions = ax2.get_xticks()
+# # Avoid warning when setting string tick labels
+# # ax2.xaxis.set_major_locator(ticker.FixedLocator(positions))
+# ax2.set_xticklabels([f"{int(skip * x)}" for x in positions])
+# ax2.set_title('TD-error over learning')
+# ax2.set_ylabel('State')
+# ax2.set_xlabel('Iterations')
+# ax2.figure.colorbar(im)
+# fig.tight_layout()
+
+
+  
+
+
+# +
+def show_results(trial=0):
+
+
+    fig, (ax1, ax2) = plt.subplots(nrows = 2, figsize=(8,4), gridspec_kw={'height_ratios': [1, 1]}, sharex = True)
+    markerline, stemlines, baseline = ax1.stem(V[:,trial], use_line_collection=True, linefmt='grey', markerfmt='o')
+    baseline.set_color((0,0,0,0))
+    ax1.set(
+        ylabel = 'Value',
+        xlabel = 'State',
+        title = "Value function: $V(s)$",
+        ylim = [-0.5,10.5])
+
+    ax2.scatter(np.linspace(1,n_steps-1,n_steps-1), TDE[:-1,trial], color='#cb181d')
+    ax2.axvline(x=19.5, color='#54278f')
+    ax2.axvline(x=9.5, color='#fe9929', linewidth=2)
+    ax2.set(
+        ylabel = 'Value',
+        xlabel = 'State',
+        title = "Temporal difference error",
+        ylim = [-10.5,10.5])
+    
+    fig.tight_layout()
+    
+widgets.interactive(show_results, trial=(1,n_trials,100))
 # -
 
 
