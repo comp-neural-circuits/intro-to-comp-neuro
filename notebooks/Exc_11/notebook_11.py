@@ -185,7 +185,7 @@ plt.tight_layout()
 # change the code here and uncomment everything
 # design_matrix = ...
 
-# theta_star = solve_normal_eqn(design_matrix, y_3d[:,None])
+# theta_star = solve_normal_eqn(design_matrix, y_3d)
 
 
 # xx, yy = np.mgrid[-2:2:50j, -2:2:50j]
