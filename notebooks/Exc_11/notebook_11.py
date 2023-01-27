@@ -164,7 +164,7 @@ y_3d = theta[0] + x1 * theta[1] + x2 * theta[2] + noise
 
 
 ax = plt.subplot(projection='3d')
-ax.scatter(x1, x2, y_3d, '.')
+ax.scatter(x1, x2, y_3d, '.', color='#0570b0')
 
 ax.set(
     xlabel='$\mathbf{x_1}$: Orientation',
@@ -193,7 +193,7 @@ plt.tight_layout()
 # y_star_grid = y_star_grid.reshape((50, 50))
 
 # ax = plt.subplot(projection='3d')
-# ax.plot(X_3d[:, 1], X_3d[:, 2], y_3d, '.')
+# ax.scatter(x1, x2, y_3d, '.', color='#0570b0')
 # ax.plot_surface(xx, yy, y_star_grid, linewidth=0, alpha=0.5, color='C1',
 #                 cmap=plt.get_cmap('coolwarm'))
 # ax.set(
@@ -448,7 +448,8 @@ def show_visual_space(pattern, ax = None, style='filter',alpha=1):
         ax.imshow(pattern,cmap='binary', alpha=alpha)
     ax.grid(False)
     
-    ax.spines[['right', 'top']].set_visible(True)
+    ax.spines['top'].set_visible(True)
+    ax.spines['right'].set_visible(True)
 
     ax.tick_params(
     axis='x',          # changes apply to the x-axis
