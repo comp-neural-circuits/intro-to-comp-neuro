@@ -81,7 +81,6 @@ def solve_normal_eqn(X, y):
 
 # Given the data we created above, we can now solve for the best fit and plot the result
 
-# +
 def solve_normal_equ_and_plot(X,y):
 
     theta_star = solve_normal_eqn(X, y)
@@ -103,9 +102,6 @@ def solve_normal_equ_and_plot(X,y):
       ylabel='y'
     )
     ax.legend()
-    
-
-# -
 
 solve_normal_equ_and_plot(x,y)
 
@@ -153,11 +149,7 @@ solve_normal_equ_and_plot(X_design_offset,y_offset)
 #
 # Now moving towards polynomal regression, we can add $x_2$ as another dimension. For example $x_1$ can describe the orientation of the stimulus, while $x_2$ describes the contrast.
 #
-# ### Task 1
-#
-# Can you create the proper design matrix that allows you to fit a linear model to the data using the function?
-#
-#
+# Below, we create such a dataset and visualize it in 3d
 
 # +
 # Set parameters
@@ -180,6 +172,13 @@ ax.set(
     zlabel='y: Neural Response'
 )
 plt.tight_layout()
+# -
+
+# ### Task 1
+#
+# Can you create the proper design matrix that allows you to fit a linear model to the data using the function?
+#
+#
 
 # +
 
@@ -661,9 +660,3 @@ show_visual_space(theta_lnp[0]+theta_lnp[1:].reshape((20,20)), style='filter')
 #     
 #     
 #     
-
-
-
-
-
-
