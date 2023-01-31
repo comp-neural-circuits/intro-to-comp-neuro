@@ -26,10 +26,316 @@ from scipy import special
 import time
 from scipy.signal import convolve as conv
 import matplotlib.patches as mpatches
+# %matplotlib notebook
 
 plt.style.use(plt.style.available[20])
 plt.style.use("https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/plots_style.txt")
 
+
+# -
+
+# # Reinforcement learning
+#
+# Today we want to investigate some RL algorithms and how they can be used to train an agent that moves around in a grid environment.
+#
+# ## The cliff
+# First, we setup the viusal representation of the environment
+#
+# TODO - explain the environment
+
+def show_grid_world(ax=None):
+    if ax == None:
+        fig, ax = plt.subplots(figsize=(8,6))
+
+
+
+    ax.grid(linewidth = 1.4, c='k')
+    ax.set(
+        xticks = [0.5+ii for ii in range(-1,12)],
+        yticks = [0.5 + ii for ii in range(-1,4)],
+        xlim=[-0.52,11.53],
+        ylim = [-0.51,3.52])
+
+
+    ax.tick_params(
+        axis='x',          # changes apply to the x-axis
+        which='both',      # both major and minor ticks are affected
+        bottom=False,      # ticks along the bottom edge are off
+        top=False,         # ticks along the top edge are off
+        labelbottom=False) # labels along the bottom edge are off
+    ax.tick_params(
+        axis='y',          # changes apply to the x-axis
+        which='both',      # both major and minor ticks are affected
+        left=False,      # ticks along the bottom edge are off
+        right=False,         # ticks along the top edge are off
+        labelleft=False) # labels along the bottom edge are off
+
+    ax.set_aspect('equal', adjustable='box')
+    rect=mpatches.Rectangle((0.52,-0.49),9.96,0.96, 
+                            fill=True,
+                            color="#bdbdbd",zorder=10)
+    ax.add_patch(rect)
+
+    ax.annotate('S',(0,0), fontweight='bold',fontsize=23,ha='center',va='center')
+    ax.annotate('G',(11,0), fontweight='bold',fontsize=23,ha='center',va='center')
+    ax.annotate('The Cliff',(5.5,-0.1), fontsize=23,ha='center',va='center',zorder=12)
+    return ax
+show_grid_world()
+
+# ## Moving in the environment
+#
+# The agent is able to move in the environment
+#
+#
+
+# +
+fig, ax = plt.subplots(figsize=(8,3))
+show_grid_world(ax)
+agent = ax.scatter([0],[0],s=800,c='b',zorder=60)
+
+def move_states(state, agent):
+    print ([state%12,state//12])
+    agent.set_offsets([state%12,state//12])
+
+widgets.interactive(move_states, state = (0,47,1), agent=widgets.fixed(agent))
+
+
+# -
+
+# ## programming the environment
+#
+# We need to define how the agent moves in the environment, following the possible actions
+
+# +
+def take_action(state, action):
+        
+    if action == 0:  # move right
+        next_state = state + 1
+        if state % 12 == 11:  # right border
+            next_state = state
+            
+    elif action == 1:  # move down
+        next_state = state - 12
+        if state <= 11:  # bottom border
+            next_state = state
+    
+    elif action == 2:  # move left
+        next_state = state - 1
+        if state % 12 == 0:  # left border
+            next_state = state
+            
+    elif action == 3:  # move up
+        next_state = state + 12
+        if state >= 36:  # top border
+            next_state = state
+    
+    else:
+        print("Action must be between 0 and 3.")
+        return None
+
+    return int(next_state)
+
+
+# -
+
+# We can now test whether the actions have the correct effect in the world
+
+# +
+def setup_visualization(state = 0):
+
+    fig, ax = plt.subplots(figsize=(8,3))
+    show_grid_world(ax)
+    state_2d = [state%12,state//12] 
+    agent = ax.scatter(state_2d[0],state_2d[1],s=800,c='b',zorder=60)
+    arrow = ax.annotate("",
+                  xy=(0, 1), xycoords='data',
+                  xytext=(1, 1), textcoords='data',
+                  arrowprops=dict(#arrowstyle="-",
+                                  connectionstyle="arc3,rad=0.",
+                                  linewidth=4, fc='k'),
+                        zorder = 100,
+                        annotation_clip = False
+                  )
+    
+    return fig, ax, agent, arrow
+
+
+
+state = 0
+fig, ax, agent, arrow = setup_visualization(state )
+n_steps = 100
+all_actions = []
+all_states = [state]
+
+for ii in range(n_steps):
+   
+    action = np.random.choice(4)
+    state = take_action(state, action)
+    
+    all_actions.append(action)
+    all_states.append(state)
+    
+    
+def visualize_taken_actions(state_index, agent, all_states, all_actions):
+   
+    state = all_states[state_index]
+    action = all_actions[state_index]
+    
+    x = state%12
+    y =state//12
+  
+    if action == 0:
+        target_x, target_y = x + 1, y
+    if action == 1:
+        target_x, target_y = x, y - 1
+    if action == 2:
+        target_x, target_y = x - 1, y
+    if action == 3:
+        target_x, target_y = x, y + 1
+    
+    arrow.xy = (target_x ,target_y )
+    
+    print (x, y, target_x, target_y)
+    arrow.set_position([x,y])
+    agent.set_offsets([x,y])
+    
+
+widgets.interactive(visualize_taken_actions, state_index = (0,len(all_states)-2,1), 
+                    agent=widgets.fixed(agent),
+                    all_states=widgets.fixed(all_states),
+                    all_actions=widgets.fixed(all_actions),
+                    arrow = widgets.fixed(arrow),
+                    
+                   )
+
+# -
+
+# Next we need to define the rewards the agent recieves for reaching a certain state
+
+# +
+def get_reward(state):
+    
+    if state >= 1 and state <= 10: # cliff
+        return -100
+    elif state == 11: # goal
+        return 0
+    else:
+        return -1 
+        
+    
+# -
+
+# Now we can define an episode
+
+# +
+def random_policy(**args):
+    return np.random.choice(4)
+
+def run_episode(policy, state=0):
+        
+    all_actions = []
+    all_states = [state]
+    
+    max_steps = 2000
+    reward_sum = 0
+        
+    for t in range(max_steps):
+        # choose next action
+        action = policy()
+        all_actions.append(action)
+
+        # observe outcome of action on environment
+        next_state = take_action(state, action)
+        reward = get_reward(next_state)
+
+        # sum rewards obtained
+        reward_sum += reward
+
+        if reward == -100 or reward == 0:
+            break  # episode ends
+        state = next_state
+        
+        all_states.append(state)
+     
+    return all_states, all_actions, reward_sum
+    
+
+state = 0
+fig, ax, agent, arrow = setup_visualization(state )    
+all_states, all_actions, reward_sum = run_episode(policy=random_policy, state = state)
+ax.set_title(f'Reward Sum: {reward_sum}')
+
+
+    
+widgets.interactive(visualize_taken_actions, state_index = (0,len(all_states)-1,1), 
+                    agent=widgets.fixed(agent),
+                    all_states=widgets.fixed(all_states),
+                    all_actions=widgets.fixed(all_actions)
+                    
+                   )
+    
+    
+# -
+
+# We can see that the random approach is not very efficient. We need to learn a better policy!
+
+# In order to do so we put all the code we wrote so far into a single class:
+
+# +
+class CliffWorld(object):
+    def __init__(self):
+        self.init_state = 0
+    
+    
+    def get_reward(self, state):
+    
+        if state >= 1 and state <= 10: # cliff
+            return -100
+        elif state == 11: # goal
+            return 0
+        else:
+            return -1 
+        
+    def show_world(self, ax=None):
+        if ax == None:
+            fig, ax = plt.subplots(figsize=(8,6))
+
+
+
+        ax.grid(linewidth = 1.4, c='k')
+        ax.set(
+            xticks = [0.5+ii for ii in range(-1,12)],
+            yticks = [0.5 + ii for ii in range(-1,4)],
+            xlim=[-0.52,11.53],
+            ylim = [-0.51,3.52])
+
+
+        ax.tick_params(
+            axis='x',          # changes apply to the x-axis
+            which='both',      # both major and minor ticks are affected
+            bottom=False,      # ticks along the bottom edge are off
+            top=False,         # ticks along the top edge are off
+            labelbottom=False) # labels along the bottom edge are off
+        ax.tick_params(
+            axis='y',          # changes apply to the x-axis
+            which='both',      # both major and minor ticks are affected
+            left=False,      # ticks along the bottom edge are off
+            right=False,         # ticks along the top edge are off
+            labelleft=False) # labels along the bottom edge are off
+
+        ax.set_aspect('equal', adjustable='box')
+        rect=mpatches.Rectangle((0.52,-0.49),9.96,0.96, 
+                                fill=True,
+                                color="#bdbdbd",zorder=10)
+        ax.add_patch(rect)
+
+        ax.annotate('S',(0,0), fontweight='bold',fontsize=23,ha='center',va='center')
+        ax.annotate('G',(11,0), fontweight='bold',fontsize=23,ha='center',va='center')
+        ax.annotate('The Cliff',(5.5,-0.1), fontsize=23,ha='center',va='center',zorder=12)
+        return ax
+        
+    
+    
 
 # +
 def epsilon_greedy(q, epsilon):
@@ -160,6 +466,8 @@ def learn_environment(env, learning_rule, params, max_steps, n_episodes):
 
     return value, reward_sums
 # -
+
+
 
 
 
@@ -345,56 +653,10 @@ def sarsa_learning(state, action, reward, next_state, next_action, value, params
 # plot_performance(env, value_qlearning, reward_sums_qlearning)
 # -
 
-def show_grid_world(ax=None):
-    if ax == None:
-        fig, ax = plt.subplots(figsize=(8,6))
 
 
 
-    ax.grid(linewidth = 1.4, c='k')
-    ax.set(
-        xticks = [0.5+ii for ii in range(-1,10)],
-        yticks = [0.5 + ii for ii in range(-1,4)],
-        xlim=[-0.52,9.53],
-        ylim = [-0.51,3.52])
 
-
-    ax.tick_params(
-        axis='x',          # changes apply to the x-axis
-        which='both',      # both major and minor ticks are affected
-        bottom=False,      # ticks along the bottom edge are off
-        top=False,         # ticks along the top edge are off
-        labelbottom=False) # labels along the bottom edge are off
-    ax.tick_params(
-        axis='y',          # changes apply to the x-axis
-        which='both',      # both major and minor ticks are affected
-        left=False,      # ticks along the bottom edge are off
-        right=False,         # ticks along the top edge are off
-        labelleft=False) # labels along the bottom edge are off
-
-    ax.set_aspect('equal', adjustable='box')
-    rect=mpatches.Rectangle((0.52,-0.49),7.96,0.96, 
-                            fill=True,
-                            color="#bdbdbd",zorder=10)
-    ax.add_patch(rect)
-
-    ax.annotate('S',(0,0), fontweight='bold',fontsize=23,ha='center',va='center')
-    ax.annotate('G',(9,0), fontweight='bold',fontsize=23,ha='center',va='center')
-    ax.annotate('The Cliff',(4.5,0), fontsize=23,ha='center',va='center',zorder=12)
-    return ax
-show_grid_world()
-
-# +
-# # %matplotlib notebook
-fig, ax = plt.subplots(figsize=(8,3))
-show_grid_world(ax)
-agent = ax.scatter([0],[0],s=800,c='b',zorder=60)
-
-def move_states(state, agent):
-    print ([state%10,state//10])
-    agent.set_offsets([state%10,state//10])
-
-widgets.interactive(move_states, state = (0,39,1), agent=widgets.fixed(agent))
 
 # +
 
