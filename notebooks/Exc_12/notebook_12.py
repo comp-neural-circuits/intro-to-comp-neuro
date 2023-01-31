@@ -194,8 +194,7 @@ def visualize_taken_actions(state_index, agent, all_states, all_actions):
         target_x, target_y = x, y + 1
     
     arrow.xy = (target_x ,target_y )
-    
-    print (x, y, target_x, target_y)
+
     arrow.set_position([x,y])
     agent.set_offsets([x,y])
     
@@ -285,6 +284,94 @@ widgets.interactive(visualize_taken_actions, state_index = (0,len(all_states)-1,
 class CliffWorld(object):
     def __init__(self):
         self.init_state = 0
+        self.max_steps = 2000
+        
+        self.n_states = 48
+        self.n_actions = 4
+        
+        
+        # initialize state and state-action values
+        self.values = np.zeros(self.n_states)
+        self.state_values = np.zeros((self.n_states,self.n_actions))
+    
+    
+    def run_episode(self, policy):
+        
+        
+        state = self.init_state
+        all_actions = []
+        all_states = [state]
+
+        
+        reward_sum = 0
+
+        for t in range(self.max_steps):
+            # choose next action
+            action = policy()
+            all_actions.append(action)
+
+            # observe outcome of action on environment
+            next_state = take_action(state, action)
+            reward = get_reward(next_state)
+
+            # sum rewards obtained
+            reward_sum += reward
+
+            if reward == -100 or reward == 0:
+                break  # episode ends
+            state = next_state
+
+            all_states.append(state)
+        
+        self.all_states, self.all_actions, self.reward_sum = all_states, all_actions, reward_sum
+                    
+        return all_states, all_actions, reward_sum
+                    
+    
+    def show_last_run_interactive(self):
+       
+        fig, ax, agent, arrow = self.setup_visualization()    
+        ax.set_title(f'Reward Sum: {self.reward_sum}')
+        wgt = widgets.interactive(self.visualize_taken_actions, state_index = (0,len(self.all_states)-1,1), 
+                agent=widgets.fixed(agent),
+                arrow=widgets.fixed(arrow),
+
+               )
+        
+        return wgt
+
+    
+    
+    
+    
+    
+    def take_action(self, state, action):
+        
+        if action == 0:  # move right
+            next_state = state + 1
+            if state % 12 == 11:  # right border
+                next_state = state
+
+        elif action == 1:  # move down
+            next_state = state - 12
+            if state <= 11:  # bottom border
+                next_state = state
+
+        elif action == 2:  # move left
+            next_state = state - 1
+            if state % 12 == 0:  # left border
+                next_state = state
+
+        elif action == 3:  # move up
+            next_state = state + 12
+            if state >= 36:  # top border
+                next_state = state
+
+        else:
+            print("Action must be between 0 and 3.")
+            return None
+
+        return int(next_state)
     
     
     def get_reward(self, state):
@@ -334,8 +421,53 @@ class CliffWorld(object):
         ax.annotate('The Cliff',(5.5,-0.1), fontsize=23,ha='center',va='center',zorder=12)
         return ax
         
+    def visualize_taken_actions(self, state_index, agent, arrow):
+   
+        state = self.all_states[state_index]
+        action = self.all_actions[state_index]
+
+        x = state%12
+        y =state//12
+
+        if action == 0:
+            target_x, target_y = x + 1, y
+        if action == 1:
+            target_x, target_y = x, y - 1
+        if action == 2:
+            target_x, target_y = x - 1, y
+        if action == 3:
+            target_x, target_y = x, y + 1
+
+        arrow.xy = (target_x ,target_y )
+
+        arrow.set_position([x,y])
+        agent.set_offsets([x,y])
+                    
+    def setup_visualization(self, state = 0):
+
+        fig, ax = plt.subplots(figsize=(8,3))
+        self.show_world(ax)
+        state_2d = [self.init_state%12,self.init_state//12] 
+        agent = ax.scatter(state_2d[0],state_2d[1],s=800,c='b',zorder=60)
+        arrow = ax.annotate("",
+                      xy=(0, 1), xycoords='data',
+                      xytext=(1, 1), textcoords='data',
+                      arrowprops=dict(#arrowstyle="-",
+                                      connectionstyle="arc3,rad=0.",
+                                      linewidth=4, fc='k'),
+                            zorder = 100,
+                            annotation_clip = False
+                      )
+
+        return fig, ax, agent, arrow
     
     
+# -
+
+sample_cliff = CliffWorld()
+sample_cliff.run_episode(policy=random_policy)
+sample_cliff.show_last_run_interactive()
+
 
 # +
 def epsilon_greedy(q, epsilon):
