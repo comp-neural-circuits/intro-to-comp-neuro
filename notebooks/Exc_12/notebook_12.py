@@ -17,7 +17,9 @@
 import io
 import requests
 import numpy as np
+import matplotlib as mpl
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 from matplotlib.animation import FuncAnimation
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import ipywidgets as widgets
@@ -25,7 +27,7 @@ import scipy
 from scipy import special
 import time
 from scipy.signal import convolve as conv
-import matplotlib.patches as mpatches
+
 # %matplotlib notebook
 
 plt.style.use(plt.style.available[20])
@@ -106,7 +108,6 @@ widgets.interactive(move_states, state = (0,47,1), agent=widgets.fixed(agent))
 #
 # We need to define how the agent moves in the environment, following the possible actions
 
-# +
 def take_action(state, action):
         
     if action == 0:  # move right
@@ -135,8 +136,6 @@ def take_action(state, action):
 
     return int(next_state)
 
-
-# -
 
 # We can now test whether the actions have the correct effect in the world
 
@@ -211,7 +210,6 @@ widgets.interactive(visualize_taken_actions, state_index = (0,len(all_states)-2,
 
 # Next we need to define the rewards the agent recieves for reaching a certain state
 
-# +
 def get_reward(state):
     
     if state >= 1 and state <= 10: # cliff
@@ -220,9 +218,7 @@ def get_reward(state):
         return 0
     else:
         return -1 
-        
-    
-# -
+
 
 # Now we can define an episode
 
@@ -272,27 +268,29 @@ widgets.interactive(visualize_taken_actions, state_index = (0,len(all_states)-1,
                     all_actions=widgets.fixed(all_actions)
                     
                    )
-    
-    
+
+
 # -
 
 # We can see that the random approach is not very efficient. We need to learn a better policy!
 
 # In order to do so we put all the code we wrote so far into a single class:
 
-# +
 class CliffWorld(object):
-    def __init__(self):
+    def __init__(self, grid_length = 12, grid_height = 4):
         self.init_state = 0
         self.max_steps = 2000
         
-        self.n_states = 48
+        self.grid_length = grid_length
+        self.grid_height = grid_height
+        
+        self.n_states = self.grid_length * self.grid_height 
         self.n_actions = 4
         
         
         # initialize state and state-action values
-        self.values = np.zeros(self.n_states)
-        self.state_values = np.zeros((self.n_states,self.n_actions))
+        self.state_values = np.zeros(self.n_states)
+        self.state_action_values = np.zeros((self.n_states,self.n_actions))
     
     
     def run_episode(self, policy):
@@ -329,9 +327,12 @@ class CliffWorld(object):
                     
     
     def show_last_run_interactive(self):
-       
+           
+        
         fig, ax, agent, arrow = self.setup_visualization()    
         ax.set_title(f'Reward Sum: {self.reward_sum}')
+        
+        
         wgt = widgets.interactive(self.visualize_taken_actions, state_index = (0,len(self.all_states)-1,1), 
                 agent=widgets.fixed(agent),
                 arrow=widgets.fixed(arrow),
@@ -341,6 +342,73 @@ class CliffWorld(object):
         return wgt
 
     
+    def show_state_values_in_grid(self, ax = None, min_val = 0, max_val = 0):
+        
+        fig, (ax, cax) = plt.subplots(2,1, gridspec_kw={'height_ratios': [15,1]})
+        
+        
+        cmap = mpl.cm.hot
+        norm = mpl.colors.Normalize(vmin=min_val, vmax=max_val)
+
+        self.state_values = -100*np.random.rand(self.n_states)
+        
+        ax = self.show_world(ax=ax)
+        cax.grid(False)
+        cb = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm, orientation='horizontal')
+        cax.set_title("State value")
+        for state in range(self.n_states):
+            state_2d = np.array([state%self.grid_length,state//self.grid_length]).astype(float)
+            state_2d -= np.array([0.47,0.47])
+            
+            # convert the state-value to color 
+            color = cmap(norm(self.state_values[state]))
+            rect=mpatches.Rectangle(state_2d,width=0.94,height=0.94, 
+                                fill=True,
+                                color=color,zorder=10)
+            ax.add_patch(rect)
+            
+    def show_state_action_values_in_grid(self, ax = None, min_val = 0, max_val = 0):
+        
+        fig, (ax, cax) = plt.subplots(2,1, gridspec_kw={'height_ratios': [15,1]})
+        
+        
+        cmap = mpl.cm.hot
+        norm = mpl.colors.Normalize(vmin=min_val, vmax=max_val)
+
+        self.state_action_values = -100*np.random.rand(self.n_states,4)
+        
+        ax = self.show_world(ax=ax)
+        cax.grid(False)
+        cb = mpl.colorbar.ColorbarBase(cax, cmap=cmap, norm=norm, orientation='horizontal')
+        cax.set_title("State-action value")
+        
+        # the four triangle paths for the four actions
+        triangle_paths = np.array([
+            [[0.5,0.5],[1,1],[1,0]],
+            [[0.5,0.5],[1,0],[0,0]],
+            [[0.5,0.5],[0,0],[0,1]],
+            [[0.5,0.5],[0,1],[1,1]]           
+        ])
+        
+        for state in range(self.n_states):
+            
+            for action in range(4):
+                
+                state_2d = np.array([state%self.grid_length,state//self.grid_length]).astype(float)
+                
+                path = triangle_paths[action]+state_2d - np.array([0.5,0.5])
+                # convert the state-value to color 
+                color = cmap(norm(self.state_action_values[state,action]))
+                triang=mpatches.Polygon(path,
+                                    fill=True,
+                                    color=color,zorder=10)
+                ax.add_patch(triang)
+                
+        
+        
+        
+        
+        
     
     
     
@@ -349,22 +417,22 @@ class CliffWorld(object):
         
         if action == 0:  # move right
             next_state = state + 1
-            if state % 12 == 11:  # right border
+            if state % self.grid_length == self.grid_length-1:  # right border
                 next_state = state
 
         elif action == 1:  # move down
-            next_state = state - 12
-            if state <= 11:  # bottom border
+            next_state = state - self.grid_length
+            if state <= self.grid_length-1:  # bottom border
                 next_state = state
 
         elif action == 2:  # move left
             next_state = state - 1
-            if state % 12 == 0:  # left border
+            if state % self.grid_length == 0:  # left border
                 next_state = state
 
         elif action == 3:  # move up
-            next_state = state + 12
-            if state >= 36:  # top border
+            next_state = state + self.grid_length
+            if state >= self.grid_length * self.grid_height:  # top border
                 next_state = state
 
         else:
@@ -376,7 +444,7 @@ class CliffWorld(object):
     
     def get_reward(self, state):
     
-        if state >= 1 and state <= 10: # cliff
+        if state >= 1 and state < self.grid_length-1: # cliff
             return -100
         elif state == 11: # goal
             return 0
@@ -413,12 +481,12 @@ class CliffWorld(object):
         ax.set_aspect('equal', adjustable='box')
         rect=mpatches.Rectangle((0.52,-0.49),9.96,0.96, 
                                 fill=True,
-                                color="#bdbdbd",zorder=10)
+                                color="#bdbdbd",zorder=50)
         ax.add_patch(rect)
 
-        ax.annotate('S',(0,0), fontweight='bold',fontsize=23,ha='center',va='center')
-        ax.annotate('G',(11,0), fontweight='bold',fontsize=23,ha='center',va='center')
-        ax.annotate('The Cliff',(5.5,-0.1), fontsize=23,ha='center',va='center',zorder=12)
+        ax.annotate('S',(0,0), fontweight='bold',fontsize=23,ha='center',va='center', zorder=12)
+        ax.annotate('G',(11,0), fontweight='bold',fontsize=23,ha='center',va='center', zorder=12)
+        ax.annotate('The Cliff',(5.5,-0.1), fontsize=23,ha='center',va='center',zorder=200)
         return ax
         
     def visualize_taken_actions(self, state_index, agent, arrow):
@@ -461,12 +529,15 @@ class CliffWorld(object):
 
         return fig, ax, agent, arrow
     
-    
-# -
 
+
+# +
 sample_cliff = CliffWorld()
 sample_cliff.run_episode(policy=random_policy)
-sample_cliff.show_last_run_interactive()
+
+# sample_cliff.show_last_run_interactive()
+# sample_cliff.show_state_values_in_grid(ax = None, min_val=-100, max_val = 0)
+sample_cliff.show_state_action_values_in_grid(ax = None, min_val=-100, max_val = 0)
 
 
 # +
