@@ -28,7 +28,7 @@ from scipy import special
 import time
 from scipy.signal import convolve as conv
 
-# %matplotlib notebook
+# # %matplotlib notebook
 
 plt.style.use(plt.style.available[20])
 plt.style.use("https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/plots_style.txt")
@@ -41,9 +41,15 @@ plt.style.use("https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/d
 # Today we want to investigate some RL algorithms and how they can be used to train an agent that moves around in a grid environment.
 #
 # ## The cliff
-# First, we setup the viusal representation of the environment
+# <div>
+# <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_12/static/gridworld_setup.png" width="550"/>
+# </div>
 #
-# TODO - explain the environment
+# The agent should get to the goal with as few steps as possible without falling into the cliff.
+#
+# In order to invesigate the agents behavior we first setup the viusal representation of the environment:
+#
+# (You do not have to go through the code, you can also just execute the cell below)
 
 def show_grid_world(ax=None):
     if ax == None:
@@ -73,7 +79,7 @@ def show_grid_world(ax=None):
         labelleft=False) # labels along the bottom edge are off
 
     ax.set_aspect('equal', adjustable='box')
-    rect=mpatches.Rectangle((0.52,-0.49),9.96,0.96, 
+    rect=mpatches.Rectangle((0.51,-0.48),9.98,0.96, 
                             fill=True,
                             color="#bdbdbd",zorder=50)
     ax.add_patch(rect)
@@ -82,22 +88,24 @@ def show_grid_world(ax=None):
     ax.annotate('G',(11,0), fontweight='bold',fontsize=23,ha='center',va='center',zorder=80)
     ax.annotate('The Cliff',(5.5,-0.1), fontsize=23,ha='center',va='center',zorder=80)
     return ax
-show_grid_world()
+show_grid_world();
 
 # ## Moving in the environment
 #
 # The agent is able to move in the environment
 #
+# Below you can use the widget to see how we can map the states to a position in the 2d grid
+#
 #
 
 # +
-fig, ax = plt.subplots(figsize=(8,3))
-show_grid_world(ax)
-agent = ax.scatter([0],[0],s=800,c='b',zorder=60)
+
 
 def move_states(state, agent):
-    print ([state%12,state//12])
-    agent.set_offsets([state%12,state//12])
+    fig, ax = plt.subplots(figsize=(8,3))
+    show_grid_world(ax)
+    agent = ax.scatter(state%12,state//12,s=800,c='b',zorder=60)
+    print (f'state {state}:      x = {state%12}, y = {state//12}')
 
 widgets.interactive(move_states, state = (0,47,1), agent=widgets.fixed(agent))
 
@@ -106,7 +114,12 @@ widgets.interactive(move_states, state = (0,47,1), agent=widgets.fixed(agent))
 
 # ## programming the environment
 #
-# We need to define how the agent moves in the environment, following the possible actions
+# We need to define how the agent moves in the environment, following the four possible actions.
+#
+# The agent can either move right (0), down (1), left (2) or up (3)
+# If the agent moves against a well, it will stay at the current state.
+# We implement this with if-cases
+#
 
 def take_action(state, action):
         
@@ -137,7 +150,9 @@ def take_action(state, action):
     return int(next_state)
 
 
-# We can now test whether the actions have the correct effect in the world
+# ## Test whether the agent moves as we wish
+# We can now test whether the actions have the correct effect in the world, if you execute the cell below the agent will execute a couple of random actions in the environment.
+# For now we only care for the fact that an action (indicated by an arrow) should lead to the state we expect in the next step. 
 
 # +
 def setup_visualization(state = 0):
@@ -159,9 +174,7 @@ def setup_visualization(state = 0):
     return fig, ax, agent, arrow
 
 
-
 state = 0
-fig, ax, agent, arrow = setup_visualization(state )
 n_steps = 100
 all_actions = []
 all_states = [state]
@@ -175,7 +188,7 @@ for ii in range(n_steps):
     all_states.append(state)
     
     
-def visualize_taken_actions(state_index, agent, all_states, all_actions):
+def visualize_taken_actions(agent, all_states, all_actions, state_index=0):
    
     state = all_states[state_index]
     action = all_actions[state_index]
@@ -192,8 +205,9 @@ def visualize_taken_actions(state_index, agent, all_states, all_actions):
     if action == 3:
         target_x, target_y = x, y + 1
     
+    fig, ax, agent, arrow = setup_visualization(state )
+    
     arrow.xy = (target_x ,target_y )
-
     arrow.set_position([x,y])
     agent.set_offsets([x,y])
     
@@ -208,6 +222,8 @@ widgets.interactive(visualize_taken_actions, state_index = (0,len(all_states)-2,
 
 # -
 
+# ## Rewards
+#
 # Next we need to define the rewards the agent recieves for reaching a certain state
 
 def get_reward(state):
@@ -220,11 +236,21 @@ def get_reward(state):
         return -1 
 
 
-# Now we can define an episode
+# ## Episode
+# Now we can define an episode. 
+#
+# Here, we look at an episodic task. This means that the agent can reach an endpoint (in this case the goal or the cliff) and thereby stops the current episode. However, it can be started again ...
+#
+# ### Task 1
+# Go throught he code and make sure that you understand how the episode is implemented and what the stopping conditions are.
+#
+# Then execute the cell and see how well the agent performs with the random policy we provide.
+# (reminder: the policy describes the mapping from a state to an action. In our case, the action is just randomly selected)
 
 # +
-def random_policy(**args):
+def random_policy(**kwargs):
     return np.random.choice(4)
+
 
 def run_episode(policy, state=0):
         
@@ -236,7 +262,7 @@ def run_episode(policy, state=0):
         
     for t in range(max_steps):
         # choose next action
-        action = policy()
+        action = policy(state=state)
         all_actions.append(action)
 
         # observe outcome of action on environment
@@ -255,8 +281,7 @@ def run_episode(policy, state=0):
     return all_states, all_actions, reward_sum
     
 
-state = 0
-fig, ax, agent, arrow = setup_visualization(state )    
+state = 0 
 all_states, all_actions, reward_sum = run_episode(policy=random_policy, state = state)
 ax.set_title(f'Reward Sum: {reward_sum}')
 
@@ -272,16 +297,40 @@ widgets.interactive(visualize_taken_actions, state_index = (0,len(all_states)-1,
 
 # -
 
-# We can see that the random approach is not very efficient. We need to learn a better policy!
-
-# In order to do so we put all the code we wrote so far into a single class:
-
-# To do so we need to learn a value function of the environment. In this case we are going to learn the state-action values. 
+# We can see that the random approach is not very efficient. We need a better policy!
 #
-# The function to learn is similar to running a single episode. Only now we run many episodes (another for-loop) and we want to update the state-action values. 
-# To see these values, we first write a function to display them in the grid world.
+# ### Task 2
 #
-# Every state has for values and we are interested in the best one. Therefore we will display the values as colored triangles and the best action of each state will be a circle:
+# Can you program a policy that always reaches the goal? Be creative!
+#
+#
+# ### Solution 2
+#
+# One possible solution is the following policy
+# You can also think of a dictionary that exactly maps a specific action to each state, or a more random approach ....
+#
+# ```python
+# def policy_to_solve_the_task(**kwargs):
+#     
+#     if kwargs['state'] in [23,35,47]:
+#         return 1
+#     
+#     elif kwargs['state'] < 36:
+#         return 3
+#     
+#     else:
+#         return 0
+# ```
+
+# ## State-action values
+#
+# We now want to learn the value function of the environment. More specifically, in this case we are going to learn the state-action values. 
+#
+# First, we write a function to display the state-action values in the grid world.
+#
+# Every state has four state-action values and we are especially interested in the best one per state. Therefore we will display the values as colored triangles and the best action of each state will be a circle:
+#
+# (You don't have to necessarily go through the code)
 #
 
 # +
@@ -319,24 +368,29 @@ def show_state_action_values_in_grid(ax = None, min_val = 0, max_val = 0, state_
                 color = cmap(norm(state_action_values[state,action]))
                 
                 if np.argmax(state_action_values[state]) == action:
-                    ax.scatter(*np.mean(path,axis=0),color=color, edgecolor='k')
+                    ax.scatter(*np.mean(path,axis=0),color=color, edgecolor='k',linewidth=0.5, s=60)
                 else:
                     triang=mpatches.Polygon(path,
                                     fill=True,
                                     color=color,zorder=10)
                     
                     ax.add_patch(triang)
+        plt.tight_layout()
                     
 # -
 
-# We look at an example (just random values)
+# When executing the cell below you can look at an example (just random values)
 
 show_state_action_values_in_grid(ax = None, min_val = 0, max_val = 1, state_action_values=np.random.rand(48,4))
 
 
-# In order to learn, we need to have a policy that is better than random. 
-# A policy that is often used is $\epsilon$-greedy
-# We always take the best action, but in a fraction $\epsilon$ we select a random action. 
+# ## The policy ($\epsilon$-greedy)
+#
+# In order to perform better (and to learn faster), we need to have a policy that can make use of the state-action values (and is better than the random policy).
+#
+# A policy that is often used is called $\epsilon$-greedy
+#
+# In this policy, we usually take the best action, but in a fraction $\epsilon$ we select a random action. 
 # This ensures that the agent keeps exploring, but on average it tries to select the best possible action. 
 
 def epsilon_greedy(q, epsilon):
@@ -350,8 +404,18 @@ def epsilon_greedy(q, epsilon):
     return action
 
 
-# We also need a learning rule in order to update the state-action values. We learned a couple of variants in the lecture, here we select q-learning.
+# ## The learning rule
 #
+# Even more important than the policy is the learning rule (algorithm) that we want to use to update the state-action values.
+#
+# We learned a couple of variants in the lecture, here we select q-learning.
+#
+# <div>
+# <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_12/static/q_learning.png" width="750"/>
+# </div>
+#
+#
+# Make sure that you understand how the equation above is implemented in the function below
 
 def q_learning(state, action, reward, next_state, state_action_values, params):
     # Q-value of current state-action pair
@@ -370,7 +434,27 @@ def q_learning(state, action, reward, next_state, state_action_values, params):
     return state_action_values # we also return the state_values (although not changed) 
 
 
-# now we can implement this into the function that learns to move in the environment
+# ## Learning
+#
+# Now we have all the ingredients to implement the function that allows the agent to learn to move in the environment.
+#
+#
+# 1 - we initiate the state-action values (just set all to one) 
+# (question: What could be the advantage if we initiate them all to -200?)
+#
+# 2 - We loop through all the episodes we want to run for our learning
+#
+# 3 - in each episode we select and action based on the policy
+#
+# 4 - we take that action (and move to the next state)
+#
+# 5 - we receive a reward 
+#
+# 6 - we update the state value based on q-learning
+#
+# 7 - we check whether the episode ended
+#
+# make sure that you understand the implementation
 
 def learn_environment(n_episodes, params, max_steps=400):
                
@@ -390,7 +474,6 @@ def learn_environment(n_episodes, params, max_steps=400):
             next_state = take_action(state, action)
             reward = get_reward(next_state)
 
-
             # update value function
             state_action_values = q_learning(
                 state, 
@@ -406,14 +489,28 @@ def learn_environment(n_episodes, params, max_steps=400):
             state = next_state
     return state_action_values
 
+# ## Execute the learning
+#
+# we can now run the learning algorithm and look at the learned state-action values
+
 params = {
-  'epsilon': 0.2,  # epsilon-greedy policy
+  'epsilon': 0.1,  # epsilon-greedy policy
   'alpha': 0.1,  # learning rate
-  'gamma': 1.0,  # discount factor
+  'gamma': 0.8,  # discount factor
 }
 state_action_values = learn_environment(n_episodes=400, params=params, max_steps=400)
 show_state_action_values_in_grid(ax = None, min_val = -8, max_val = 1, state_action_values=state_action_values)
 
+
+# We can now see a couple of things from the learned values:
+#
+# 1 - The actions that lead into the cliff are learned to be extremely bad
+#
+# 2 - can you see the path the agent would take if it follows the greedy policy?
+
+# ## Different learning algorithms
+#
+# We now want to investigate different learning algorithms, therefore we put everything we wrote above into a class
 
 # +
 class CliffWorld(object):
@@ -618,7 +715,7 @@ class CliffWorld(object):
             labelleft=False) # labels along the bottom edge are off
 
         ax.set_aspect('equal', adjustable='box')
-        rect=mpatches.Rectangle((0.52,-0.49),9.96,0.96, 
+        rect=mpatches.Rectangle((0.51,-0.48),9.98,0.96,
                                 fill=True,
                                 color="#bdbdbd",zorder=50)
         ax.add_patch(rect)
