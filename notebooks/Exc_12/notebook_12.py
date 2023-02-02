@@ -1050,7 +1050,7 @@ def sarsa_lambda_learning(state, action, reward, next_state, next_action, state_
     # write the expression to compute the TD error
     td_error = reward + params['gamma'] * next_q - q
     # write the expression that updates the Q-value for the state-action pair
-    state_action_values = state_action_values + params['alpha'] * td_error * eligibility
+    state_action_values = state_action_values + params['alpha'] * (td_error * eligibility)
     
     return state_values, state_action_values # we also return the state_values (although not changed) 
 
@@ -1079,9 +1079,10 @@ def policy_illustration_path(state, **kwargs):
         33 : 0,
         34 : 0,
         35 : 1,
-        23 : 1,
-        11 : 2,
-        10 : 1,
+        23 : 2,
+        22 : 1,
+        10 : 0,
+        11 : 0,
     }
     
     return state_action_dict[state]
@@ -1093,15 +1094,18 @@ params = {
 }
 cliff = CliffWorldEligibility()
 
-np.random.seed(18)
-cliff.learn_environment(
-    learning_rule = sarsa_lambda_learning, 
-    policy=policy_illustration_path,
-    params = params, 
-    n_episodes = 1,
-    initiation_keyword='ones',
-    lambda_td = 0.9)
-cliff.show_state_action_values_in_grid(min_val=-8, max_val = 0)
+def run_illustration(lambda_td=0.8):
+    np.random.seed(18)
+    cliff.learn_environment(
+        learning_rule = sarsa_lambda_learning, 
+        policy=policy_illustration_path,
+        params = params, 
+        n_episodes = 1,
+        initiation_keyword='ones',
+        lambda_td = lambda_td)
+    cliff.show_state_action_values_in_grid(min_val=-8, max_val = 0)
+
+widgets.interactive(run_illustration, lambda_td = (0,1,0.05))
 # -
 
 
