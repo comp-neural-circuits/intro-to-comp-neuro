@@ -262,7 +262,7 @@ def run_episode(policy, state=0):
         
     for t in range(max_steps):
         # choose next action
-        action = policy(state=state)
+        action = policy(state=state,q = state_action_values[state])
         all_actions.append(action)
 
         # observe outcome of action on environment
@@ -508,6 +508,34 @@ show_state_action_values_in_grid(ax = None, min_val = -8, max_val = 1, state_act
 #
 # 2 - can you see the path the agent would take if it follows the greedy policy?
 
+# ## Greedy policy
+#
+# We can now use the greedy policy to select the best action at every timestep. 
+#
+#
+
+# +
+def greedy(q, **kwargs):
+    action = np.argmax(q)
+    return action
+
+
+state = 0 
+all_states, all_actions, reward_sum = run_episode(policy=greedy, state = state)
+ax.set_title(f'Reward Sum: {reward_sum}')
+
+
+    
+widgets.interactive(visualize_taken_actions, state_index = (0,len(all_states)-1,1), 
+                    agent=widgets.fixed(agent),
+                    all_states=widgets.fixed(all_states),
+                    all_actions=widgets.fixed(all_actions)
+                    
+                   )
+
+
+# -
+
 # ## Different learning algorithms
 #
 # We now want to investigate different learning algorithms, therefore we put everything we wrote above into a class
@@ -604,9 +632,10 @@ class CliffWorld(object):
                                 color=color,zorder=10)
             ax.add_patch(rect)
             
-    def show_state_action_values_in_grid(self, ax = None, min_val = 0, max_val = 0):
+    def show_state_action_values_in_grid(self, ax = None, cax = None, min_val = 0, max_val = 0):
         
-        fig, (ax, cax) = plt.subplots(2,1, gridspec_kw={'height_ratios': [15,1]})
+        if ax == None or cax == None:
+            fig, (ax, cax) = plt.subplots(2,1, gridspec_kw={'height_ratios': [15,1]})
         
         
         cmap = mpl.cm.hot
@@ -831,6 +860,8 @@ class CliffWorld(object):
 # -
 
 
+# We now define again the $\epsilon$-greedy policy
+
 def policy_epsilon_greedy(**kwargs):
     
     q = kwargs['q']
@@ -844,8 +875,21 @@ def policy_epsilon_greedy(**kwargs):
     return action
 
 
+# ## Off-policy vs On-policy
+#
+# So far, we looked at q-learning. It is an off-policy alogorithm, since the update does not depend on the actions the agent actually takes, but on the maximum possible action of the next state. 
+#
+# We now compare this approach to the SARSA algorithm, which allows on-policy learning. The learning method in the class is already modified, so that it looks at the decision of the next state before updating the state-action values
+#
+# <div>
+# <img src="https://github.com/comp-neural-circuits/intro-to-comp-neuro/raw/dev/notebooks/Exc_12/static/sarsa_vs_qlearning.png" width="750"/>
+# </div>
+#
+# Below you can see the implementations of sarsa and q-learning
+#
+
 # +
-def sarsa_learning(state, action, reward, next_state, next_action, state_values, state_action_values, params):
+def sarsa_learning(state, action, reward, next_state, next_action, state_values, state_action_values, params, *args):
     # Q-value of current state-action pair
     q = state_action_values[state, action]
     
@@ -861,7 +905,7 @@ def sarsa_learning(state, action, reward, next_state, next_action, state_values,
     
     return state_values, state_action_values # we also return the state_values (although not changed) 
 
-def q_learning(state, action, reward, next_state, next_action, state_values, state_action_values, params):
+def q_learning(state, action, reward, next_state, next_action, state_values, state_action_values, params, *args):
     # Q-value of current state-action pair
     q = state_action_values[state, action]
     
@@ -880,26 +924,184 @@ def q_learning(state, action, reward, next_state, next_action, state_values, sta
 
 
 # +
-sample_cliff = CliffWorld()
-# sample_cliff.run_episode(policy=policy_epsilon_greedy)
-
+fig, (ax_q_learning, ax_sarsa, cax) = plt.subplots(3,1, gridspec_kw={'height_ratios': [8,8,1]})
+ax_q_learning.set_title('Q-learning')
+ax_sarsa.set_title('SARSA')
 params = {
   'epsilon': 0.1,  # epsilon-greedy policy
   'alpha': 0.1,  # learning rate
   'gamma': 0.8,  # discount factor
 }
 
-np.random.seed(12)
-sample_cliff.learn_environment(
+np.random.seed(42)
+cliff_q_learning = CliffWorld()
+cliff_q_learning.learn_environment(
+    learning_rule = q_learning, 
+    policy=policy_epsilon_greedy,
+    params = params, 
+    n_episodes = 2_000,
+    initiation_keyword='ones',)
+cliff_q_learning.show_state_action_values_in_grid(ax = ax_q_learning, cax=cax, min_val=-8, max_val = 0)
+
+cliff_sarsa = CliffWorld()
+cliff_sarsa.learn_environment(
     learning_rule = sarsa_learning, 
     policy=policy_epsilon_greedy,
     params = params, 
-    n_episodes = 10_000,
+    n_episodes = 2_000,
     initiation_keyword='ones',)
-sample_cliff.show_state_action_values_in_grid(ax = None, min_val=-8, max_val = 0)
+cliff_sarsa.show_state_action_values_in_grid(ax = ax_sarsa, cax=cax, min_val=-8, max_val = 0)
+
 # -
 
+# ## TD($\lambda$)
+#
+# To we now implement TD($\lambda$) in the backward view with eligibility traces
+
+class CliffWorldEligibility(CliffWorld):
+    def __init__(self, grid_length = 12, grid_height = 4):
+        super().__init__(grid_length, grid_height)
+        
+    
+    
+    def learn_environment(self,  learning_rule, policy, params, n_episodes,
+                          initiation_keyword='ones',lambda_td=0.9):
+               
+        self.initiate_values(initiation_keyword)
+         
+        # we need to add eligibiity traces for every state
+        self.eligibility = np.zeros((self.n_states, self.n_actions))
+        
+
+        # Run learning
+        reward_sums = np.zeros(n_episodes)
+
+        # Loop over episodes
+        for episode in range(n_episodes):
+            state = self.init_state  # initialize state
+            
+            
+            reward_sum = 0
+            
+            next_action = policy(state=state,
+                                 v = self.state_values[state], 
+                                 q = self.state_action_values[state], 
+                                 params = params)
+            
+            print (next_action)
+            
+            self.eligibility[state, next_action] = 1
+            
+
+            for t in range(self.max_steps):
+                # choose next action
+                action = next_action
+                # observe outcome of action on environment
+                next_state = take_action(state, action)
+                reward = get_reward(next_state)
+                
+                next_action = policy(state=next_state,
+                                    v = self.state_values[next_state], 
+                                     q = self.state_action_values[next_state], 
+                                     params = params)
+                
+                # update value function
+                self.state_values, self.state_action_values = learning_rule(
+                    state, 
+                    action, 
+                    reward, 
+                    next_state, 
+                    next_action, 
+                    self.state_values,
+                    self.state_action_values, 
+                    params,
+                    self.eligibility,
+                )
+
+                # sum rewards obtained
+                reward_sum += reward
+
+                if reward in [-100, 0]:
+                    break  # episode ends
+                    
+                self.eligibility *= lambda_td
+                self.eligibility[next_state,next_action] = 1
+                state = next_state
+                
+                
+                
+                
+
+            reward_sums[episode] = reward_sum
+        
+
+        return reward_sums
 
 
+def sarsa_lambda_learning(state, action, reward, next_state, next_action, state_values, state_action_values, params, eligibility, *args):
+    # Q-value of current state-action pair
+    q = state_action_values[state, action]
+    
+    if reward in [-100,0]: # this means the episode ends
+        next_q = 0
+    else:
+        next_q = state_action_values[next_state, next_action]
+
+    # write the expression to compute the TD error
+    td_error = reward + params['gamma'] * next_q - q
+    # write the expression that updates the Q-value for the state-action pair
+    state_action_values = state_action_values + params['alpha'] * td_error * eligibility
+    
+    return state_values, state_action_values # we also return the state_values (although not changed) 
+
+
+# +
+def policy_illustration_path(state, **kwargs):
+    
+    state_action_dict = {
+        0 : 3,
+        12 : 3,
+        24 : 0,
+        25 : 0,
+        26 : 3,
+        38 : 0,
+        39 : 0,
+        40 : 0,
+        41 : 1,
+        29 : 2,
+        28 : 1,
+        16 : 0,
+        17 : 0,
+        18 : 0,
+        19 : 0,
+        20 : 3,
+        32 : 0,
+        33 : 0,
+        34 : 0,
+        35 : 1,
+        23 : 1,
+        11 : 2,
+        10 : 1,
+    }
+    
+    return state_action_dict[state]
+
+params = {
+  'epsilon': 0.1,  # epsilon-greedy policy
+  'alpha': 0.1,  # learning rate
+  'gamma': 0.8,  # discount factor
+}
+cliff = CliffWorldEligibility()
+
+np.random.seed(18)
+cliff.learn_environment(
+    learning_rule = sarsa_lambda_learning, 
+    policy=policy_illustration_path,
+    params = params, 
+    n_episodes = 1,
+    initiation_keyword='ones',
+    lambda_td = 0.9)
+cliff.show_state_action_values_in_grid(min_val=-8, max_val = 0)
+# -
 
 
