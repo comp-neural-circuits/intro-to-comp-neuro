@@ -187,7 +187,7 @@ for ii in range(n_steps):
     all_states.append(state)
     
     
-def visualize_taken_actions(agent, all_states, all_actions, state_index=0):
+def visualize_taken_actions(all_states, all_actions, state_index=0):
    
     state = all_states[state_index]
     action = all_actions[state_index]
@@ -208,15 +208,11 @@ def visualize_taken_actions(agent, all_states, all_actions, state_index=0):
     
     arrow.xy = (target_x ,target_y )
     arrow.set_position([x,y])
-    agent.set_offsets([x,y])
     
 
-widgets.interactive(visualize_taken_actions, state_index = (0,len(all_states)-2,1), 
-                    agent=widgets.fixed(agent),
+widgets.interactive(visualize_taken_actions, state_index = (0,len(all_states)-2,1),
                     all_states=widgets.fixed(all_states),
-                    all_actions=widgets.fixed(all_actions),
-                    arrow = widgets.fixed(arrow),
-                    
+                    all_actions=widgets.fixed(all_actions),                   
                    )
 
 # -
@@ -251,7 +247,7 @@ def random_policy(**kwargs):
     return np.random.choice(4)
 
 
-def run_episode(policy, state=0):
+def run_episode(policy, state=0, state_action_values=None):
         
     all_actions = []
     all_states = [state]
@@ -261,7 +257,7 @@ def run_episode(policy, state=0):
         
     for t in range(max_steps):
         # choose next action
-        action = policy(state=state,q = state_action_values[state])
+        action = policy(state=state, state_action_values=state_action_values)
         all_actions.append(action)
 
         # observe outcome of action on environment
@@ -282,12 +278,11 @@ def run_episode(policy, state=0):
 
 state = 0 
 all_states, all_actions, reward_sum = run_episode(policy=random_policy, state = state)
-ax.set_title(f'Reward Sum: {reward_sum}')
+
 
 
     
-widgets.interactive(visualize_taken_actions, state_index = (0,len(all_states)-1,1), 
-                    agent=widgets.fixed(agent),
+widgets.interactive(visualize_taken_actions, state_index = (0,len(all_states)-1,1),
                     all_states=widgets.fixed(all_states),
                     all_actions=widgets.fixed(all_actions)
                     
@@ -497,19 +492,18 @@ show_state_action_values_in_grid(ax = None, min_val = -8, max_val = 1, state_act
 #
 
 # +
-def greedy(q, **kwargs):
-    action = np.argmax(q)
+def greedy(state_action_values, **kwargs):
+    action = np.argmax(state_action_values[kwargs['state']])
     return action
 
 
 state = 0 
-all_states, all_actions, reward_sum = run_episode(policy=greedy, state = state)
-ax.set_title(f'Reward Sum: {reward_sum}')
+all_states, all_actions, reward_sum = run_episode(policy=greedy, state = state, 
+                                                  state_action_values=state_action_values)
 
 
     
-widgets.interactive(visualize_taken_actions, state_index = (0,len(all_states)-1,1), 
-                    agent=widgets.fixed(agent),
+widgets.interactive(visualize_taken_actions, state_index = (0,len(all_states)-1,1),
                     all_states=widgets.fixed(all_states),
                     all_actions=widgets.fixed(all_actions)
                     
