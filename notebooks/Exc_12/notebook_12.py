@@ -90,6 +90,7 @@ def show_grid_world(ax=None):
     return ax
 show_grid_world();
 
+
 # ## Moving in the environment
 #
 # The agent is able to move in the environment
@@ -99,15 +100,13 @@ show_grid_world();
 #
 
 # +
-
-
-def move_states(state, agent):
+def move_states(state):
     fig, ax = plt.subplots(figsize=(8,3))
     show_grid_world(ax)
     agent = ax.scatter(state%12,state//12,s=800,c='b',zorder=60)
     print (f'state {state}:      x = {state%12}, y = {state//12}')
 
-widgets.interactive(move_states, state = (0,47,1), agent=widgets.fixed(agent))
+widgets.interactive(move_states, state = (0,47,1))
 
 
 # -
