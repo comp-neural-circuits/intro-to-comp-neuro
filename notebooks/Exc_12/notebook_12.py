@@ -297,6 +297,31 @@ widgets.interactive(visualize_taken_actions, state_index = (0,len(all_states)-1,
 #
 # Can you program a policy that always reaches the goal? Be creative!
 
+# +
+def goal_reaching_policy(**kwargs):
+    state = kwargs['state']
+    
+    # calculate action here
+    action = 1
+    
+    return action # in (0 [right],1 [down],2 [left],3 [up])
+    
+    
+
+all_states, all_actions, reward_sum = run_episode(policy=goal_reaching_policy, state = state)
+
+
+
+    
+widgets.interactive(visualize_taken_actions, state_index = (0,len(all_states)-1,1),
+                    all_states=widgets.fixed(all_states),
+                    all_actions=widgets.fixed(all_actions)
+                    
+                   )
+
+
+# -
+
 # ### [Solution 2](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_12/solutions/ade42d1ac53626e9723fe2ae7ca52865.txt)
 
 # ## State-action values
