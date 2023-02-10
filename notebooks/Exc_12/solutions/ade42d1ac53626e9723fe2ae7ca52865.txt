@@ -1,0 +1,17 @@
+### Solution 2
+
+One possible solution is the following policy
+You can also think of a dictionary that exactly maps a specific action to each state, or a more random approach ....
+
+```python
+def policy_to_solve_the_task(**kwargs):
+    
+    if kwargs['state'] in [23,35,47]:
+        return 1
+    
+    elif kwargs['state'] < 36:
+        return 3
+    
+    else:
+        return 0
+```

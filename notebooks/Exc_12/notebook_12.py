@@ -302,25 +302,8 @@ widgets.interactive(visualize_taken_actions, state_index = (0,len(all_states)-1,
 # ### Task 2
 #
 # Can you program a policy that always reaches the goal? Be creative!
-#
-#
-# ### Solution 2
-#
-# One possible solution is the following policy
-# You can also think of a dictionary that exactly maps a specific action to each state, or a more random approach ....
-#
-# ```python
-# def policy_to_solve_the_task(**kwargs):
-#     
-#     if kwargs['state'] in [23,35,47]:
-#         return 1
-#     
-#     elif kwargs['state'] < 36:
-#         return 3
-#     
-#     else:
-#         return 0
-# ```
+
+# ### [Solution 2](https://raw.githubusercontent.com/comp-neural-circuits/intro-to-comp-neuro/dev/notebooks/Exc_12/solutions/ade42d1ac53626e9723fe2ae7ca52865.txt)
 
 # ## State-action values
 #
