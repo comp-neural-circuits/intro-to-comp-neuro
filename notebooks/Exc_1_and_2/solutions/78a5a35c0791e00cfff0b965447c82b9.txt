@@ -1,0 +1,48 @@
+#### Solution 14
+
+```python
+def voltage_evolution(I_e, el, tau_m, v):
+    dt = 1 # in ms
+    r_m = 100e6 # Ohm
+    v_reset = -70 # mV
+    v_th = -50 # mV
+    
+    
+    v_list = []
+    t_list = []
+    I_e *= 1e-8 
+    # here we multiply by 10^-8, you can also just provide the value to the function, 
+    # but it does not work with interact then, since the numbers are too small
+    for ii in range(50):
+        if v <= v_th:
+            dv_dt = (-v + el+ r_m * I_e)/tau_m
+            v = v + dv_dt * dt
+        else:
+            v = v_reset
+        v_list.append(v) 
+        t_list.append(ii*dt) # we multiply our time step with our iteration variable to get the time
+
+    
+    return v_list, t_list
+
+
+def run_simulation_and_show_plot(I_e, el=-60, tau_m=10, v=-50):
+    
+    v_list, t_list = voltage_evolution(I_e, el, tau_m, v)
+
+    plt.figure()
+    plt.title('Time evolution of membrane voltage')
+
+    plt.plot(t_list,v_list,linewidth=2.5)
+
+    plt.xlabel('Time in ms')
+    plt.ylabel('Voltage in mV')
+    
+    plt.ylim([-80,20])
+    plt.show()
+
+''' you can either use interact ''' 
+# interact(run_simulation_and_show_plot, I_e=(-2,6,1))
+''' or simply call the function'''
+run_simulation_and_show_plot(I_e = 2)
+```

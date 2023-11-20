@@ -1,0 +1,18 @@
+#### Solution 9 - What happend
+
+1 We import the library that we need for plotting. Once imported, we will be able to use it in every cell in this notebook. So for the next notebooks we will import it at the beginning.
+
+2 We use a file for the style of the plots
+
+
+3 We create a figure.
+
+4 We add a title to the figure
+
+5/6 we define our x- and y- values
+
+7 we create a line-plot (plt.plot) the first argument of the function have to be the x-values, the second the y-values. then we have some specified parameters, like the color or the linewidth. If you are interested - there are many paramters more we can modify - we'll learn about them later on
+
+8/9 we label the x- and y-axis
+
+10 we show the plot - this line is not necessary in notebooks like this one, but you need it for python scripts for example. 

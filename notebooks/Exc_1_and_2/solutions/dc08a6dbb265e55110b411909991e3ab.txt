@@ -1,0 +1,12 @@
+#### Solution 4 - What happend
+
+We use the range function to define the range we want to loop over. In the inital example 
+```python
+range(2)
+``` 
+we will loop over the numbers 0 and 1. So the range function basically takes an argument and produces a list of integers that we can use to iterate. You can also change the starting value of the produced integers. For example
+
+```python
+range(1,3) 
+```
+would result in the numbers 1 and 2

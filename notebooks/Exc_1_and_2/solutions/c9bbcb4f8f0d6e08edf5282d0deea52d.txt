@@ -1,0 +1,15 @@
+#### Solution 3 - What happend
+
+1-4 We defined our variables (now we also define our time step dt)
+
+5 calculating the instantaneous change in v
+
+6 printing the calculated value, while also printing what the value is
+
+7 setting v equal to its old value plus the change it experiences multiplied with our chosen timestep
+
+8 printing v (and printing that we print v)
+
+9 we repeat the steps 3) to 6)
+
+Now thinking about even more repeats of these steps leads us to a very fundamental concept of programming: 
