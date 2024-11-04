@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.14.1
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -75,7 +75,7 @@ for j in range(len(fname)):
 
 # ### First look at the data
 #
-# The dataset is rather rich (you can have a look here: [dataset information](https://github.com/nsteinme/steinmetz-et-al-2019/wiki/data-files)) we will only look a spike trains from this dataset. 
+# The dataset is rather rich (you can have a look here: [dataset information](https://github.com/nsteinme/steinmetz-et-al-2019/wiki/data-files)) we will only consider spike trains from this dataset. 
 #
 # The data is arranged in a list, with every item in the list being a single session (one animal at a particular day).
 # The data in these entries is then stored in dictionaries. 
@@ -105,7 +105,7 @@ for j in range(len(fname)):
 #
 # (neurons, trials, time_bins)
 #
-# This means for example we can get the 15th neurons response of the first trial with:
+# This means for example we can get the 10th neurons response of the first trial with:
 #
 # ```python
 # alldat[1]['spks'][9,0,:]
@@ -136,7 +136,7 @@ def transform_to_event_input(binned_spikes,bin_size=10):
 fig, ax = plt.subplots()
 
 for ii in range(0,60):
-    _, spike_times = transform_to_event_input2(dat['spks'][14,ii,:])
+    _, spike_times = transform_to_event_input(dat['spks'][14,ii,:])
     ax.eventplot(spike_times, lineoffsets=ii)
 
 ax.set(
@@ -255,6 +255,7 @@ def visualize_filtering(pos, filter_shape = 'rectangle', trial_number = 0):
         xlabel = 'Time in ms',
         ylabel = 'Firing rate in Hz',
     )
+    return plt.show()
 
 
 widgets.interactive(visualize_filtering, 
@@ -371,8 +372,8 @@ def multiple_trials(neuron_id = 70, filter_shape = 'large rectangle'):
         ylabel = 'Smooth PSTH',
         
     )
+    return plt.show()
 
-    
     
 widgets.interactive(multiple_trials, 
                     neuron_id = (0,100,1),
